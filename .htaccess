@@ -1,0 +1,65 @@
+RewriteEngine On
+
+# 1. Se o usuário digitar 'meusite.com.br/admin', carrega internamente 'admin.php'
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.*)$ $1.php [L]
+
+# ---------------------------------------------------------------------------
+# 2. COMPRESSÃO (mod_deflate)
+#    O painel admin carrega ~460 KB de CSS+JS sem comprimir. Gzip corta isso
+#    para ~90 KB. Só texto: png/jpg/mp4/woff2 já são comprimidos e recomprimir
+#    gasta CPU sem ganho.
+#    Requer mod_deflate E mod_filter (AddOutputFilterByType vem do mod_filter
+#    no Apache 2.4). Sem eles, o bloco é ignorado e nada quebra.
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    <IfModule mod_filter.c>
+        AddOutputFilterByType DEFLATE text/html text/plain text/xml
+        AddOutputFilterByType DEFLATE text/css
+        AddOutputFilterByType DEFLATE application/javascript application/x-javascript text/javascript
+        AddOutputFilterByType DEFLATE application/json application/manifest+json
+        AddOutputFilterByType DEFLATE image/svg+xml
+        AddOutputFilterByType DEFLATE application/x-font-ttf font/opentype
+    </IfModule>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 3. CACHE DE ESTÁTICOS (mod_expires)
+#    Usamos <FilesMatch> por EXTENSÃO em vez de ExpiresByType por MIME de
+#    propósito: o mod_expires sobrescreve o Cache-Control definido pelo PHP, e
+#    'css/custom_theme.css.php' serve text/css dinâmico com no-cache. Como o
+#    arquivo termina em .php, ele não casa com \.css$ e mantém o header dele.
+#    Nenhuma página .php entra em cache — só arquivos realmente estáticos.
+# ---------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+
+    # Imagens, vídeo e fontes: mudam de nome quando mudam de conteúdo.
+    <FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|mp4|webm|woff|woff2|ttf|eot)$">
+        ExpiresDefault "access plus 1 year"
+        <IfModule mod_headers.c>
+            Header set Cache-Control "public, max-age=31536000, immutable"
+        </IfModule>
+    </FilesMatch>
+
+    # CSS e JS: 1 ano. Seguro porque todo asset local agora sai com
+    # ?v=<mtime> via assetUrl() (lib/utils_functions.php) — mudou o arquivo,
+    # muda a URL, e o navegador busca a versão nova na hora.
+    <FilesMatch "\.(css|js)$">
+        ExpiresDefault "access plus 1 year"
+        <IfModule mod_headers.c>
+            Header set Cache-Control "public, max-age=31536000, immutable"
+        </IfModule>
+    </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# 4. O service worker nunca pode ficar presa em cache, senão o PWA trava numa
+#    versão antiga e para de receber atualizações.
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "(sw\.js|manifest\.php)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>

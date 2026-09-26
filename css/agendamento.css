@@ -1,0 +1,400 @@
+body { background: #f6f7f9; font-family: 'Inter', sans-serif; margin: 0; padding: 0; color: #334155; }
+.booking-layout { width: min(1120px, calc(100% - 40px)); margin: 24px auto; min-height: calc(100vh - 100px); }
+.booking-main { width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.booking-actions-top { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-bottom: 10px; }
+.booking-actions-top a { padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+.booking-actions-top a.btn-refresh { background-color: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.booking-actions-top a.btn-refresh:hover { background-color: #f1f5f9; color: #0f172a; }
+.booking-actions-top a.btn-conta { background-color: var(--app-accent); color: white; border: 1px solid var(--app-accent); }
+.booking-actions-top a.btn-conta:hover { opacity: 0.9; }
+.booking-actions-top a.btn-logout { background-color: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+.booking-hero { display: flex; justify-content: space-between; gap: 14px; align-items: center; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 16px 18px; box-shadow: 0 14px 30px -30px rgba(15,23,42,0.8); transition: opacity 0.22s ease, transform 0.22s ease, max-height 0.22s ease, padding 0.22s ease, margin 0.22s ease, border 0.22s ease; overflow: hidden; }
+.booking-hero.is-hidden { max-height: 0; padding-top: 0; padding-bottom: 0; margin: -8px 0 0; border-width: 0; opacity: 0; transform: translateY(-8px); pointer-events: none; }
+.booking-kicker { display: inline-flex; align-items: center; color: var(--app-accent); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.booking-hero h1 { margin: 0; color: #0f172a; font-size: clamp(1.18rem, 1.7vw, 1.45rem); line-height: 1.12; letter-spacing: 0; }
+.booking-hero p { margin: 5px 0 0; color: #64748b; font-size: 0.88rem; line-height: 1.4; max-width: 560px; }
+.booking-hero-meta { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; min-width: 160px; }
+.booking-hero-meta span { display: inline-flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; color: #475569; border-radius: 999px; padding: 6px 9px; font-size: 0.76rem; font-weight: 700; }
+.booking-hero-meta i { color: var(--app-accent); }
+.booking-step-card { background: white; border-radius: 14px; padding: 30px; border: 1px solid #e2e8f0; box-shadow: 0 16px 35px -30px rgba(15,23,42,0.8); margin-bottom: 22px; }
+.step-title { font-size: 1.25rem; font-weight: 800; color: #1e293b; margin-top: 0; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; border-bottom: 0; padding-bottom: 0; }
+.step-title i { color: var(--app-accent); background: #f0f9ff; padding: 10px; border-radius: 10px; font-size: 1.1rem; }
+.step-helper { margin: 0 0 24px; color: #64748b; line-height: 1.5; font-size: 0.95rem; }
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; font-weight: 600; color: #475569; margin-bottom: 8px; font-size: 0.95rem; }
+.input-icon { position: relative; }
+.input-icon i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.1rem; }
+.input-icon input { width: 100%; padding: 14px 14px 14px 45px; border-radius: 10px; border: 1px solid #cbd5e1; font-family: 'Inter', sans-serif; font-size: 1rem; color: #1e293b; transition: all 0.2s; background: #fff; }
+.input-icon input:focus { border-color: var(--app-accent); box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.05); outline: none; }
+#servicos-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; margin-top: 15px; }
+.categoria-titulo { font-size: 1.1rem; font-weight: 700; color: #64748b; margin-top: 25px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; grid-column: 1 / -1; text-transform: uppercase; letter-spacing: 0.5px; }
+#servicos-container .categoria-titulo:first-of-type { margin-top: 0; }
+
+/* Botões de Serviço */
+.servico-btn { 
+    background: #fff; 
+    border: 2px solid #e2e8f0; 
+    border-radius: 12px; 
+    padding: 15px; 
+    text-align: left; 
+    cursor: pointer; 
+    /* Transição suave combinada com uma resposta rápida ao transform */
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-between; 
+    min-height: 90px; 
+    color: #334155; 
+    position: relative; 
+    overflow: hidden; 
+}
+.servico-btn:hover { border-color: #cbd5e1; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.servico-btn.selected { border-color: var(--app-accent); background: #fffbeb; color: #1e293b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.14); }
+.servico-btn span:first-child { font-weight: 700; font-size: 1rem; margin-bottom: 8px; display: block; line-height: 1.3; }
+.servico-btn .duracao { font-size: 0.85rem; color: #64748b; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+.servico-btn.selected .duracao { color: var(--app-accent); }
+
+/* Combos */
+.combo-btn { border-color: #fde047 !important; background: #fffbeb; }
+.combo-btn:hover { border-color: #facc15 !important; }
+.combo-btn.selected { border-color: var(--app-accent) !important; background: #fef3c7 !important; color: #92400e !important; }
+.combo-btn.selected .duracao { color: #b45309; }
+
+/* Serviços Inativos/Desabilitados */
+.servico-btn.disabled { opacity: 0.4; cursor: not-allowed; background: #f8fafc !important; border-color: #e2e8f0 !important; transform: none; box-shadow: none; pointer-events: none; }
+/* Um serviço já escolhido continua clicável para poder ser desmarcado, mesmo que fique desabilitado. */
+.servico-btn.disabled.selected { pointer-events: auto; cursor: pointer; opacity: 0.75; }
+.barber-card-selectable.disabled { opacity: 0.45; cursor: not-allowed; background: #f8fafc; filter: grayscale(35%); }
+.barber-card-selectable.disabled:hover { border-color: #e2e8f0; transform: none; box-shadow: none; }
+.barber-card-selectable.disabled .btn-detalhes-barbeiro-card { pointer-events: auto; }
+
+.custom-select-selected { padding: 14px 20px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 600; color: #1e293b; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3Cpath d='M12 15l-4.243-4.243 1.415-1.414L12 12.172l2.828-2.829 1.415 1.414z' fill='%2364748b'/%3E%3C/svg%3E") no-repeat right 15px center; cursor: pointer; }
+.custom-select-items { border-radius: 10px; border: 1px solid #cbd5e1; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-top: 5px; overflow: hidden; }
+.custom-option { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; font-weight: 500; display: flex; align-items: center; gap: 15px; }
+.custom-option img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #e2e8f0; }
+.custom-option:hover { background: #f8fafc; }
+.custom-option-wrapper { display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid #f1f5f9; }
+.custom-option-wrapper .custom-option { border-bottom: none; flex-grow: 1; }
+.btn-detalhes-barbeiro { margin-right: 15px; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; background: #e2e8f0; color: #475569; border: none; cursor: pointer; font-weight: 600; }
+.btn-detalhes-barbeiro:hover { background: #cbd5e1; }
+.horario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); gap: 10px; margin-top: 15px; }
+
+/* Botões de Horário */
+.horario-btn { 
+    padding: 12px 5px; 
+    border-radius: 8px; 
+    border: 1px solid #cbd5e1; 
+    background: #fff; 
+    font-weight: 600; 
+    color: #334155; 
+    cursor: pointer; 
+    /* Transição suave combinada com uma resposta rápida ao transform */
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease; 
+    font-size: 0.95rem; 
+}
+.horario-btn:hover:not(.ocupado) { border-color: var(--app-accent); color: var(--app-accent); background: #f0f9ff; }
+.horario-btn.selected, .horario-btn.selecionado { background: var(--app-accent); color: white; border-color: var(--app-accent); box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.35); }
+.horario-btn.ocupado { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; cursor: not-allowed; text-decoration: line-through; pointer-events: none; }
+
+/* EFEITO TÁTIL: "Pulse/Encolhimento" ao clicar nos Serviços e Horários */
+.servico-btn:active, 
+.combo-btn:active, 
+.horario-btn:active:not(.ocupado) {
+    transform: scale(0.93) !important; /* Encolhe levemente o botão no exato momento do clique */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
+}
+
+.mensagem { padding: 15px 20px; border-radius: 10px; font-weight: 600; margin-bottom: 25px; background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; display: flex; align-items: center; gap: 10px; }
+.mensagem.erro { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.login-prompt { padding: 30px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 16px; text-align: center; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+.login-prompt p { margin: 0 0 20px; font-size: 1.1rem; color: #475569; }
+.login-prompt a { display: inline-block; padding: 12px 25px; background: var(--app-accent); color: white; border-radius: 8px; text-decoration: none; margin: 0 10px; font-weight: 600; transition: opacity 0.2s; }
+.login-prompt a:last-child { background: #fff; color: var(--app-accent); border: 2px solid var(--app-accent); }
+
+/* Botão Principal do Formulário */
+.btn-primary { 
+    width: 100%; 
+    padding: 16px; 
+    font-size: 1.1rem; 
+    border-radius: 12px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-top: 10px; 
+    background: var(--app-accent); 
+    border: none; 
+    color: white; 
+    cursor: pointer; 
+    transition: 0.3s; 
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+}
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.15); }
+.btn-primary:active { transform: scale(0.98); box-shadow: 0 5px 10px -3px rgba(0, 0, 0, 0.1); }
+
+.form-disabled { pointer-events: none; opacity: 0.6; user-select: none; filter: grayscale(20%); }
+
+.client-summary-card { background: #f8fafc; padding: 24px; border-radius: 14px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 18px; }
+.client-avatar { background: var(--app-accent); color: white; width: 66px; height: 66px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.7rem; font-weight: 800; box-shadow: 0 10px 20px -12px rgba(245, 158, 11, 0.8); flex-shrink: 0; }
+.client-summary-info { flex-grow: 1; min-width: 0; }
+.client-summary-info h4 { margin: 0; font-size: 1.22rem; color: #1e293b; font-weight: 800; overflow-wrap: anywhere; }
+.client-summary-info p { margin: 6px 0 0; font-size: 0.94rem; color: #64748b; line-height: 1.55; overflow-wrap: anywhere; }
+.client-summary-status { flex-shrink: 0; }
+
+.field-error { display: none; margin-top: 8px; color: #b91c1c; font-size: 0.86rem; font-weight: 700; line-height: 1.35; }
+.field-error.active { display: flex; align-items: center; gap: 7px; }
+.field-error::before { content: "\f06a"; font-family: "Font Awesome 6 Free"; font-weight: 900; }
+.is-invalid { border-color: #ef4444 !important; box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important; }
+.is-valid { border-color: #10b981 !important; box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important; }
+.barber-grid.is-invalid, #servicos-container.is-invalid, #horarios-container.is-invalid { outline: 3px solid rgba(239, 68, 68, 0.14); outline-offset: 6px; border-radius: 14px; }
+.btn-wizard[disabled] { opacity: 0.65; cursor: not-allowed; transform: none !important; filter: grayscale(15%); }
+.fidelity-points-inline { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 14px; background: #fffaf0; border: 1px solid #fde68a; border-radius: 10px; color: #92400e; }
+.fidelity-points-icon { width: 36px; height: 36px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--app-accent); color: #fff; }
+.fidelity-points-inline small { display: block; margin-bottom: 2px; color: #92400e; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.fidelity-points-inline strong { display: block; color: #78350f; font-size: 1.05rem; line-height: 1.1; }
+
+@media (max-width: 992px) { 
+    .booking-layout { width: auto; margin: 0; padding: 15px; } 
+    .booking-actions-top { justify-content: center; flex-wrap: wrap; } 
+    .booking-step-card { padding: 20px; } 
+    .booking-hero { flex-direction: column; align-items: flex-start; padding: 15px; }
+    .booking-hero-meta { justify-content: flex-start; min-width: 0; }
+}
+
+/* Estilos do Upsell (Ofertas Adicionais) */
+@keyframes fadeInUpsell { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.upsell-btn { background: linear-gradient(to right, #fffbeb, #fef3c7) !important; border-color: #fde047 !important; }
+.upsell-btn:hover { background: #fef3c7 !important; transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15) !important; }
+.upsell-btn .duracao { color: #d97706 !important; font-weight: 600 !important; }
+
+/* Melhorias de fluxo: etapas, favoritos e confirmacao */
+.step-dot::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    color: #64748b;
+    font-size: 0.66rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.step-dot.active::after,
+.step-dot.completed::after {
+    color: #0f172a;
+}
+
+#btn-aplicar-cupom {
+    border: 0;
+    border-radius: 12px;
+    background: var(--app-accent);
+    color: #ffffff;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+}
+
+.btn-favorite-barber {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.94);
+    color: #94a3b8;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-favorite-barber:hover,
+.btn-favorite-barber.active {
+    border-color: var(--app-accent);
+    background: color-mix(in srgb, var(--app-accent), #ffffff 86%);
+    color: var(--app-accent);
+}
+
+.barber-card-selectable.is-favorite {
+    border-color: color-mix(in srgb, var(--app-accent), #ffffff 42%);
+}
+
+.favorite-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 10px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--app-accent), #ffffff 86%);
+    color: color-mix(in srgb, var(--app-accent), #0f172a 20%);
+    font-size: 0.76rem;
+    font-weight: 900;
+}
+
+.confirmation-premium {
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.confirmation-empty {
+    padding: 22px;
+    text-align: center;
+    color: #64748b;
+}
+
+.confirmation-empty i {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--app-accent);
+    font-size: 1.8rem;
+}
+
+.confirmation-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.confirmation-header h4 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.12rem;
+}
+
+.confirmation-total {
+    color: var(--app-accent);
+    font-size: 1.45rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.confirmation-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 16px;
+}
+
+.confirmation-item {
+    padding: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.confirmation-item span {
+    display: block;
+    margin-bottom: 4px;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.confirmation-item strong {
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.discount-apply-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.discount-apply-row input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1e293b;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+#btn-aplicar-cupom {
+    min-width: 112px;
+    padding: 0 16px;
+}
+
+.discount-feedback {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.discount-feedback.success {
+    color: #047857;
+}
+
+.discount-feedback.error {
+    color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+    .step-dot::after {
+        display: none;
+    }
+
+    .confirmation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .confirmation-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .discount-apply-row {
+        grid-template-columns: 1fr;
+    }
+
+    #btn-aplicar-cupom {
+        min-height: 44px;
+    }
+
+}
+
+/* Cards de seleção de barbeiro (Passo 2) */
+.barber-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-top: 15px; }
+.barber-card-selectable { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 16px; padding: 20px 15px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; display: flex; flex-direction: column; align-items: center; }
+.barber-card-selectable:hover { border-color: #cbd5e1; transform: translateY(-4px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+.barber-card-selectable.selected { border-color: var(--app-accent); background: color-mix(in srgb, var(--app-accent), #ffffff 97%); box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent), transparent 85%); }
+.barber-card-selectable.selected::after { content: '\f058'; font-family: 'Font Awesome 5 Free'; font-weight: 900; position: absolute; top: 12px; right: 12px; color: var(--app-accent); font-size: 1.3rem; background: white; border-radius: 50%; }
+.barber-avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 3px solid #f1f5f9; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.barber-name { font-weight: 700; color: #1e293b; font-size: 1.05rem; margin: 0 0 6px 0; }
+.barber-rating { color: var(--app-accent); font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 4px; margin-bottom: 12px; }
+.btn-detalhes-barbeiro-card { margin-top: auto; font-size: 0.8rem; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; color: #475569; cursor: pointer; width: 100%; transition: 0.2s; font-weight: 600; }
+.btn-detalhes-barbeiro-card:hover { background: #e2e8f0; color: #1e293b; }
+
+/* Aviso de login obrigatório (Passo 1, visitante) */
+.guest-locked-notice { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 16px; padding: 30px 25px; text-align: center; color: #475569; }
+.guest-locked-notice i { font-size: 2rem; color: #cbd5e1; margin-bottom: 12px; display: block; }
+.guest-locked-notice p { margin: 0; font-size: 1rem; line-height: 1.5; }
+
+/* Ticket de resumo (Passo 5) */
+.receipt-ticket { background: #ffffff; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); position: relative; margin-bottom: 25px; border: 1px solid #e2e8f0; overflow: hidden; }
+.receipt-header { background: #f8fafc; color: #1e293b; padding: 25px; text-align: center; border-bottom: 2px dashed #cbd5e1; }
+.receipt-body { padding: 30px 20px 20px; background: #ffffff; }
+.receipt-divider { border-top: 2px dashed #e2e8f0; margin: 20px 0; }

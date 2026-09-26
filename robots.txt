@@ -1,0 +1,53 @@
+# robots.txt — regras para todos os robôs
+User-agent: *
+
+# --- Páginas públicas (indexáveis): início e agendamento ---
+Allow: /$
+Allow: /index
+Allow: /index.php
+Allow: /agendamento
+Allow: /agendamento.php
+
+# --- Pastas de bibliotecas, código-fonte, dados, logs e templates ---
+Disallow: /lib/
+Disallow: /actions/
+Disallow: /PHPMailer/
+Disallow: /admin_tabs/
+Disallow: /minha_conta_tabs/
+Disallow: /email_templates/
+Disallow: /_dados/
+Disallow: /_logs/
+Disallow: /uploads/
+Disallow: /css/
+Disallow: /js/
+
+# --- Painéis, endpoints de sistema e páginas privadas ---
+# As regras cobrem a URL com e sem a extensão .php (o site aceita ambas).
+# (o prefixo /admin cobre admin, admin_actions, admin_data, admin_modals, etc.)
+Disallow: /admin
+Disallow: /painel_barbeiro
+Disallow: /barbeiro_actions
+Disallow: /barbeiro_modals
+Disallow: /minha_conta
+Disallow: /install
+Disallow: /webhook_stripe
+Disallow: /functions
+Disallow: /processar_agendamento
+Disallow: /agendamento_manual_barbeiro
+Disallow: /check_new_appointments
+Disallow: /get_horarios
+Disallow: /salvar_avaliacao
+Disallow: /reagendar_barbeiro
+Disallow: /header_app
+Disallow: /ajax_gemini
+Disallow: /assistente
+Disallow: /login
+Disallow: /logout_cliente
+Disallow: /registro
+Disallow: /esqueci_senha
+Disallow: /redefinir_senha
+Disallow: /confirmar_email
+
+# --- Páginas de impressão (relatórios, vouchers e comprovativos) ---
+# (o prefixo /imprimir cobre todos os arquivos imprimir_*)
+Disallow: /imprimir

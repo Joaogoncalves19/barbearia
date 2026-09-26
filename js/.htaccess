@@ -1,0 +1,8 @@
+# Permite que o service worker (servido de /js/) controle a raiz do app.
+# "../" é relativo à URL do sw.js -> aponta para a pasta acima (raiz do app),
+# funcionando tanto em subpasta quanto na raiz do domínio.
+<IfModule mod_headers.c>
+    <Files "sw.js">
+        Header set Service-Worker-Allowed "../"
+    </Files>
+</IfModule>
