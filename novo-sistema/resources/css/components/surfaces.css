@@ -1,0 +1,224 @@
+/* ==========================================================================
+   CARD, BADGE, AVATAR, FOTO (e placeholder de foto)
+   ========================================================================== */
+
+.card {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+}
+
+.card--flush {
+    padding: 0;
+    overflow: hidden;
+}
+
+.card--sunken {
+    background: var(--c-surface-sunken);
+    border-color: transparent;
+}
+
+/* Card clicavel inteiro: o link cobre o card, o foco aparece no card. */
+.card--link {
+    position: relative;
+    transition: border-color var(--dur-fast);
+}
+
+.card--link:hover {
+    border-color: var(--c-border-control);
+}
+
+.card--link a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+}
+
+.card--link:has(a:focus-visible) {
+    outline: var(--focus-width) solid var(--c-focus);
+    outline-offset: var(--focus-offset);
+}
+
+.card--link a:focus-visible {
+    outline: none;
+}
+
+.card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.card__body {
+    padding: var(--space-5);
+}
+
+/* --- Badge (status) --------------------------------------------------------
+   Sempre com texto; a cor so reforca. */
+.badge {
+    --badge-fg: var(--c-text-muted);
+    --badge-bg: var(--c-surface-sunken);
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0.125rem var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--badge-bg);
+    color: var(--badge-fg);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    line-height: 1.5;
+    white-space: nowrap;
+}
+
+.badge::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.badge--plain::before {
+    display: none;
+}
+
+.badge--success {
+    --badge-fg: var(--c-success);
+    --badge-bg: var(--c-success-bg);
+}
+
+.badge--warning {
+    --badge-fg: var(--c-warning);
+    --badge-bg: var(--c-warning-bg);
+}
+
+.badge--danger {
+    --badge-fg: var(--c-danger);
+    --badge-bg: var(--c-danger-bg);
+}
+
+.badge--info {
+    --badge-fg: var(--c-info);
+    --badge-bg: var(--c-info-bg);
+}
+
+.badge--accent {
+    --badge-fg: var(--c-accent-text);
+    --badge-bg: var(--c-accent-soft);
+}
+
+/* Marca "EXEMPLO" dos prototipos: impossivel confundir com dado real. */
+.badge--sample {
+    --badge-fg: var(--c-warning);
+    --badge-bg: var(--c-warning-bg);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* --- Avatar ------------------------------------------------------------------ */
+.avatar {
+    --avatar-size: 2.5rem;
+
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--c-surface-sunken);
+    color: var(--c-text);
+    font-size: calc(var(--avatar-size) * 0.38);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.02em;
+}
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar--sm {
+    --avatar-size: 2rem;
+}
+
+.avatar--lg {
+    --avatar-size: 3.5rem;
+}
+
+.avatar--xl {
+    --avatar-size: 5rem;
+}
+
+/* --- Foto e placeholder de foto -------------------------------------------------
+   Enquanto nao houver fotos reais, o placeholder mostra O QUE deve entrar ali
+   (ex.: "Retrato do profissional"), nunca uma foto generica de banco. */
+.photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-media);
+    background: var(--c-surface-sunken);
+    aspect-ratio: var(--ratio, 4 / 3);
+}
+
+.photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo--placeholder {
+    display: grid;
+    place-items: center;
+    padding: var(--space-4);
+    background: repeating-linear-gradient(
+        135deg,
+        var(--c-placeholder-a) 0 12px,
+        var(--c-placeholder-b) 12px 24px
+    );
+    color: var(--c-text-muted);
+    text-align: center;
+}
+
+.photo__label {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-2);
+    max-width: 22ch;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-control);
+    background: var(--c-surface);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-snug);
+}
+
+.photo__label small {
+    font-weight: var(--fw-regular);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--c-warning);
+}
+
+.ratio-portrait {
+    --ratio: 4 / 5;
+}
+
+.ratio-square {
+    --ratio: 1 / 1;
+}
+
+.ratio-wide {
+    --ratio: 16 / 9;
+}
+
+.ratio-landscape {
+    --ratio: 3 / 2;
+}

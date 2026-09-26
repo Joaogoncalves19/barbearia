@@ -1,0 +1,11 @@
+/*
+ * Fontes hospedadas no proprio dominio (pacotes @fontsource, licenca OFL).
+ * Nada de Google Fonts em tempo de execucao: mais rapido, sem terceiros e
+ * sem enviar o IP do visitante para fora (LGPD).
+ *
+ * Enquanto a direcao visual nao for aprovada, as duas fontes de titulo sao
+ * carregadas (so nas paginas de referencia). A aprovada fica; a outra sai.
+ */
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/bricolage-grotesque/index.css';

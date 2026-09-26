@@ -19,7 +19,7 @@ Testes: `tests/seguranca_fase1.php` (+ `tests/seguranca_xss_navegador.mjs` para 
 | Execução | Resultado |
 |----------|-----------|
 | Antes das correções (código do commit `0ae603c`) | **17 falhas** (todas as 4 vulnerabilidades reproduzidas) |
-| Depois das correções | **31/31 verificações passando**, exit 0 |
+| Depois das correções | **25/25 verificações passando**, exit 0 |
 | Suíte existente `tests/assinaturas.php` | 40/40 passando (sem regressão) |
 
 ## S-01 — Exclusão de agendamento alheio

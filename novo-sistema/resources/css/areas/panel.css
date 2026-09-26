@@ -1,0 +1,486 @@
+/* ==========================================================================
+   PAINEL — clareza e produtividade
+   Superficie clara, fonte de texto tambem nos titulos, densidade media,
+   cor de marca so em acao principal, foco e item ativo.
+   ========================================================================== */
+
+.panel {
+    --sidebar-w: 15.5rem;
+
+    font-size: var(--fs-sm);
+}
+
+.panel-shell {
+    min-height: 100dvh;
+}
+
+@media (min-width: 64rem) {
+    .panel-shell {
+        display: grid;
+        grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+    }
+}
+
+/* --- Barra lateral ------------------------------------------------------------ */
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: var(--z-overlay);
+    display: flex;
+    flex-direction: column;
+    width: min(85vw, var(--sidebar-w));
+    padding: var(--space-4) var(--space-3);
+    border-right: var(--border-width) solid var(--c-border);
+    background: var(--c-surface);
+    transform: translateX(-100%);
+    transition: transform var(--dur-base) var(--ease-out);
+    overflow-y: auto;
+}
+
+.sidebar.is-open {
+    transform: none;
+    box-shadow: var(--shadow-lg);
+}
+
+.sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--z-overlay) - 1);
+    background: var(--c-overlay);
+}
+
+@media (min-width: 64rem) {
+    .sidebar {
+        position: sticky;
+        top: 0;
+        height: 100dvh;
+        width: auto;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .sidebar-backdrop,
+    .sidebar__close {
+        display: none;
+    }
+}
+
+.sidebar__brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-1) var(--space-3) var(--space-5);
+}
+
+.sidebar__brand .brand__name {
+    font-size: 1.05rem;
+}
+
+.sidebar__footer {
+    margin-top: auto;
+    padding: var(--space-4) var(--space-3) 0;
+    border-top: var(--border-width) solid var(--c-border);
+    font-size: var(--fs-xs);
+    color: var(--c-text-muted);
+}
+
+/* --- Barra superior ------------------------------------------------------------ */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 3.75rem;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: var(--border-width) solid var(--c-border);
+    background: color-mix(in srgb, var(--c-bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+@media (min-width: 64rem) {
+    .topbar {
+        padding-inline: var(--space-8);
+    }
+
+    .topbar__menu {
+        display: none;
+    }
+}
+
+.topbar__search {
+    position: relative;
+    flex: 1;
+    max-width: 26rem;
+}
+
+.topbar__search .icon {
+    position: absolute;
+    top: 50%;
+    left: var(--space-3);
+    transform: translateY(-50%);
+    color: var(--c-text-muted);
+    pointer-events: none;
+}
+
+.topbar__search .control {
+    min-height: 2.5rem;
+    padding-left: var(--space-10);
+    background: var(--c-surface);
+    font-size: var(--fs-sm);
+}
+
+.topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+}
+
+.user-button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch);
+    padding: 0 var(--space-2);
+    border: 0;
+    border-radius: var(--radius-control);
+    background: none;
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+}
+
+.user-button:hover {
+    background: var(--c-surface-sunken);
+}
+
+.user-button__name {
+    display: none;
+}
+
+@media (min-width: 48rem) {
+    .user-button__name {
+        display: inline;
+    }
+}
+
+/* --- Conteudo ------------------------------------------------------------------------ */
+.panel-main {
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-4) var(--space-12);
+}
+
+@media (min-width: 64rem) {
+    .panel-main {
+        padding: var(--space-6) var(--space-8) var(--space-16);
+    }
+}
+
+.page-head {
+    display: grid;
+    gap: var(--space-3);
+}
+
+@media (min-width: 48rem) {
+    .page-head {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+    }
+}
+
+.page-head__title {
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    line-height: var(--lh-snug);
+}
+
+/* --- Indicadores (no maximo 4 no topo) ---------------------------------------------- */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+@media (min-width: 64rem) {
+    .stats {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-4);
+    }
+}
+
+.stat {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+}
+
+.stat__label {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    color: var(--c-text-muted);
+}
+
+.stat__value {
+    font-size: var(--fs-xl);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+}
+
+.stat__foot {
+    font-size: var(--fs-xs);
+    color: var(--c-text-muted);
+}
+
+.dashboard-grid {
+    display: grid;
+    gap: var(--space-5);
+}
+
+@media (min-width: 64rem) {
+    .dashboard-grid {
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}
+
+/* Lista compacta de atendimentos (tela Hoje) */
+.appt-list {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.appt {
+    display: grid;
+    grid-template-columns: 3.5rem 1fr auto;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.appt:last-child {
+    border-bottom: 0;
+}
+
+.appt__time {
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.appt__who {
+    display: grid;
+    min-width: 0;
+}
+
+.appt__who strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.appt__who span {
+    color: var(--c-text-muted);
+    font-size: var(--fs-xs);
+}
+
+.appt.is-next {
+    margin-inline: calc(-1 * var(--space-3));
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-control);
+    background: var(--c-accent-soft);
+}
+
+.task-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* --- Agenda (dia, colunas por profissional) ------------------------------------------ */
+.agenda-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.agenda-date {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.agenda-date__label {
+    min-width: 11rem;
+    font-weight: var(--fw-semibold);
+    text-align: center;
+}
+
+.agenda {
+    --slot-h: 1.9rem; /* altura de 15 min */
+    --time-col: 3.5rem;
+
+    overflow: auto;
+    max-height: 72dvh;
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+}
+
+.agenda__grid {
+    display: grid;
+    grid-template-columns: var(--time-col) repeat(var(--cols), minmax(11rem, 1fr));
+    grid-template-rows: auto repeat(var(--rows), var(--slot-h));
+    min-width: max-content;
+}
+
+.agenda__corner,
+.agenda__pro {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    padding: var(--space-3);
+    border-bottom: var(--border-width) solid var(--c-border);
+    background: var(--c-surface);
+}
+
+.agenda__corner {
+    left: 0;
+    z-index: 4;
+}
+
+.agenda__pro {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--fw-semibold);
+    border-left: var(--border-width) solid var(--c-border);
+}
+
+.agenda__pro small {
+    display: block;
+    color: var(--c-text-muted);
+    font-weight: var(--fw-regular);
+}
+
+.agenda__time {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    padding: 0 var(--space-2);
+    background: var(--c-surface);
+    color: var(--c-text-muted);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    transform: translateY(-0.55em);
+}
+
+.agenda__cell {
+    border-left: var(--border-width) solid var(--c-border);
+    border-top: var(--border-width) solid color-mix(in srgb, var(--c-border) 45%, transparent);
+}
+
+.agenda__cell.is-hour {
+    border-top-color: var(--c-border);
+}
+
+.agenda__cell.is-off {
+    background: repeating-linear-gradient(135deg, transparent 0 6px, var(--c-surface-sunken) 6px 12px);
+}
+
+.agenda__event {
+    z-index: 1;
+    border: 0;
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    margin: 2px 4px;
+    padding: var(--space-1) var(--space-2);
+    overflow: hidden;
+    border-left: 3px solid var(--event-color, var(--c-accent));
+    border-radius: calc(var(--radius-control) - 1px);
+    background: var(--event-bg, var(--c-accent-soft));
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    line-height: 1.3;
+    text-align: left;
+    cursor: pointer;
+}
+
+.agenda__event strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+}
+
+.agenda__event:hover {
+    filter: brightness(0.97);
+}
+
+.agenda__event--done {
+    --event-color: var(--c-success);
+    --event-bg: var(--c-success-bg);
+}
+
+.agenda__event--pending {
+    --event-color: var(--c-warning);
+    --event-bg: var(--c-warning-bg);
+}
+
+.agenda__event--break {
+    --event-color: var(--c-border-control);
+    --event-bg: var(--c-surface-sunken);
+    color: var(--c-text-muted);
+    cursor: default;
+}
+
+.agenda__now {
+    z-index: 2;
+    align-self: start;
+    height: 2px;
+    margin-top: var(--now-offset, 0);
+    background: var(--c-danger);
+    pointer-events: none;
+}
+
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    font-size: var(--fs-xs);
+    color: var(--c-text-muted);
+}
+
+/* Visao de lista (celular e recepcao) */
+.agenda-list {
+    display: grid;
+    gap: var(--space-5);
+}
+
+/* --- Login (tela de acesso da equipe) ------------------------------------------------- */
+.auth-page {
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    padding: var(--space-6) var(--space-4);
+}
+
+.auth-card {
+    width: min(100%, 25rem);
+}

@@ -2,4 +2,5 @@
 _dados/*.sqlite
 _dados/*.sqlite-*
 _logs/*.log
+_logs/*.txt
 vendor/

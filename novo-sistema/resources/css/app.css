@@ -1,0 +1,15 @@
+/*
+ * Nucleo compartilhado por site e painel: fontes, tokens, base e componentes.
+ * Cada area carrega por cima o seu arquivo (site.css ou panel.css).
+ */
+@import './fonts.css';
+@import './tokens.css';
+@import './base.css';
+@import './components/button.css';
+@import './components/forms.css';
+@import './components/surfaces.css';
+@import './components/feedback.css';
+@import './components/overlays.css';
+@import './components/data.css';
+@import './components/navigation.css';
+@import './components/brand.css';

@@ -1,0 +1,287 @@
+/* ==========================================================================
+   TOKENS DE DESIGN
+   --------------------------------------------------------------------------
+   Tres camadas:
+     1. Primitivos   (--p-*)  paleta crua de cada direcao visual
+     2. Semanticos   (--c-*)  o que os componentes usam (texto, superficie...)
+     3. Escalas              tipografia, espaco, raio, sombra, movimento
+
+   Componentes NUNCA usam primitivos nem valores soltos: so --c-* e escalas.
+
+   IMPORTANTE: data-direcao vai no <html> (mesmo elemento do :root), porque
+   variaveis sao resolvidas onde sao declaradas. Para exibir uma direcao dentro
+   de um trecho da pagina, o elemento recebe data-direcao E data-superficie.
+   Assim trocar a direcao visual, ou passar uma secao do site de escura para
+   clara, nao exige mexer em componente nenhum.
+
+   Contraste de cada par texto/fundo documentado em identidade-visual.md.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. PRIMITIVOS — Direcao A "Oficio contemporaneo" (padrao)
+   Carvao quente + osso + cobre. Referencia: couro, madeira escura, latao,
+   luz quente -- traduzidos em cores lisas e contemporaneas, sem textura vintage.
+   -------------------------------------------------------------------------- */
+:root,
+[data-direcao='a'] {
+    --p-ink-950: #121110;
+    --p-ink-900: #1b1917;
+    --p-ink-800: #25221f;
+    --p-ink-700: #35312c;
+    --p-ink-600: #4a443d;
+
+    --p-stone-600: #6a6258; /* texto secundario sobre claro (5,5:1) */
+    --p-stone-500: #8c8377; /* borda de controle sobre claro (3,6:1) */
+    --p-stone-400: #8a8177; /* borda de controle sobre escuro (4,6:1) */
+    --p-stone-300: #b8afa2; /* texto secundario sobre escuro (8,7:1) */
+
+    --p-paper-200: #ddd5c8;
+    --p-paper-100: #efe9df;
+    --p-paper-50: #f8f5ef;
+    --p-paper-0: #fffdf9;
+
+    --p-accent-300: #e2b37d; /* acento como TEXTO sobre escuro (9,9:1) */
+    --p-accent-500: #bd8246; /* acento SOLIDO (botao) com texto escuro (5,6:1) */
+    --p-accent-600: #9a6632;
+    --p-accent-700: #80532a; /* acento como TEXTO/FOCO sobre claro (6,1:1) */
+    --p-accent-100: #f5e6d3;
+
+    --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+    --font-display-weight: 520;
+    --font-display-settings: 'opsz' 144;
+    --font-display-tracking: -0.02em;
+    --font-display-case: none;
+
+    --radius-control: 6px;
+    --radius-card: 10px;
+    --radius-media: 4px;
+    --radius-pill: 999px;
+}
+
+/* --------------------------------------------------------------------------
+   PRIMITIVOS — Direcao B "Urbano grafico"
+   Tinta + gesso + tomate (vermelho do barber pole, sem as listras).
+   Mais energia, tipografia grotesca de largura variavel, cantos retos.
+   -------------------------------------------------------------------------- */
+[data-direcao='b'] {
+    --p-ink-950: #0d1110;
+    --p-ink-900: #151a19;
+    --p-ink-800: #1f2624;
+    --p-ink-700: #2e3734;
+    --p-ink-600: #414c48;
+
+    --p-stone-600: #5f6966;
+    --p-stone-500: #77807c;
+    --p-stone-400: #76807b;
+    --p-stone-300: #aeb6b2;
+
+    --p-paper-200: #d8dcd7;
+    --p-paper-100: #eceeea;
+    --p-paper-50: #f5f6f3;
+    --p-paper-0: #ffffff;
+
+    --p-accent-300: #f4937a;
+    --p-accent-500: #e0522f;
+    --p-accent-600: #be3f1f;
+    --p-accent-700: #b23a1b;
+    --p-accent-100: #fbe3dc;
+
+    --font-display: 'Bricolage Grotesque Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    --font-display-weight: 700;
+    --font-display-settings: normal;
+    --font-display-tracking: -0.03em;
+    --font-display-case: none;
+
+    --radius-control: 2px;
+    --radius-card: 2px;
+    --radius-media: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Cores de ESTADO (iguais nas duas direcoes; so o matiz do fundo muda com a
+   superficie). Sempre acompanhadas de icone e texto -- nunca so cor.
+   -------------------------------------------------------------------------- */
+:root {
+    --p-success-700: #2b7350;
+    --p-success-100: #e4f1e8;
+    --p-success-300: #72cb9a;
+    --p-warning-700: #8a5a12;
+    --p-warning-100: #faefd9;
+    --p-warning-300: #e9b863;
+    --p-danger-700: #a8342a;
+    --p-danger-100: #fae7e3;
+    --p-danger-300: #f0907f;
+    --p-info-700: #2a617e;
+    --p-info-100: #e3eff5;
+    --p-info-300: #86bedc;
+}
+
+/* --------------------------------------------------------------------------
+   2. SEMANTICOS — superficie CLARA (padrao: painel, formularios, secoes claras)
+   -------------------------------------------------------------------------- */
+:root,
+[data-superficie='clara'] {
+    color-scheme: light;
+
+    --c-bg: var(--p-paper-50);
+    --c-surface: var(--p-paper-0);
+    --c-surface-raised: var(--p-paper-0);
+    --c-surface-sunken: var(--p-paper-100);
+    --c-text: var(--p-ink-950);
+    --c-text-muted: var(--p-stone-600);
+    --c-border: var(--p-paper-200);
+    --c-border-control: var(--p-stone-500);
+
+    --c-primary: var(--p-ink-900);
+    --c-primary-hover: var(--p-ink-700);
+    --c-on-primary: var(--p-paper-50);
+
+    --c-accent: var(--p-accent-500);
+    --c-accent-hover: var(--p-accent-600);
+    --c-on-accent: var(--p-ink-950);
+    --c-accent-text: var(--p-accent-700);
+    --c-accent-soft: var(--p-accent-100);
+
+    --c-focus: var(--p-accent-700);
+    --c-selection: var(--p-accent-100);
+
+    --c-success: var(--p-success-700);
+    --c-success-bg: var(--p-success-100);
+    --c-warning: var(--p-warning-700);
+    --c-warning-bg: var(--p-warning-100);
+    --c-danger: var(--p-danger-700);
+    --c-danger-bg: var(--p-danger-100);
+    --c-info: var(--p-info-700);
+    --c-info-bg: var(--p-info-100);
+
+    --c-overlay: rgb(18 17 16 / 0.55);
+    --c-placeholder-a: var(--p-paper-100);
+    --c-placeholder-b: var(--p-paper-200);
+}
+
+/* --------------------------------------------------------------------------
+   SEMANTICOS — superficie ESCURA (padrao do site publico)
+   -------------------------------------------------------------------------- */
+[data-superficie='escura'] {
+    color-scheme: dark;
+
+    --c-bg: var(--p-ink-950);
+    --c-surface: var(--p-ink-900);
+    --c-surface-raised: var(--p-ink-800);
+    --c-surface-sunken: var(--p-ink-950);
+    --c-text: var(--p-paper-50);
+    --c-text-muted: var(--p-stone-300);
+    --c-border: var(--p-ink-700);
+    --c-border-control: var(--p-stone-400);
+
+    --c-primary: var(--p-paper-50);
+    --c-primary-hover: var(--p-paper-200);
+    --c-on-primary: var(--p-ink-950);
+
+    --c-accent: var(--p-accent-500);
+    --c-accent-hover: var(--p-accent-300);
+    --c-on-accent: var(--p-ink-950);
+    --c-accent-text: var(--p-accent-300);
+    --c-accent-soft: color-mix(in srgb, var(--p-accent-500) 16%, transparent);
+
+    --c-focus: var(--p-accent-300);
+    --c-selection: color-mix(in srgb, var(--p-accent-500) 35%, transparent);
+
+    --c-success: var(--p-success-300);
+    --c-success-bg: rgb(114 203 154 / 0.12);
+    --c-warning: var(--p-warning-300);
+    --c-warning-bg: rgb(233 184 99 / 0.12);
+    --c-danger: var(--p-danger-300);
+    --c-danger-bg: rgb(240 144 127 / 0.12);
+    --c-info: var(--p-info-300);
+    --c-info-bg: rgb(134 190 220 / 0.12);
+
+    --c-overlay: rgb(0 0 0 / 0.7);
+    --c-placeholder-a: var(--p-ink-800);
+    --c-placeholder-b: var(--p-ink-700);
+}
+
+/* --------------------------------------------------------------------------
+   3. ESCALAS
+   -------------------------------------------------------------------------- */
+:root {
+    /* Tipografia — texto e interface */
+    --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+    /* Escala modular ~1,2 no texto; titulos fluidos (clamp) do celular ao desktop */
+    --fs-xs: 0.75rem;     /* 12px — legendas, rotulos de tabela */
+    --fs-sm: 0.875rem;    /* 14px — interface densa (painel) */
+    --fs-base: 1rem;      /* 16px — texto corrido; minimo para inputs no celular */
+    --fs-md: 1.125rem;    /* 18px — texto de destaque no site */
+    --fs-lg: 1.25rem;     /* 20px — titulo de card */
+    --fs-xl: clamp(1.375rem, 1.1rem + 1vw, 1.625rem);  /* H3 */
+    --fs-2xl: clamp(1.75rem, 1.3rem + 1.8vw, 2.375rem); /* H2 de secao */
+    --fs-3xl: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);     /* H1 de pagina */
+    --fs-display: clamp(2.75rem, 1.6rem + 5.2vw, 5.5rem); /* hero */
+
+    --lh-tight: 1.05;
+    --lh-snug: 1.25;
+    --lh-normal: 1.5;
+    --lh-relaxed: 1.65;
+
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+
+    /* Espaco — base de 4px */
+    --space-0: 0;
+    --space-1: 0.25rem;  /* 4 */
+    --space-2: 0.5rem;   /* 8 */
+    --space-3: 0.75rem;  /* 12 */
+    --space-4: 1rem;     /* 16 */
+    --space-5: 1.25rem;  /* 20 */
+    --space-6: 1.5rem;   /* 24 */
+    --space-8: 2rem;     /* 32 */
+    --space-10: 2.5rem;  /* 40 */
+    --space-12: 3rem;    /* 48 */
+    --space-16: 4rem;    /* 64 */
+    --space-20: 5rem;    /* 80 */
+    --space-24: 6rem;    /* 96 */
+    --space-section: clamp(4rem, 2.5rem + 6vw, 8rem); /* respiro entre secoes do site */
+
+    /* Larguras */
+    --container: 76rem;      /* 1216px */
+    --container-narrow: 46rem;
+    --measure: 68ch;         /* linha de leitura confortavel */
+
+    /* Alvos de toque */
+    --touch: 2.75rem;        /* 44px */
+
+    /* Bordas */
+    --border-width: 1px;
+    --focus-width: 3px;
+    --focus-offset: 2px;
+
+    /* Sombras — SO para o que flutua sobre a pagina (menu, modal, toast).
+       Cards e secoes usam borda ou mudanca de superficie, nunca sombra. */
+    --shadow-sm: 0 1px 2px rgb(18 17 16 / 0.08);
+    --shadow-md: 0 8px 24px rgb(18 17 16 / 0.14), 0 2px 6px rgb(18 17 16 / 0.08);
+    --shadow-lg: 0 24px 60px rgb(18 17 16 / 0.28), 0 4px 12px rgb(18 17 16 / 0.12);
+
+    /* Movimento */
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+    --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Camadas */
+    --z-sticky: 20;
+    --z-dropdown: 40;
+    --z-overlay: 60;
+    --z-toast: 80;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --dur-fast: 0ms;
+        --dur-base: 0ms;
+        --dur-slow: 0ms;
+    }
+}

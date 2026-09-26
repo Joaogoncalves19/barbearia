@@ -1,0 +1,53 @@
+<?php
+
+namespace Tests\Feature\Prototypes;
+
+use Tests\TestCase;
+
+class ReferenceScreensTest extends TestCase
+{
+    private const TELAS = [
+        '/prototipos', '/prototipos/home', '/prototipos/servicos', '/prototipos/agendamento',
+        '/prototipos/painel', '/prototipos/agenda', '/prototipos/agenda?visao=lista', '/design-system',
+    ];
+
+    public function test_telas_de_referencia_abrem_e_se_identificam_como_prototipo(): void
+    {
+        foreach (self::TELAS as $tela) {
+            $this->get($tela)
+                ->assertOk()
+                ->assertSee('Protótipo de referência visual', false)
+                ->assertSee('noindex', false);
+        }
+    }
+
+    public function test_dados_de_exemplo_sempre_marcados(): void
+    {
+        foreach (['/prototipos/home', '/prototipos/servicos', '/prototipos/painel', '/prototipos/agenda'] as $tela) {
+            $this->get($tela)->assertSee('exemplo', false);
+        }
+    }
+
+    public function test_home_nao_exibe_numeros_ficticios_nem_link_de_admin(): void
+    {
+        $html = $this->get('/prototipos/home')->getContent();
+        $this->assertStringNotContainsString('1500', $html);
+        $this->assertStringNotContainsString('Clientes Satisfeitos', $html);
+        $this->assertStringNotContainsString('admin', strtolower(strip_tags($html)));
+    }
+
+    public function test_direcao_visual_vem_do_parametro_e_e_validada(): void
+    {
+        $this->get('/prototipos/home?direcao=b')->assertSee('data-direcao="b"', false);
+        $this->get('/prototipos/home?direcao=<script>')->assertSee('data-direcao="a"', false);
+    }
+
+    public function test_desligadas_em_producao_respondem_404(): void
+    {
+        config(['barbearia.prototypes_enabled' => false]);
+
+        foreach (self::TELAS as $tela) {
+            $this->get($tela)->assertNotFound();
+        }
+    }
+}
