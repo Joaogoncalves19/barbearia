@@ -73,7 +73,7 @@ legacy_references: (tabela antiga, id antigo) ──> (entidade nova, id novo)
    para URLs sem expor sequência), `gateway_*` (Stripe). O id antigo **nunca** é a chave nova; o vínculo
    fica em `legacy_references` (ver 1.4).
 4. **Dinheiro em centavos inteiros** (`*_cents`, `integer`), nunca `float`/`decimal`. Percentuais em
-   **pontos-base** (`*_bp`, 10000 = 100 %). Conversões só pelo value object `Money`/`BasisPoints`.
+   **pontos-base** (`*_bp`, 10000 = 100 %). Conversões só pelo value object `Money` (inclui `percentOf` em pontos-base) e pelo conversor `Decimal` (texto → inteiro sem float).
 5. **Datas**: instantes em UTC (`*_at`, `timestamp`); datas civis sem hora (`*_on`, `date`) e horas de
    parede (`time`) quando o conceito é local (expediente, data de vencimento, aniversário).
 6. **Histórico imutável** ([estrategia-historico.md](estrategia-historico.md)): o que aconteceu
@@ -295,5 +295,748 @@ Só o **resumo** (D-20). Destinatários ficam no arquivo morto do importador.
 
 ## 4. Esquema físico
 
-A lista completa de colunas, tipos, índices e FKs é gerada do banco real por
-`php artisan legacy:schema-doc` e está no [apêndice](#apendice-esquema-fisico-gerado) deste documento.
+A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado por
+`php artisan app:schema-doc` e está no apêndice abaixo (regenerar sempre que houver migration nova).
+
+## Apêndice — esquema físico (gerado)
+
+Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+
+### `advances`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (restrict) |
+| `amount_cents` | integer | nao | | |
+| `issued_on` | date | sim | | |
+| `reference_month` | varchar | sim | | |
+| `description` | varchar | sim | | |
+| `commission_payout_id` | integer | sim | | commission_payouts.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `appointment_adjustments`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | nao | | appointments.id (cascade) |
+| `kind` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `coupon_id` | integer | sim | | coupons.id (set null) |
+| `gift_card_id` | integer | sim | | gift_cards.id (set null) |
+| `subscription_id` | integer | sim | | subscriptions.id (set null) |
+| `description` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `appointment_events`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | nao | | appointments.id (cascade) |
+| `type` | varchar | nao | | |
+| `description` | text | sim | | |
+| `actor_label` | varchar | sim | | |
+| `data` | text | sim | | |
+| `occurred_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+
+Índices: (appointment_id, occurred_at)
+
+### `appointment_items`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | nao | | appointments.id (cascade) |
+| `item_type` | varchar | nao | | |
+| `service_id` | integer | sim | | services.id (set null) |
+| `package_id` | integer | sim | | packages.id (set null) |
+| `product_id` | integer | sim | | products.id (set null) |
+| `name` | varchar | nao | | |
+| `quantity` | integer | nao | `1` | |
+| `unit_price_cents` | integer | sim | | |
+| `total_cents` | integer | sim | | |
+| `cost_cents` | integer | sim | | |
+| `duration_minutes` | integer | sim | | |
+| `price_source` | varchar | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `appointment_reminders`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | nao | | appointments.id (cascade) |
+| `kind` | varchar | nao | | |
+| `status` | varchar | nao | | |
+| `sent_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (appointment_id, kind)
+
+### `appointments`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `code` | varchar | nao | | |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `professional_id` | integer | sim | | professionals.id (restrict) |
+| `professional_name` | varchar | sim | | |
+| `customer_name` | varchar | nao | | |
+| `customer_email` | varchar | sim | | |
+| `customer_phone` | varchar | sim | | |
+| `starts_at` | datetime | nao | | |
+| `ends_at` | datetime | nao | | |
+| `status` | varchar | nao | | |
+| `source` | varchar | nao | | |
+| `notes` | text | sim | | |
+| `subtotal_cents` | integer | sim | | |
+| `discount_cents` | integer | sim | | |
+| `total_cents` | integer | sim | | |
+| `cancelled_at` | datetime | sim | | |
+| `cancelled_by` | varchar | sim | | |
+| `cancellation_reason` | varchar | sim | | |
+| `confirmation_requested_at` | datetime | sim | | |
+| `confirmed_at` | datetime | sim | | |
+| `completed_at` | datetime | sim | | |
+| `payment_gateway` | varchar | sim | | |
+| `payment_gateway_reference` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (code)
+
+Índices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
+
+### `audit_logs`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `actor_type` | varchar | sim | | |
+| `actor_id` | integer | sim | | |
+| `actor_label` | varchar | sim | | |
+| `action` | varchar | nao | | |
+| `auditable_type` | varchar | sim | | |
+| `auditable_id` | integer | sim | | |
+| `old_values` | text | sim | | |
+| `new_values` | text | sim | | |
+| `description` | text | sim | | |
+| `ip_address` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+
+Índices: (auditable_type, auditable_id) · (created_at)
+
+### `blocked_slots`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `starts_at` | datetime | nao | | |
+| `ends_at` | datetime | nao | | |
+| `reason` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (professional_id, starts_at)
+
+### `campaigns`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `channel` | varchar | nao | | |
+| `template` | varchar | sim | | |
+| `subject` | varchar | sim | | |
+| `segment` | varchar | sim | | |
+| `status` | varchar | nao | | |
+| `total_recipients` | integer | nao | `0` | |
+| `sent_count` | integer | nao | `0` | |
+| `failed_count` | integer | nao | `0` | |
+| `created_by_label` | varchar | sim | | |
+| `started_at` | datetime | sim | | |
+| `completed_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `commission_entries`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (restrict) |
+| `appointment_id` | integer | sim | | appointments.id (restrict) |
+| `base_cents` | integer | nao | | |
+| `rate_bp` | integer | sim | | |
+| `amount_cents` | integer | nao | | |
+| `rule` | text | sim | | |
+| `commission_payout_id` | integer | sim | | commission_payouts.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `commission_payouts`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (restrict) |
+| `amount_cents` | integer | nao | | |
+| `tip_cents` | integer | sim | | |
+| `services_total_cents` | integer | sim | | |
+| `period_start` | date | sim | | |
+| `period_end` | date | sim | | |
+| `reference_month` | varchar | sim | | |
+| `paid_on` | date | sim | | |
+| `notes` | text | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Índices: (professional_id, paid_on)
+
+### `consent_records`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `email` | varchar | sim | | |
+| `purpose` | varchar | nao | | |
+| `action` | varchar | nao | | |
+| `source` | varchar | nao | | |
+| `occurred_at` | datetime | sim | | |
+| `evidence` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+
+Índices: (customer_id, purpose) · (email)
+
+### `coupon_redemptions`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `coupon_id` | integer | nao | | coupons.id (restrict) |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `appointment_id` | integer | sim | | appointments.id (set null) |
+| `redeemed_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+
+Únicos: (coupon_id, customer_id)
+
+### `coupons`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `code` | varchar | nao | | |
+| `discount_type` | varchar | nao | | |
+| `percent_bp` | integer | sim | | |
+| `amount_cents` | integer | sim | | |
+| `max_uses` | integer | sim | | |
+| `uses_count` | integer | nao | `0` | |
+| `expires_on` | date | sim | | |
+| `is_active` | tinyint | nao | `1` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+Únicos: (code)
+
+### `customer_favorite_professionals`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `customer_id` | integer | nao | | customers.id (cascade) |
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `created_at` | datetime | sim | | |
+
+### `customer_merge_candidates`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (cascade) |
+| `duplicate_customer_id` | integer | sim | | customers.id (cascade) |
+| `match_field` | varchar | nao | | |
+| `match_value` | varchar | nao | | |
+| `status` | varchar | nao | `pending` | |
+| `import_run_id` | integer | sim | | import_runs.id (set null) |
+| `notes` | text | sim | | |
+| `resolved_by_user_id` | integer | sim | | users.id (set null) |
+| `resolved_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (customer_id, duplicate_customer_id, match_field)
+
+Índices: (status)
+
+### `customer_notes`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (cascade) |
+| `author_user_id` | integer | sim | | users.id (set null) |
+| `author_label` | varchar | sim | | |
+| `visibility` | varchar | nao | `team` | |
+| `body` | text | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `customer_notifications`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (cascade) |
+| `message` | text | nao | | |
+| `read_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Índices: (customer_id, read_at)
+
+### `customers`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `public_id` | varchar | nao | | |
+| `name` | varchar | nao | | |
+| `email` | varchar | sim | | |
+| `email_verified_at` | datetime | sim | | |
+| `phone` | varchar | sim | | |
+| `cpf` | varchar | sim | | |
+| `password` | varchar | sim | | |
+| `remember_token` | varchar | sim | | |
+| `birth_date` | date | sim | | |
+| `photo_path` | varchar | sim | | |
+| `status` | varchar | nao | `active` | |
+| `referral_code` | varchar | sim | | |
+| `referred_by_customer_id` | integer | sim | | customers.id (set null) |
+| `marketing_email_consent` | varchar | nao | `unknown` | |
+| `marketing_consent_updated_at` | datetime | sim | | |
+| `merged_into_customer_id` | integer | sim | | customers.id (set null) |
+| `anonymized_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+Únicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
+
+Índices: (name)
+
+### `email_suppressions`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `email` | varchar | nao | | |
+| `reason` | varchar | nao | | |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `suppressed_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (email)
+
+### `expenses`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `description` | varchar | nao | | |
+| `category` | varchar | sim | | |
+| `amount_cents` | integer | nao | | |
+| `due_on` | date | sim | | |
+| `paid_on` | date | sim | | |
+| `status` | varchar | nao | | |
+| `is_recurring` | tinyint | nao | `0` | |
+| `recurrence_parent_id` | integer | sim | | expenses.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+Índices: (status, due_on)
+
+### `financial_goals`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | sim | | professionals.id (cascade) |
+| `period` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `effective_from` | date | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `gateway_events`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `gateway` | varchar | nao | | |
+| `event_id` | varchar | nao | | |
+| `type` | varchar | sim | | |
+| `processed_at` | datetime | sim | | |
+
+Únicos: (gateway, event_id)
+
+### `gift_cards`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `code` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `status` | varchar | nao | | |
+| `issued_at` | datetime | sim | | |
+| `expires_on` | date | sim | | |
+| `redeemed_at` | datetime | sim | | |
+| `purchaser_name` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `redeemed_appointment_id` | integer | sim | | appointments.id (set null) |
+
+Únicos: (code)
+
+### `import_issues`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `import_run_id` | integer | nao | | import_runs.id (cascade) |
+| `source_table` | varchar | nao | | |
+| `source_id` | varchar | sim | | |
+| `classification` | varchar | nao | | |
+| `severity` | varchar | nao | | |
+| `code` | varchar | nao | | |
+| `message` | text | nao | | |
+| `context` | text | sim | | |
+| `needs_decision` | tinyint | nao | `0` | |
+| `created_at` | datetime | sim | | |
+
+Índices: (import_run_id, code) · (source_table, source_id)
+
+### `import_runs`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `mode` | varchar | nao | | |
+| `status` | varchar | nao | | |
+| `source_path` | varchar | nao | | |
+| `source_sha256` | varchar | nao | | |
+| `started_at` | datetime | nao | | |
+| `finished_at` | datetime | sim | | |
+| `counters` | text | sim | | |
+| `report_path` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `legacy_references`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `source_table` | varchar | nao | | |
+| `source_id` | varchar | nao | | |
+| `entity_type` | varchar | nao | | |
+| `entity_id` | integer | nao | | |
+| `checksum` | varchar | nao | | |
+| `import_run_id` | integer | sim | | import_runs.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (source_table, source_id)
+
+Índices: (entity_type, entity_id)
+
+### `loyalty_entries`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `points` | integer | nao | | |
+| `kind` | varchar | nao | | |
+| `description` | varchar | sim | | |
+| `appointment_id` | integer | sim | | appointments.id (set null) |
+| `occurred_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+
+Índices: (customer_id, occurred_at)
+
+### `package_items`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `package_id` | integer | nao | | packages.id (cascade) |
+| `service_id` | integer | nao | | services.id (restrict) |
+| `quantity` | integer | nao | `1` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (package_id, service_id)
+
+### `packages`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `category_id` | integer | sim | | service_categories.id (set null) |
+| `name` | varchar | nao | | |
+| `price_cents` | integer | nao | | |
+| `is_active` | tinyint | nao | `1` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+### `payments`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | sim | | appointments.id (restrict) |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `kind` | varchar | nao | `payment` | |
+| `refunds_payment_id` | integer | sim | | payments.id (restrict) |
+| `method` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `tip_cents` | integer | nao | `0` | |
+| `amount_source` | varchar | nao | | |
+| `paid_at` | datetime | sim | | |
+| `received_by_label` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Índices: (paid_at)
+
+### `plan_services`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `plan_id` | integer | nao | | plans.id (cascade) |
+| `service_id` | integer | nao | | services.id (restrict) |
+
+### `plans`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `name` | varchar | nao | | |
+| `price_cents` | integer | nao | | |
+| `is_active` | tinyint | nao | `1` | |
+| `gateway_price_id` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+### `products`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `category_id` | integer | sim | | service_categories.id (set null) |
+| `name` | varchar | nao | | |
+| `price_cents` | integer | nao | | |
+| `cost_cents` | integer | sim | | |
+| `min_stock` | integer | sim | | |
+| `is_active` | tinyint | nao | `1` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+### `professional_package`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `package_id` | integer | nao | | packages.id (cascade) |
+
+### `professional_service`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `service_id` | integer | nao | | services.id (cascade) |
+
+### `professionals`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `user_id` | integer | sim | | users.id (set null) |
+| `display_name` | varchar | nao | | |
+| `photo_path` | varchar | sim | | |
+| `is_active` | tinyint | nao | `1` | |
+| `is_bookable` | tinyint | nao | `1` | |
+| `sort_order` | integer | nao | `0` | |
+| `commission_rate_bp` | integer | nao | `0` | |
+| `commission_on_products` | tinyint | nao | `0` | |
+| `subscription_commission_mode` | varchar | nao | `default` | |
+| `subscription_commission_rate_bp` | integer | sim | | |
+| `subscription_commission_amount_cents` | integer | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+Únicos: (user_id)
+
+### `review_replies`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `review_id` | integer | nao | | reviews.id (cascade) |
+| `author_user_id` | integer | sim | | users.id (set null) |
+| `body` | text | nao | | |
+| `replied_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `reviews`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `appointment_id` | integer | sim | | appointments.id (set null) |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `professional_id` | integer | sim | | professionals.id (set null) |
+| `rating` | integer | nao | | |
+| `comment` | text | sim | | |
+| `is_featured` | tinyint | nao | `0` | |
+| `reviewed_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (appointment_id)
+
+Índices: (professional_id, reviewed_at)
+
+### `schedule_breaks`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `weekday` | integer | sim | | |
+| `starts_at` | time | nao | | |
+| `ends_at` | time | nao | | |
+| `label` | varchar | sim | | |
+| `is_active` | tinyint | nao | `1` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `service_categories`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `name` | varchar | nao | | |
+| `sort_order` | integer | nao | `0` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+### `services`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `category_id` | integer | sim | | service_categories.id (set null) |
+| `name` | varchar | nao | | |
+| `description` | text | sim | | |
+| `duration_minutes` | integer | nao | | |
+| `price_cents` | integer | nao | | |
+| `is_active` | tinyint | nao | `1` | |
+| `sort_order` | integer | nao | `0` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+| `deleted_at` | datetime | sim | | |
+
+Índices: (is_active, sort_order)
+
+### `settings`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `key` | varchar | nao | | |
+| `value` | text | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (key)
+
+### `stock_movements`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `product_id` | integer | nao | | products.id (restrict) |
+| `quantity` | integer | nao | | |
+| `kind` | varchar | nao | | |
+| `reason` | varchar | sim | | |
+| `appointment_id` | integer | sim | | appointments.id (set null) |
+| `actor_label` | varchar | sim | | |
+| `occurred_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+
+Índices: (product_id, occurred_at)
+
+### `subscription_payments`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `subscription_id` | integer | sim | | subscriptions.id (restrict) |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `plan_id` | integer | sim | | plans.id (restrict) |
+| `gateway` | varchar | nao | | |
+| `gateway_payment_id` | varchar | sim | | |
+| `gateway_subscription_id` | varchar | sim | | |
+| `amount_cents` | integer | nao | | |
+| `currency` | varchar | nao | `BRL` | |
+| `status` | varchar | nao | | |
+| `kind` | varchar | nao | | |
+| `paid_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+
+Únicos: (gateway_payment_id)
+
+Índices: (customer_id, paid_at)
+
+### `subscriptions`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `plan_id` | integer | sim | | plans.id (restrict) |
+| `status` | varchar | nao | | |
+| `starts_on` | date | sim | | |
+| `ends_on` | date | sim | | |
+| `cancelled_at` | datetime | sim | | |
+| `gateway` | varchar | nao | `manual` | |
+| `gateway_customer_id` | varchar | sim | | |
+| `gateway_subscription_id` | varchar | sim | | |
+| `gateway_status` | varchar | sim | | |
+| `last_gateway_payment_id` | varchar | sim | | |
+| `active_customer_id` | integer | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (active_customer_id) · (gateway_subscription_id)
+
+Índices: (customer_id, status) · (gateway_customer_id)
+
+### `time_off`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `starts_on` | date | nao | | |
+| `ends_on` | date | nao | | |
+| `kind` | varchar | nao | | |
+| `reason` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Índices: (professional_id, starts_on)
+
+### `users`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `name` | varchar | nao | | |
+| `email` | varchar | sim | | |
+| `username` | varchar | sim | | |
+| `email_verified_at` | datetime | sim | | |
+| `password` | varchar | sim | | |
+| `role` | varchar | nao | | |
+| `is_active` | tinyint | nao | `1` | |
+| `last_login_at` | datetime | sim | | |
+| `remember_token` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (email) · (username)
+
+### `working_hours`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `weekday` | integer | nao | | |
+| `starts_at` | time | nao | | |
+| `ends_at` | time | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Únicos: (professional_id, weekday, starts_at)
+

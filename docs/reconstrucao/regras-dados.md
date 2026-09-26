@@ -1,0 +1,58 @@
+# Regras de dados (Fase 2)
+
+Cada regra de integridade do modelo, **onde** ela é garantida e **qual teste** a prova.
+"Banco" = restrição física (FK, único, não nulo). "Model" = regra no model Eloquent (evento `saving`/`updating`).
+"Serviço" = serviço de domínio. "Verificador" = consulta do `IntegrityChecker` (`app/Modules/System/Integrity`),
+que confere o banco inteiro, inclusive o que o importador gravou sem passar pelos models.
+O importador falha e desfaz tudo se o verificador encontrar qualquer violação.
+
+Regras marcadas **PRECISA DE DECISÃO** foram implementadas com a opção mais conservadora, que pode mudar
+quando o dono decidir. Nada nelas é irreversível.
+
+Arquivos de teste: `tests/Feature/Data/*` (Schema, Constraints, DomainRules, HistoryAndMoney,
+MarketingConsent), `tests/Feature/LegacyImport/*` (ImportRun, ImportScenarios) e `tests/Unit/*`.
+
+| # | Regra | Entidades | Implementação | Teste |
+|---|---|---|---|---|
+| 1 | Dinheiro é sempre inteiro em centavos (`*_cents`); percentual em pontos-base (`*_bp`); nenhum `float`/`decimal`/`real` no schema | todas com valor | Banco (tipos `integer`); `Money`, `Decimal` | `SchemaTest::test_dinheiro_e_sempre_inteiro_nunca_float_ou_decimal`, `DecimalAndLegacyValueTest` (inclui regressões 0,1+0,2 e 1,005) |
+| 2 | Texto de dinheiro é convertido sem passar por float, com arredondamento meio para cima sinalizado | importador | `Decimal::toScaledInt`, `LegacyValue::money` | `DecimalAndLegacyValueTest::test_converte_texto_em_inteiro_sem_float` |
+| 3 | Instantes gravados em UTC; exibição em `America/Sao_Paulo`; datas civis sem hora | agendamentos, pagamentos, ausências | Colunas `timestamp`/`date`/`time`; `LegacyValue::localDateTime` | `DecimalAndLegacyValueTest::test_datas_e_horas`, `ImportScenariosTest::test_status_e_regras_de_tempo` |
+| 4 | E-mail de cliente único, minúsculo, sem espaços; inválido vira nulo | customers | Banco (único) + mutator + Verificador R03 | `ConstraintsTest::test_cliente_normaliza_e_nao_repete_email_telefone_cpf` |
+| 5 | Telefone único em E.164 (+55…); inválido vira nulo | customers | Banco + `Phone` + Verificador R04 | idem; `NormalizersTest::test_telefone_brasileiro_em_e164` |
+| 6 | CPF único, 11 dígitos, dígitos verificadores válidos; mascarado na auditoria. **PRECISA DE DECISÃO** (D-12: manter CPF só com motivo fiscal) | customers | Banco + `Cpf` + Verificador R05 + `Auditable` | `NormalizersTest::test_cpf_com_digitos_verificadores`, `DomainRulesTest::test_auditoria_...` |
+| 7 | Clientes duplicados **nunca** são mesclados automaticamente; o par vai para revisão com o valor original | customers, customer_merge_candidates | Importador + `DuplicateCustomerFinder` + Verificador R24 | `ImportScenariosTest::test_duplicidades_nunca_sao_mescladas`, `MarketingConsentTest::test_detecta_duplicidade_sem_mesclar` |
+| 8 | Ausência de informação **não** é consentimento: marketing começa `unknown` e só `granted` autoriza | customers | Default no banco e no model; `canReceiveMarketingEmail` | `MarketingConsentTest::test_desconhecido_nao_autoriza_marketing`, `ImportScenariosTest::test_preferencias_de_marketing` |
+| 9 | Opt-out vale para o cliente **e** para o e-mail (lista de supressão), com prova em `consent_records`; supressão prevalece sobre aceite | customers, email_suppressions, consent_records | `MarketingConsentService` + Verificador R07 | `MarketingConsentTest::test_revogacao_...`, `::test_supressao_prevalece_sobre_consentimento` |
+| 10 | Usuário **ativo** da equipe tem e-mail ou usuário; ambos únicos (minúsculos) | users | Banco (únicos) + Model + Verificador R02 | `DomainRulesTest::test_usuario_ativo_precisa_de_email_ou_usuario` |
+| 11 | Login da equipe por usuário até decidir D-10. **PRECISA DE DECISÃO** (D-10) | users | `username` anulável e único | `ImportScenariosTest::test_senhas_antigas_...` (login por usuário) |
+| 12 | Senha antiga (bcrypt) aceita como está e re-hasheada no primeiro login; formato desconhecido = sem senha (nunca convertido ou adivinhado) | users, customers | Importador (`LegacyValue::isBcrypt`) + `hashing.rehash_on_login` + guard `customer` | `ImportScenariosTest::test_senhas_antigas_continuam_funcionando_e_sao_rehasheadas` |
+| 13 | Nenhum segredo no banco: `settings` recusa chaves com cara de segredo; seções sensíveis antigas não são importadas | settings | Model `Setting` + Verificador R23 + `SettingsStep` | `DomainRulesTest::test_configuracao_recusa_segredo`, `ImportScenariosTest::test_segredos_nunca_entram_no_banco_novo` |
+| 14 | Agendamento termina depois de começar | appointments | Model + Verificador R08 | `DomainRulesTest::test_agendamento_termina_depois_de_comecar` |
+| 15 | Status só muda pelas transições permitidas; concluído e cancelado são finais | appointments | `AppointmentStatus::canTransitionTo` + Model | `DomainRulesTest::test_transicoes_de_status`, `::test_matriz_de_transicoes` |
+| 16 | Agendamento passado não concluído (`aprovado`) é importado como está e vai para revisão. **PRECISA DE DECISÃO** (D-17) | appointments | Importador (pendência `past_not_completed`) | `ImportScenariosTest::test_status_e_regras_de_tempo` |
+| 17 | Um profissional não atende dois clientes no mesmo horário; conflitos importados viram pendência bloqueante (sem único no banco porque o legado tem conflitos reais) | appointments | Importador (varredura) agora; `BookingService` na Fase 5 | `ImportScenariosTest::test_status_e_regras_de_tempo` (`future_overlap`) |
+| 18 | Contato do cliente e nome do profissional fotografados no agendamento | appointments | Colunas de snapshot | `HistoryAndMoneyTest::test_editar_o_cadastro_do_cliente_nao_reescreve_o_agendamento` |
+| 19 | Item guarda nome, preço e duração do momento; mudar/apagar o catálogo não altera o item | appointment_items | Colunas de snapshot + FK `set null` + soft delete no catálogo | `HistoryAndMoneyTest::test_mudar_o_catalogo_...`, `ConstraintsTest::test_itens_seguem_o_agendamento_...` |
+| 20 | Preço nulo **só** em item antigo cujo valor é desconhecido (`legacy_unknown`); total = preço × quantidade | appointment_items | Model + Verificador R09/R10 | `DomainRulesTest::test_preco_nulo_so_para_item_antigo_desconhecido` |
+| 21 | Desconto incide só sobre serviços/combos, limitado a eles; total nunca negativo; total desconhecido se algum preço é desconhecido | appointments, appointment_adjustments | `AppointmentPricing` + Verificador R11/R12 | `HistoryAndMoneyTest::test_desconto_so_sobre_servicos_...`, `::test_total_desconhecido_...` |
+| 22 | Pagamento é só inclusão; correção por estorno que aponta o pagamento; valor e gorjeta ≥ 0 e total > 0 | payments | Trait `AppendOnly` + Model + Verificador R13/R14 | `DomainRulesTest::test_pagamento_e_imutavel_...`, `::test_pagamento_nao_aceita_valor_negativo_...` |
+| 23 | Pagamento antigo só é criado quando o valor pode ser afirmado; origem explícita (`legacy_estimated`) | payments | Importador | `ImportScenariosTest::test_item_sem_catalogo_...`, `::test_dinheiro_em_centavos` |
+| 24 | Comissão lançada é imutável (só o vínculo com o pagamento da comissão muda); comissões pagas antigas migram como estão, sem recálculo | commission_entries, commission_payouts | `AppendOnly` (`$appendOnlyMutable`) + importador | `DomainRulesTest::test_lancamento_de_comissao_...`, conciliação `somas_financeiras` |
+| 25 | Comissão entre 0% e 100% | professionals | Model + Verificador R18 | `DomainRulesTest::test_nota_de_1_a_5_e_comissao_ate_100_por_cento` |
+| 26 | Pontos de fidelidade são um razão (saldo = soma); resgate nunca deixa saldo negativo; saldo migrado idêntico ao antigo | loyalty_entries | `LoyaltyLedger` + `AppendOnly` + ajuste de migração + conciliação | `HistoryAndMoneyTest::test_pontos_sao_um_razao`, `ImportScenariosTest::test_fidelidade_bate_com_o_saldo_antigo` |
+| 27 | Estoque é um razão (saldo = soma); venda não deixa saldo negativo; saldo migrado idêntico ao antigo | stock_movements | `StockLedger` + ajuste de migração + conciliação | `HistoryAndMoneyTest::test_estoque_e_um_razao` |
+| 28 | Código de cupom único e maiúsculo; cupom coerente com o tipo (percentual 0,01–100% ou valor fixo > 0) | coupons | Banco + Model + Verificador R16/R17 | `ConstraintsTest::test_codigos_unicos`, `DomainRulesTest::test_cupom_coerente` |
+| 29 | Um uso de cupom por cliente (convidados não colidem). Código repetido no legado: importa o primeiro. **PRECISA DE DECISÃO** (qual cupom manter) | coupon_redemptions, coupons | Banco (único) + importador | `ConstraintsTest::test_cupom_um_uso_...`, `ImportScenariosTest::test_codigos_repetidos_de_cupom_e_vale` |
+| 30 | Uma assinatura **vigente** por cliente, com histórico permitido | subscriptions | Coluna-sentinela `active_customer_id` (única) + Model + Verificador R19 | `ConstraintsTest::test_uma_assinatura_vigente_por_cliente_...` |
+| 31 | IDs do gateway (Stripe) preservados e únicos: assinatura, pagamento, evento de webhook | subscriptions, subscription_payments, gateway_events | Banco (únicos) + importador | `ConstraintsTest::test_id_de_gateway_nao_se_repete`, `ImportScenariosTest::test_ids_externos_preservados` |
+| 32 | Uma avaliação por agendamento; nota de 1 a 5 | reviews | Banco (único) + Model + Verificador R15 | `ConstraintsTest::test_uma_avaliacao_por_agendamento` |
+| 33 | Profissional, serviço, produto, plano, cliente: soft delete; com histórico financeiro não podem ser apagados fisicamente | vários | Soft delete + FK `restrict` | `ConstraintsTest::test_profissional_com_historico_...`, `SchemaTest::test_historico_financeiro_nao_tem_soft_delete_...` |
+| 34 | Apagar cliente de fato preserva o agendamento como "sem conta" (LGPD: anonimização na Fase 3) | appointments | FK `set null` | `ConstraintsTest::test_apagar_cliente_de_fato_...` |
+| 35 | Toda alteração em cliente e agendamento vai para a auditoria, sem senha e com CPF mascarado; auditoria é só inclusão | audit_logs | Trait `Auditable` + `AppendOnly` | `DomainRulesTest::test_auditoria_registra_mudancas_...` |
+
+## Regras do importador (resumo)
+
+Detalhes em [importador.md](importador.md). Todas testadas em `tests/Feature/LegacyImport`:
+origem aberta somente leitura e com hash conferido antes/depois; simulação sem gravar nada; idempotência
+por `legacy_references`; tudo numa transação (falha desfaz tudo); conciliação obrigatória (saldo de pontos,
+estoque, opt-outs, assinaturas, faturamento mensal, somas financeiras); nenhum valor inventado.

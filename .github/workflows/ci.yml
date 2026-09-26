@@ -52,6 +52,10 @@ jobs:
           npm ci
           npm audit --omit=optional
 
+      # Antes dos testes: as views usam o manifesto do Vite.
+      - name: Build dos assets
+        run: npm run build
+
       - name: Testes PHP (unitários e de integração)
         run: php artisan test
 
@@ -61,9 +65,6 @@ jobs:
           php artisan legacy:import storage/legado-ficticio.sqlite --dry-run
           php artisan legacy:import storage/legado-ficticio.sqlite
           php artisan legacy:import storage/legado-ficticio.sqlite
-
-      - name: Build dos assets
-        run: npm run build
 
       - name: Testes de navegador (Playwright + axe)
         run: |
