@@ -19,7 +19,7 @@
 | Estratégias de histórico e de duplicidades | ✅ [estrategia-historico.md](estrategia-historico.md), [estrategia-duplicidades.md](estrategia-duplicidades.md) |
 | Avaliação de desempenho (centenas a dezenas de milhares) | ✅ linear, 50 mil agendamentos em ~29 s |
 | PHPStan | ✅ Larastan nível 6, **0 erros**, no CI |
-| CI | ✅ corrigido (estava vermelho desde a Fase 1, ver §8) |
+| CI | ✅ verde (estava vermelho desde a Fase 1; corrigido, ver §8) |
 
 ## 2. Modelo final
 
@@ -111,7 +111,7 @@ estoque, opt-outs, assinaturas, faturamento mensal ou somas financeiras não bat
 | Playwright + axe (telas de referência, celular e desktop) | 41 passando, 1 ignorado (como na Fase 1) |
 | Pint | sem pendências |
 | Larastan nível 6 | 0 erros |
-| CI | ver §8 |
+| CI (GitHub Actions) | verde, ver §8 |
 
 Cobertura pedida pelo briefing: migrations (sobem e descem), constraints, relacionamentos, dinheiro (centavos,
 sem float, regressões), histórico, unicidade, importação, duplicidades, órfãos, idempotência, simulação, IDs
@@ -128,8 +128,9 @@ O CI estava **vermelho desde a Fase 1** e isso não foi percebido no relatório 
 3. No E2E, o `APP_URL` do `.env.example` (porta 8000) diferia do servidor de teste: a CSP recusava as fontes.
    → o Playwright passa `APP_URL` igual ao endereço do servidor.
 
-Com as correções, os passos Pint, Larastan, auditoria, build, testes PHP e importador fictício passaram no CI;
-o resultado do último run (com a correção do E2E) está no fim deste relatório.
+**Resultado: CI verde.** Run #13 (commit `89bd5cd`, https://github.com/Joaogoncalves19/barbearia/actions/runs/36265777099):
+os dois jobs passaram em todos os passos (dependências, Pint, Larastan, auditoria, build, testes PHP, importador
+com banco fictício, Playwright + axe, regressão de segurança do sistema atual).
 
 ## 9. Resultado do importador (banco fictício padrão: 60 clientes, 300 agendamentos + casos problemáticos)
 
