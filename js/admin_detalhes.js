@@ -1,5 +1,13 @@
 // Funções expostas globalmente para serem chamadas pelo admin_ui_core.js e painel_barbeiro.js
 
+// Seguranca (S-02): texto vindo de clientes (nome, comentario de avaliacao,
+// horario, e-mail, telefone...) e respostas da IA passam por escHtmlDetalhes()
+// antes de entrar em innerHTML. Sem isso, um comentario com HTML executava
+// codigo na sessao do admin/barbeiro.
+function escHtmlDetalhes(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 window.renderDetalhesBarbeiro = function(barbeiroId, modal) {
     // --- Proteções de Dados Globais ---
     const barbeiros = typeof barbeirosData !== 'undefined' ? barbeirosData : {};
@@ -112,8 +120,8 @@ window.renderDetalhesBarbeiro = function(barbeiroId, modal) {
         <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
             <img src="${fotoBarbeiroSrc}" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1);" onerror="this.src='uploads/default-profile.jpg'">
             <div>
-                <h2 style="margin: 0; color: #333;">${barbeiro.nome} ${statusHtml}</h2>
-                <p style="margin: 5px 0 0; color: #666;"><i class="fa fa-user-circle"></i> Usuário: <strong>${barbeiro.username}</strong></p>
+                <h2 style="margin: 0; color: #333;">${escHtmlDetalhes(barbeiro.nome)} ${statusHtml}</h2>
+                <p style="margin: 5px 0 0; color: #666;"><i class="fa fa-user-circle"></i> Usuário: <strong>${escHtmlDetalhes(barbeiro.username)}</strong></p>
             </div>
         </div>
 
@@ -166,10 +174,10 @@ window.renderDetalhesBarbeiro = function(barbeiroId, modal) {
             html += `
                 <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #eee;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.9em;">
-                        <strong>${clienteNome}</strong>
+                        <strong>${escHtmlDetalhes(clienteNome)}</strong>
                         <span style="color: #ffc107;">${rating}</span>
                     </div>
-                    ${av.comment ? `<p style="margin: 5px 0 0; font-style: italic; color: #555; font-size: 0.9em;">"${av.comment}"</p>` : ''}
+                    ${av.comment ? `<p style="margin: 5px 0 0; font-style: italic; color: #555; font-size: 0.9em;">"${escHtmlDetalhes(av.comment)}"</p>` : ''}
                 </div>
             `;
         });
@@ -203,12 +211,12 @@ window.renderDetalhesBarbeiro = function(barbeiroId, modal) {
             html += `
                 <div style="background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #e0e0e0; border-left: 4px solid ${statusColor};">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <strong style="color: #333;">${ag.nome}</strong>
+                        <strong style="color: #333;">${escHtmlDetalhes(ag.nome)}</strong>
                         <span style="font-weight: bold; color: #333;">R$ ${Math.max(0, valorDisplay).toFixed(2)}</span>
                     </div>
                     <div style="font-size: 0.85em; color: #666; display: flex; justify-content: space-between;">
-                        <span>${dataF} às ${ag.hora}</span>
-                        <span style="text-transform: capitalize; color: ${statusColor}; font-weight: bold;">${ag.status}</span>
+                        <span>${dataF} às ${escHtmlDetalhes(ag.hora)}</span>
+                        <span style="text-transform: capitalize; color: ${statusColor}; font-weight: bold;">${escHtmlDetalhes(ag.status)}</span>
                     </div>
                 </div>
             `;
@@ -248,9 +256,9 @@ window.renderDetalhesBarbeiro = function(barbeiroId, modal) {
                         const result = await response.json();
                         
                         if (result.success) {
-                            contentAvaliacao.innerHTML = '<strong style="display:block; margin-bottom:8px; color: #581c87; font-size: 1.05rem;"><i class="fa fa-check-circle"></i> Parecer do RH (IA):</strong>' + result.resposta.replace(/\n/g, '<br>');
+                            contentAvaliacao.innerHTML = '<strong style="display:block; margin-bottom:8px; color: #581c87; font-size: 1.05rem;"><i class="fa fa-check-circle"></i> Parecer do RH (IA):</strong>' + escHtmlDetalhes(result.resposta).replace(/\n/g, '<br>');
                         } else {
-                            contentAvaliacao.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + result.error + '</span>';
+                            contentAvaliacao.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + escHtmlDetalhes(result.error) + '</span>';
                         }
                     } catch(e) {
                         contentAvaliacao.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-wifi"></i> Erro de conexão com o servidor ou timeout. Tente novamente.</span>';
@@ -389,10 +397,10 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     ${isVip ? '<div title="Cliente Assinante" style="position: absolute; bottom: -2px; right: -2px; background: #10b981; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-card, #fff); box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 0.8rem;"><i class="fa fa-crown"></i></div>' : ''}
                 </div>
                 <div style="flex-grow: 1; overflow: hidden;">
-                    <h2 style="margin: 0 0 5px 0; color: var(--text-main, #1e293b); font-weight: 800; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cliente.nome}</h2>
+                    <h2 style="margin: 0 0 5px 0; color: var(--text-main, #1e293b); font-weight: 800; font-size: 1.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escHtmlDetalhes(cliente.nome)}</h2>
                     <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--text-muted, #475569);">
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-envelope" style="width: 14px; text-align: center;"></i> ${cliente.email}</span>
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-phone" style="width: 14px; text-align: center;"></i> ${cliente.telefone}</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-envelope" style="width: 14px; text-align: center;"></i> ${escHtmlDetalhes(cliente.email)}</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-phone" style="width: 14px; text-align: center;"></i> ${escHtmlDetalhes(cliente.telefone)}</span>
                     </div>
                 </div>
             </div>
@@ -466,7 +474,7 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     <input type="hidden" name="csrf_token" value="${csrfToken}">
                     <input type="hidden" name="action" value="salvar_anotacao">
                     <input type="hidden" name="cliente_id" value="${clienteId}">
-                    <textarea name="anotacao" class="modern-input" rows="3" style="resize: vertical; margin-bottom: 10px;" placeholder="Ex: prefere disfarçado na zero, não gosta de pomada...">${clienteAnotacao}</textarea>
+                    <textarea name="anotacao" class="modern-input" rows="3" style="resize: vertical; margin-bottom: 10px;" placeholder="Ex: prefere disfarçado na zero, não gosta de pomada...">${escHtmlDetalhes(clienteAnotacao)}</textarea>
                     <button type="submit" class="btn-primary" style="width: 100%;"><i class="fa fa-save"></i> Salvar Anotação</button>
                 </form>
             </div>
@@ -495,11 +503,11 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     ${isVip ? '<div title="Cliente Assinante" style="position: absolute; bottom: 0; right: 0; background: #10b981; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 3px solid #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fa fa-crown"></i></div>' : ''}
                 </div>
                 <div style="flex-grow: 1;">
-                    <h2 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 800; font-size: 1.5rem;">${cliente.nome}</h2>
+                    <h2 style="margin: 0 0 8px 0; color: #1e293b; font-weight: 800; font-size: 1.5rem;">${escHtmlDetalhes(cliente.nome)}</h2>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 0.9rem; color: #475569; background: #fff; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-envelope" style="color: #94a3b8;"></i> ${cliente.email}</span>
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-phone" style="color: #94a3b8;"></i> ${cliente.telefone}</span>
-                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-id-card" style="color: #94a3b8;"></i> ${cliente.cpf || 'Não informado'}</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-envelope" style="color: #94a3b8;"></i> ${escHtmlDetalhes(cliente.email)}</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-phone" style="color: #94a3b8;"></i> ${escHtmlDetalhes(cliente.telefone)}</span>
+                        <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-id-card" style="color: #94a3b8;"></i> ${escHtmlDetalhes(cliente.cpf || 'Não informado')}</span>
                         <span style="display: flex; align-items: center; gap: 8px;"><i class="fa fa-birthday-cake" style="color: #94a3b8;"></i> ${cliente.data_nascimento ? new Date(cliente.data_nascimento.replace(/-/g, '/')).toLocaleDateString('pt-BR') : 'Não informada'}</span>
                     </div>
                 </div>
@@ -573,8 +581,8 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 4px solid ${ag.status === 'concluido' ? '#10b981' : (ag.status === 'cancelado' ? '#ef4444' : '#f59e0b')};">
                         <div>
                             <div style="font-weight: 700; color: #1e293b; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;">
-                                ${dataF} às ${ag.hora} 
-                                <span style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; background: #f1f5f9; color: #475569;">${statusLabel}</span>
+                                ${dataF} às ${escHtmlDetalhes(ag.hora)} 
+                                <span style="font-size: 0.7rem; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; font-weight: 800; background: #f1f5f9; color: #475569;">${escHtmlDetalhes(statusLabel)}</span>
                             </div>
                             <div style="font-size: 0.9rem; color: #475569; display: flex; align-items: center; gap: 15px;">
                                 <span><i class="fa fa-cut" style="color: #94a3b8; margin-right: 4px;"></i> ${servicosTxt.join(', ')}</span>
@@ -622,7 +630,7 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     <input type="hidden" name="csrf_token" value="${csrfToken}">
                     <input type="hidden" name="action" value="salvar_anotacao">
                     <input type="hidden" name="cliente_id" value="${clienteId}">
-                    <textarea name="anotacao" rows="3" style="width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.95rem; resize: vertical; font-family: 'Inter', sans-serif; outline: none; transition: 0.2s;" placeholder="Escreva observações sobre o cliente aqui... (Ex: prefere corte na tesoura, alérgico a produto X)" onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(0,123,255,0.1)'" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none'">${clienteAnotacao}</textarea>
+                    <textarea name="anotacao" rows="3" style="width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 0.95rem; resize: vertical; font-family: 'Inter', sans-serif; outline: none; transition: 0.2s;" placeholder="Escreva observações sobre o cliente aqui... (Ex: prefere corte na tesoura, alérgico a produto X)" onfocus="this.style.borderColor='var(--secondary-color)'; this.style.boxShadow='0 0 0 3px rgba(0,123,255,0.1)'" onblur="this.style.borderColor='#cbd5e1'; this.style.boxShadow='none'">${escHtmlDetalhes(clienteAnotacao)}</textarea>
                     <button type="submit" class="btn-primary" style="margin-top: 15px; padding: 10px 20px; font-size: 0.95rem; border-radius: 8px;"><i class="fa fa-save"></i> Salvar Anotação</button>
                 </form>
             </div>
@@ -672,9 +680,9 @@ window.renderDetalhesCliente = function(clienteId, modal) {
                     const result = await response.json();
                     
                     if (result.success) {
-                        contentRaioX.innerHTML = '<strong style="display:block; margin-bottom:8px; color: #0369a1; font-size: 1.05rem;"><i class="fa fa-check-circle"></i> Análise Concluída:</strong>' + result.resposta.replace(/\n/g, '<br>');
+                        contentRaioX.innerHTML = '<strong style="display:block; margin-bottom:8px; color: #0369a1; font-size: 1.05rem;"><i class="fa fa-check-circle"></i> Análise Concluída:</strong>' + escHtmlDetalhes(result.resposta).replace(/\n/g, '<br>');
                     } else {
-                        contentRaioX.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + result.error + '</span>';
+                        contentRaioX.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + escHtmlDetalhes(result.error) + '</span>';
                     }
                 } catch(e) {
                     contentRaioX.innerHTML = '<span style="color:#ef4444; font-weight: bold;"><i class="fa fa-wifi"></i> Erro de conexão com o servidor ou timeout. Tente novamente.</span>';

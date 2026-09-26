@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  novo-sistema:
+    name: Novo sistema (Laravel)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: novo-sistema
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, intl, fileinfo
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: novo-sistema/package-lock.json
+
+      - name: Dependências PHP
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Ambiente
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Estilo (Pint)
+        run: vendor/bin/pint --test
+
+      - name: Análise estática (Larastan nível 6)
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
+      - name: Auditoria de dependências
+        run: |
+          composer audit
+          npm ci
+          npm audit --omit=optional
+
+      # Antes dos testes: as views usam o manifesto do Vite.
+      - name: Build dos assets
+        run: npm run build
+
+      - name: Testes PHP (unitários e de integração)
+        run: php artisan test
+
+      - name: Importador com banco antigo fictício (simulação, importação, reexecução)
+        run: |
+          php artisan legacy:fixture storage/legado-ficticio.sqlite --customers=500 --appointments=3000
+          php artisan legacy:import storage/legado-ficticio.sqlite --dry-run
+          php artisan legacy:import storage/legado-ficticio.sqlite
+          php artisan legacy:import storage/legado-ficticio.sqlite
+
+      - name: Testes de navegador (Playwright + axe)
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: telas-e2e
+          path: novo-sistema/storage/e2e/
+          retention-days: 7
+
+  legado-seguranca:
+    name: Sistema atual — correções S-01 a S-04
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_sqlite, mbstring, gd, curl, fileinfo
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Playwright para o teste de XSS
+        working-directory: novo-sistema
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Testes de regressão de segurança
+        env:
+          PLAYWRIGHT_MODULE: ${{ github.workspace }}/novo-sistema/node_modules/@playwright/test
+        run: php tests/seguranca_fase1.php

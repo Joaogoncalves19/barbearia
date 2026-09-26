@@ -1,0 +1,10 @@
+/*
+ * Fontes hospedadas no proprio dominio (pacotes @fontsource, licenca OFL).
+ * Nada de Google Fonts em tempo de execucao: mais rapido, sem terceiros e
+ * sem enviar o IP do visitante para fora (LGPD).
+ *
+ * Direcao oficial A: Inter (texto) + Fraunces (titulos). A fonte da direcao B
+ * (Bricolage Grotesque) so e carregada por prototypes/direcao-b.css.
+ */
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/fraunces/opsz.css';

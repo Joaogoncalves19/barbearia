@@ -1,0 +1,93 @@
+/* ==========================================================================
+   MARCA, FAIXA DE PROTOTIPO e LISTA DE RESUMO — compartilhados por site e painel
+   ========================================================================== */
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--c-text);
+    text-decoration: none;
+}
+
+.brand__mark {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1.5px solid var(--c-accent);
+    border-radius: 50%;
+    color: var(--c-accent-text);
+    font-family: var(--font-display);
+    font-weight: var(--font-display-weight);
+    font-variation-settings: var(--font-display-settings);
+    font-size: 1rem;
+}
+
+.brand__name {
+    font-family: var(--font-display);
+    font-weight: var(--font-display-weight);
+    font-variation-settings: var(--font-display-settings);
+    letter-spacing: var(--font-display-tracking);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+/* --- Faixa de prototipo -------------------------------------------------------- */
+.proto-banner {
+    padding: var(--space-2) 0;
+    background: var(--p-warning-100);
+    color: var(--p-warning-700);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    text-align: center;
+}
+
+.proto-banner a {
+    color: inherit;
+}
+
+.proto-banner .cluster {
+    justify-content: center;
+    gap: var(--space-1) var(--space-4);
+}
+
+.proto-banner [aria-current='true'] {
+    font-weight: var(--fw-bold);
+    text-decoration-thickness: 2px;
+}
+
+.summary-list {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+}
+
+.summary-list div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+}
+
+.summary-list dt {
+    color: var(--c-text-muted);
+}
+
+.summary-list dd {
+    text-align: right;
+    font-weight: var(--fw-medium);
+}
+
+.summary-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: var(--space-3);
+    border-top: var(--border-width) solid var(--c-border);
+    font-weight: var(--fw-semibold);
+}
+
+.summary-total strong {
+    font-size: var(--fs-xl);
+    font-variant-numeric: tabular-nums;
+}

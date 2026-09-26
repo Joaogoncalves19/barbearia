@@ -352,10 +352,8 @@ if (empty($nome) || empty($email) || empty($telefone) || empty($barbeiro_id) || 
             try {
                 $pdo->beginTransaction();
                 
-                if (isset($_SESSION['reagendar_id'])) {
-                    $stmtDel = $pdo->prepare("DELETE FROM agendamentos WHERE id = ?");
-                    $stmtDel->execute([$_SESSION['reagendar_id']]); unset($_SESSION['reagendar_id']);
-                }
+                // Seguranca (S-01): removido o DELETE do "reagendar_id" da sessao,
+                // que apagava agendamentos de qualquer pessoa. Ver agendamento_data.php.
 
                 // ------------------------------------------------------------------
                 // Reverificacao do horario DENTRO da transacao.

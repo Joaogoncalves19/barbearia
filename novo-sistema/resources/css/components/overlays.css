@@ -1,0 +1,130 @@
+/* ==========================================================================
+   MODAL (dialog nativo), CONFIRMACAO e DROPDOWN
+   O <dialog> nativo resolve foco preso, Esc e camada acima da pagina.
+   ========================================================================== */
+
+.dialog {
+    width: min(100% - 2 * var(--space-4), 32rem);
+    max-height: min(100dvh - 2 * var(--space-4), 44rem);
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+    color: var(--c-text);
+    box-shadow: var(--shadow-lg);
+}
+
+.dialog::backdrop {
+    background: var(--c-overlay);
+}
+
+.dialog[open] {
+    animation: dialog-in var(--dur-base) var(--ease-out);
+}
+
+.dialog__panel {
+    display: grid;
+    max-height: inherit;
+    grid-template-rows: auto 1fr auto;
+}
+
+.dialog__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.dialog__body {
+    overflow-y: auto;
+    padding: 0 var(--space-5) var(--space-5);
+    color: var(--c-text-muted);
+}
+
+.dialog__footer {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+/* No celular o modal vira folha que sobe da base (mais facil de alcancar). */
+@media (max-width: 30rem) {
+    .dialog {
+        width: 100%;
+        max-width: none;
+        margin: auto 0 0;
+        border-radius: var(--radius-card) var(--radius-card) 0 0;
+    }
+
+    .dialog__footer .btn {
+        flex: 1 1 auto;
+    }
+}
+
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+/* --- Dropdown (menu de acoes) -------------------------------------------------- */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown__menu {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    right: 0;
+    z-index: var(--z-dropdown);
+    display: grid;
+    min-width: 12rem;
+    padding: var(--space-1);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-control);
+    background: var(--c-surface-raised);
+    box-shadow: var(--shadow-md);
+}
+
+.dropdown__menu--start {
+    right: auto;
+    left: 0;
+}
+
+.dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    min-height: 2.5rem;
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: calc(var(--radius-control) - 2px);
+    background: none;
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    text-align: left;
+    text-decoration: none;
+}
+
+.dropdown__item:hover,
+.dropdown__item:focus-visible {
+    background: var(--c-surface-sunken);
+    outline: none;
+}
+
+.dropdown__item--danger {
+    color: var(--c-danger);
+}
+
+.dropdown__separator {
+    height: 1px;
+    margin: var(--space-1) 0;
+    background: var(--c-border);
+}

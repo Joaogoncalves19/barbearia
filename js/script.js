@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // do wizard (.barber-card-selectable) não usam mais o container antigo
     // (.custom-select-items). Assim o botão "Perfil" funciona no layout atual.
     // ==========================================
+    // Seguranca (S-02): comentario de avaliacao e texto livre de cliente; escapar
+    // antes de montar HTML, senao um comentario com <img onerror> executava aqui.
+    function escHtmlPerfil(valor) {
+        return String(valor ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
     function abrirModalPerfilBarbeiro(barbeiroId) {
         const barbeiro = typeof barbeirosData !== 'undefined' ? barbeirosData.find(b => String(b.id) === String(barbeiroId)) : null;
         if (!barbeiro || !modalContent) return;
@@ -43,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 avaliacoesHtml += `
                     <li style="margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px;">
                         <span class="estrelas-modal" style="color: #f59e0b; font-size: 1.15rem; letter-spacing: 2px;">${rating}</span>
-                        <p style="margin: 8px 0 0; font-size: 0.95rem; color: #334155; font-style: italic; line-height: 1.5;">"${av.comment || 'O cliente deixou uma ótima nota, mas sem comentários.'}"</p>
+                        <p style="margin: 8px 0 0; font-size: 0.95rem; color: #334155; font-style: italic; line-height: 1.5;">"${escHtmlPerfil(av.comment || 'O cliente deixou uma ótima nota, mas sem comentários.')}"</p>
                     </li>`;
             });
             avaliacoesHtml += '</ul>';
@@ -58,11 +64,11 @@ document.addEventListener('DOMContentLoaded', function () {
         modalContent.innerHTML = `
             <div class="modal-header-barbeiro" style="display: flex; align-items: center; gap: 20px; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 25px;">
                 <div style="position: relative;">
-                    <img src="${barbeiro.foto}" alt="${barbeiro.nome}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <img src="${escHtmlPerfil(barbeiro.foto)}" alt="${escHtmlPerfil(barbeiro.nome)}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                     <div style="position: absolute; bottom: 0; right: 0; background: #10b981; width: 18px; height: 18px; border-radius: 50%; border: 3px solid #fff;" title="Ativo"></div>
                 </div>
                 <div>
-                    <h3 style="margin: 0 0 8px; color: #1e293b; font-size: 1.4rem; font-weight: 800;">${barbeiro.nome}</h3>
+                    <h3 style="margin: 0 0 8px; color: #1e293b; font-size: 1.4rem; font-weight: 800;">${escHtmlPerfil(barbeiro.nome)}</h3>
                     <span style="font-size: 0.8rem; font-weight: 700; color: #fff; background: var(--app-accent, #f59e0b); padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">Profissional</span>
                 </div>
             </div>
