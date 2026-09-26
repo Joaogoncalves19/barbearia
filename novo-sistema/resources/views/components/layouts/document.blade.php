@@ -1,20 +1,25 @@
 {{--
     Documento HTML base de todas as paginas.
-    direction: a | b (direcao visual, vai no <html>: ver tokens.css)
+    direction: a (oficial). "b" so e aceito nas paginas de referencia, com a
+               flag de prototipos ligada: carrega prototypes/direcao-b.css.
     surface:   escura (site) | clara (painel)
 --}}
 @props([
     'title' => null,
     'description' => null,
-    'direction' => config('barbearia.design.default_direction', 'a'),
+    'direction' => 'a',
     'surface' => 'clara',
     'area' => 'site',
     'bodyClass' => null,
     'noindex' => false,
     'csrf' => true,
 ])
+@php
+    // Direcao B e so referencia historica: fora dos prototipos, sempre A.
+    $direction = ($direction === 'b' && config('barbearia.prototypes_enabled')) ? 'b' : 'a';
+@endphp
 <!DOCTYPE html>
-<html lang="pt-BR" data-direcao="{{ in_array($direction, ['a', 'b'], true) ? $direction : 'a' }}" data-superficie="{{ $surface }}">
+<html lang="pt-BR" data-direcao="{{ $direction }}" data-superficie="{{ $surface }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -24,6 +29,7 @@
     @if ($csrf)<meta name="csrf-token" content="{{ csrf_token() }}">@endif
     <meta name="theme-color" content="{{ $surface === 'escura' ? '#121110' : '#f8f5ef' }}">
     @vite(['resources/css/app.css', 'resources/css/'.($area === 'panel' ? 'panel' : 'site').'.css', 'resources/js/app.js'])
+    @if ($direction === 'b')@vite('resources/css/prototypes/direcao-b.css')@endif
     @stack('head')
 </head>
 <body @class([$area, $bodyClass])>

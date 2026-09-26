@@ -140,10 +140,6 @@
     color: var(--c-accent-text);
 }
 
-[data-direcao='b'] .hero__title em {
-    font-style: normal;
-}
-
 .hero__actions {
     display: flex;
     flex-wrap: wrap;

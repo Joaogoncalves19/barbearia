@@ -42,6 +42,20 @@ class ReferenceScreensTest extends TestCase
         $this->get('/prototipos/home?direcao=<script>')->assertSee('data-direcao="a"', false);
     }
 
+    public function test_direcao_a_e_a_oficial_e_b_nao_vaza_para_o_produto(): void
+    {
+        // Telas do produto: sempre A, sem a folha de estilo historica da B.
+        $html = $this->get('/entrar')->assertOk()->getContent();
+        $this->assertStringContainsString('data-direcao="a"', $html);
+        $this->assertStringNotContainsString('direcao-b', $html);
+
+        // Mesmo pedindo B explicitamente, sem a flag de prototipos o layout fica em A.
+        config(['barbearia.prototypes_enabled' => false]);
+        $render = $this->blade('<x-layouts.document direction="b">x</x-layouts.document>');
+        $render->assertSee('data-direcao="a"', false);
+        $render->assertDontSee('direcao-b', false);
+    }
+
     public function test_desligadas_em_producao_respondem_404(): void
     {
         config(['barbearia.prototypes_enabled' => false]);

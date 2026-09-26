@@ -136,7 +136,7 @@ class PrototypeController extends Controller
     {
         $direcao = in_array($request->query('direcao'), ['a', 'b'], true)
             ? $request->query('direcao')
-            : config('barbearia.design.default_direction', 'a');
+            : 'a';
         $q = ['direcao' => $direcao];
         $rota = $request->route()?->getName();
 

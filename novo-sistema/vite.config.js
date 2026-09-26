@@ -8,6 +8,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/site.css',
                 'resources/css/panel.css',
+                // Direcao B: so referencia historica nas paginas de prototipo.
+                'resources/css/prototypes/direcao-b.css',
                 'resources/js/app.js',
             ],
             refresh: true,

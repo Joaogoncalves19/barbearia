@@ -2,23 +2,25 @@
    TOKENS DE DESIGN
    --------------------------------------------------------------------------
    Tres camadas:
-     1. Primitivos   (--p-*)  paleta crua de cada direcao visual
+     1. Primitivos   (--p-*)  paleta crua da direcao visual oficial (A)
      2. Semanticos   (--c-*)  o que os componentes usam (texto, superficie...)
      3. Escalas              tipografia, espaco, raio, sombra, movimento
 
    Componentes NUNCA usam primitivos nem valores soltos: so --c-* e escalas.
 
-   IMPORTANTE: data-direcao vai no <html> (mesmo elemento do :root), porque
-   variaveis sao resolvidas onde sao declaradas. Para exibir uma direcao dentro
-   de um trecho da pagina, o elemento recebe data-direcao E data-superficie.
-   Assim trocar a direcao visual, ou passar uma secao do site de escura para
-   clara, nao exige mexer em componente nenhum.
+   Direcao oficial: A "Oficio contemporaneo" (aprovada na Fase 2). A direcao
+   B "Urbano grafico" ficou apenas como referencia historica dos prototipos,
+   em resources/css/prototypes/direcao-b.css, carregada so nas paginas de
+   referencia (flag BARBEARIA_PROTOTYPES) e nunca no produto.
+
+   data-superficie vai no <html> ou num trecho da pagina (escura/clara): trocar
+   de superficie nao exige mexer em componente nenhum.
 
    Contraste de cada par texto/fundo documentado em identidade-visual.md.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. PRIMITIVOS — Direcao A "Oficio contemporaneo" (padrao)
+   1. PRIMITIVOS — Direcao A "Oficio contemporaneo" (oficial)
    Carvao quente + osso + cobre. Referencia: couro, madeira escura, latao,
    luz quente -- traduzidos em cores lisas e contemporaneas, sem textura vintage.
    -------------------------------------------------------------------------- */
@@ -56,45 +58,6 @@
     --radius-card: 10px;
     --radius-media: 4px;
     --radius-pill: 999px;
-}
-
-/* --------------------------------------------------------------------------
-   PRIMITIVOS — Direcao B "Urbano grafico"
-   Tinta + gesso + tomate (vermelho do barber pole, sem as listras).
-   Mais energia, tipografia grotesca de largura variavel, cantos retos.
-   -------------------------------------------------------------------------- */
-[data-direcao='b'] {
-    --p-ink-950: #0d1110;
-    --p-ink-900: #151a19;
-    --p-ink-800: #1f2624;
-    --p-ink-700: #2e3734;
-    --p-ink-600: #414c48;
-
-    --p-stone-600: #5f6966;
-    --p-stone-500: #77807c;
-    --p-stone-400: #76807b;
-    --p-stone-300: #aeb6b2;
-
-    --p-paper-200: #d8dcd7;
-    --p-paper-100: #eceeea;
-    --p-paper-50: #f5f6f3;
-    --p-paper-0: #ffffff;
-
-    --p-accent-300: #f4937a;
-    --p-accent-500: #e0522f;
-    --p-accent-600: #be3f1f;
-    --p-accent-700: #b23a1b;
-    --p-accent-100: #fbe3dc;
-
-    --font-display: 'Bricolage Grotesque Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
-    --font-display-weight: 700;
-    --font-display-settings: normal;
-    --font-display-tracking: -0.03em;
-    --font-display-case: none;
-
-    --radius-control: 2px;
-    --radius-card: 2px;
-    --radius-media: 0;
 }
 
 /* --------------------------------------------------------------------------

@@ -24,13 +24,6 @@ return [
     // Moeda e localidade de formatacao de valores.
     'currency' => env('BARBEARIA_CURRENCY', 'BRL'),
 
-    'design' => [
-        // Direcao visual padrao enquanto a identidade nao for aprovada pelo
-        // dono: 'a' (Oficio contemporaneo) ou 'b' (Urbano grafico).
-        // Ver docs/reconstrucao/identidade-visual.md.
-        'default_direction' => env('BARBEARIA_DESIGN_DIRECTION', 'a'),
-    ],
-
     // Paginas de referencia visual (/prototipos/*) e catalogo de componentes
     // (/design-system). Usam apenas dados de exemplo. Desligadas por padrao;
     // o .env de desenvolvimento e o de homologacao ligam explicitamente.
