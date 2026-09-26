@@ -25,7 +25,9 @@ final class Decimal
         }
 
         $negativo = str_starts_with($s, '-');
-        $s = ltrim($s, '+-');
+        if ($negativo || str_starts_with($s, '+')) {
+            $s = substr($s, 1); // um unico sinal
+        }
 
         if (preg_match('/^\d{1,3}(\.\d{3})+,\d+$/', $s) || preg_match('/^\d+,\d+$/', $s)) {
             $s = str_replace(['.', ','], ['', '.'], $s); // formato brasileiro
