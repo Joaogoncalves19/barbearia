@@ -1,6 +1,6 @@
 # Sistema da Barbearia — nova versão
 
-Reconstrução do sistema da barbearia em **Laravel 13 / PHP 8.3+**, com páginas
+Reconstrução do sistema da barbearia em **Laravel 13 / PHP 8.4+**, com páginas
 renderizadas no servidor (Blade), Alpine.js (build CSP) e SQLite.
 
 > **Estado:** Fase 1 — fundação técnica e design system. Ainda **não** há módulos de
@@ -13,7 +13,7 @@ da raiz do repositório. Esta aplicação precisa de um host próprio cuja raiz 
 
 ## Requisitos
 
-- PHP 8.3+ com `pdo_sqlite`, `mbstring`, `fileinfo`, `openssl`
+- PHP 8.4+ com `pdo_sqlite`, `mbstring`, `fileinfo`, `openssl`
 - Composer 2
 - Node.js 22+ (só para compilar CSS/JS e rodar os testes de navegador)
 

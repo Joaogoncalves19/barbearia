@@ -28,7 +28,7 @@ novo-sistema/
 └── tests/{Unit,Feature,Legacy,e2e}
 ```
 
-Stack: **Laravel 13.33**, **PHP 8.3+** (testado em 8.4), **Blade**, **Alpine.js 3 (build CSP)**,
+Stack: **Laravel 13.33**, **PHP 8.4+** (as dependências travadas exigem 8.4.1; testado em 8.4), **Blade**, **Alpine.js 3 (build CSP)**,
 **Vite 8**, **SQLite**, fila e cache em banco, **PHPUnit 12**, **Playwright + axe-core**.
 
 ## 2. Responsabilidades por camada
