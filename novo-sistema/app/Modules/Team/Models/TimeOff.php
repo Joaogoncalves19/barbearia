@@ -6,7 +6,12 @@ use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use App\Modules\Team\Enums\TimeOffKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property Carbon $starts_on
+ * @property Carbon $ends_on
+ */
 class TimeOff extends Model
 {
     protected $table = 'time_off';
@@ -25,6 +30,9 @@ class TimeOff extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);

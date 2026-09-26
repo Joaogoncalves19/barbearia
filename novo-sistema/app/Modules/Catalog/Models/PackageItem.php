@@ -21,11 +21,17 @@ class PackageItem extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Package, $this>
+     */
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class);
     }
 
+    /**
+     * @return BelongsTo<Service, $this>
+     */
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);

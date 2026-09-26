@@ -22,6 +22,9 @@ class ScheduleBreak extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);

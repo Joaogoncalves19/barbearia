@@ -12,12 +12,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[UseFactory(ServiceCategoryFactory::class)]
 class ServiceCategory extends Model
 {
+    /** @use HasFactory<ServiceCategoryFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'service_categories';
 
     protected $guarded = ['id'];
 
+    /**
+     * @return HasMany<Service, $this>
+     */
     public function services(): HasMany
     {
         return $this->hasMany(Service::class, 'category_id');

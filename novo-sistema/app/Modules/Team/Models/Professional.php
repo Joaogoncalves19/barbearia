@@ -20,6 +20,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Quem atende. Pode ter login (user_id) ou nao. Nunca e apagado de fato
  * enquanto houver historico (FK restrict em agendamentos, comissoes e vales).
+ *
+ * @property int|null $commission_rate_bp
+ * @property int|null $subscription_commission_rate_bp
+ * @property SubscriptionCommissionMode|null $subscription_commission_mode
  */
 #[UseFactory(ProfessionalFactory::class)]
 class Professional extends Model
@@ -58,41 +62,65 @@ class Professional extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return BelongsToMany<Service, $this>
+     */
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'professional_service');
     }
 
+    /**
+     * @return BelongsToMany<Package, $this>
+     */
     public function packages(): BelongsToMany
     {
         return $this->belongsToMany(Package::class, 'professional_package');
     }
 
+    /**
+     * @return HasMany<WorkingHour, $this>
+     */
     public function workingHours(): HasMany
     {
         return $this->hasMany(WorkingHour::class);
     }
 
+    /**
+     * @return HasMany<ScheduleBreak, $this>
+     */
     public function breaks(): HasMany
     {
         return $this->hasMany(ScheduleBreak::class);
     }
 
+    /**
+     * @return HasMany<TimeOff, $this>
+     */
     public function timeOff(): HasMany
     {
         return $this->hasMany(TimeOff::class);
     }
 
+    /**
+     * @return HasMany<BlockedSlot, $this>
+     */
     public function blockedSlots(): HasMany
     {
         return $this->hasMany(BlockedSlot::class);
     }
 
+    /**
+     * @return HasMany<Appointment, $this>
+     */
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);

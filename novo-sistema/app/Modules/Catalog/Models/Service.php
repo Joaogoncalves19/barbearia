@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[UseFactory(ServiceFactory::class)]
 class Service extends Model
 {
+    /** @use HasFactory<ServiceFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'services';
@@ -34,11 +35,17 @@ class Service extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ServiceCategory, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
     }
 
+    /**
+     * @return BelongsToMany<Professional, $this>
+     */
     public function professionals(): BelongsToMany
     {
         return $this->belongsToMany(Professional::class, 'professional_service');

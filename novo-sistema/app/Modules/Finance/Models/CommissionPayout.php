@@ -28,16 +28,25 @@ class CommissionPayout extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);
     }
 
+    /**
+     * @return HasMany<CommissionEntry, $this>
+     */
     public function entries(): HasMany
     {
         return $this->hasMany(CommissionEntry::class);
     }
 
+    /**
+     * @return HasMany<Advance, $this>
+     */
     public function advances(): HasMany
     {
         return $this->hasMany(Advance::class);

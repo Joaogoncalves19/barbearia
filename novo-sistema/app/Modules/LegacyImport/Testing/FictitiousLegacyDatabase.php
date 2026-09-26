@@ -32,8 +32,6 @@ final class FictitiousLegacyDatabase
 
     private PDO $pdo;
 
-    private int $seq = 0;
-
     private string $hash;
 
     public function __construct(
@@ -155,11 +153,6 @@ final class FictitiousLegacyDatabase
         }
         $st = $this->pdo->prepare("INSERT INTO {$table} (".implode(',', $cols).') VALUES ('.implode(',', array_fill(0, count($cols), '?')).')');
         $st->execute(array_values($row));
-    }
-
-    private function id(string $prefixo): string
-    {
-        return $prefixo.strtoupper(str_pad(base_convert((string) (++$this->seq * 7919 + 104729), 10, 36), 6, '0', STR_PAD_LEFT));
     }
 
     private function name(): string

@@ -35,8 +35,13 @@ class LegacyImport extends Command
         $r = $importer->run((string) $this->argument('source'), $dry, progress: fn (string $etapa) => $this->line("  · {$etapa}"));
 
         $this->newLine();
-        $this->table(['Tabela', 'Lidos', 'Importados', 'Ja importados', 'Nao importados', 'Pendencias'], collect($r['counters'])
-            ->sortKeys()->map(fn ($c, $t) => [$t, $c['read'] ?? 0, $c['imported'] ?? 0, $c['unchanged'] ?? 0, $c['skipped'] ?? 0, $c['issues'] ?? 0])->values()->all());
+        $contadores = $r['counters'];
+        ksort($contadores);
+        $linhas = [];
+        foreach ($contadores as $t => $c) {
+            $linhas[] = [$t, $c['read'] ?? 0, $c['imported'] ?? 0, $c['unchanged'] ?? 0, $c['skipped'] ?? 0, $c['issues'] ?? 0];
+        }
+        $this->table(['Tabela', 'Lidos', 'Importados', 'Ja importados', 'Nao importados', 'Pendencias'], $linhas);
 
         foreach ($r['reconciliation'] ?? [] as $nome => $v) {
             $this->line(($v['ok'] ? '<info>OK</info>   ' : '<error>FALHA</error> ').$nome);

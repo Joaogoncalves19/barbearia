@@ -6,6 +6,11 @@ use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $weekday
+ * @property string $starts_at
+ * @property string $ends_at
+ */
 class WorkingHour extends Model
 {
     protected $table = 'working_hours';
@@ -22,6 +27,9 @@ class WorkingHour extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);

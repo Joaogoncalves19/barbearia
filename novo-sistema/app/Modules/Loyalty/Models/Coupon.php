@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 /**
  * Cupom de desconto. Codigo unico, sempre em maiusculas.
  * percent: percent_bp 1..10000 (sem valor fixo); fixed: amount_cents > 0.
+ *
+ * @property DiscountType|null $discount_type
+ * @property int|null $percent_bp
+ * @property int|null $amount_cents
  */
 #[UseFactory(CouponFactory::class)]
 class Coupon extends Model
@@ -62,6 +66,9 @@ class Coupon extends Model
         });
     }
 
+    /**
+     * @return HasMany<CouponRedemption, $this>
+     */
     public function redemptions(): HasMany
     {
         return $this->hasMany(CouponRedemption::class);

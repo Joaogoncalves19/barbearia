@@ -24,7 +24,11 @@ final class LegacyValue
         return $s === '' ? null : $s;
     }
 
-    /** Texto com possivel escape HTML duplo remanescente (B-15): desfaz um nivel. */
+    /**
+     * Texto com possivel escape HTML duplo remanescente (B-15): desfaz um nivel.
+     *
+     * @param-out bool $changed
+     */
     public static function unescapedText(mixed $v, ?bool &$changed = null): ?string
     {
         $s = self::text($v);

@@ -27,6 +27,9 @@ class GiftCard extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Appointment, $this>
+     */
     public function redeemedAppointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class, 'redeemed_appointment_id');

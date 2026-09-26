@@ -22,11 +22,17 @@ class ReviewReply extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Review, $this>
+     */
     public function review(): BelongsTo
     {
         return $this->belongsTo(Review::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_user_id');

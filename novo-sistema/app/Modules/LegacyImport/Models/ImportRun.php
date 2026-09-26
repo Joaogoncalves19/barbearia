@@ -27,6 +27,9 @@ class ImportRun extends Model
         ];
     }
 
+    /**
+     * @return HasMany<ImportIssue, $this>
+     */
     public function issues(): HasMany
     {
         return $this->hasMany(ImportIssue::class);

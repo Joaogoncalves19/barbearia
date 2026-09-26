@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[UseFactory(PlanFactory::class)]
 class Plan extends Model
 {
+    /** @use HasFactory<PlanFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'plans';
@@ -31,11 +32,17 @@ class Plan extends Model
         ];
     }
 
+    /**
+     * @return BelongsToMany<Service, $this>
+     */
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class, 'plan_services');
     }
 
+    /**
+     * @return HasMany<Subscription, $this>
+     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);

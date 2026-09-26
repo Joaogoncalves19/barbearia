@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 #[UseFactory(PackageFactory::class)]
 class Package extends Model
 {
+    /** @use HasFactory<PackageFactory> */
     use HasFactory, SoftDeletes;
 
     protected $table = 'packages';
@@ -36,11 +37,17 @@ class Package extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ServiceCategory, $this>
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(ServiceCategory::class, 'category_id');
     }
 
+    /**
+     * @return HasMany<PackageItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(PackageItem::class);

@@ -33,7 +33,7 @@ class DevelopmentSeeder extends Seeder
             $user->save();
         }
 
-        $this->command?->info('Usuarios de desenvolvimento: <papel>@barbearia.test');
-        $this->command?->warn('Senha (so desta execucao): '.$senha);
+        $this->command->info('Usuarios de desenvolvimento: <papel>@barbearia.test');
+        $this->command->warn('Senha (so desta execucao): '.$senha);
     }
 }

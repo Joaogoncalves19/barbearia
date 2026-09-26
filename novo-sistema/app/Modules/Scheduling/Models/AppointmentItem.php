@@ -19,6 +19,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *
  * Preco nulo so e permitido para item antigo cujo valor nao pode ser
  * reconstituido (price_source = legacy_unknown). Nunca se inventa um valor.
+ *
+ * @property ItemType $item_type
+ * @property PriceSource|null $price_source
+ * @property int|null $unit_price_cents
+ * @property int|null $quantity
+ * @property int|null $total_cents
  */
 class AppointmentItem extends Model
 {
@@ -61,21 +67,33 @@ class AppointmentItem extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<Appointment, $this>
+     */
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
     }
 
+    /**
+     * @return BelongsTo<Service, $this>
+     */
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class)->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<Package, $this>
+     */
     public function package(): BelongsTo
     {
         return $this->belongsTo(Package::class)->withTrashed();
     }
 
+    /**
+     * @return BelongsTo<Product, $this>
+     */
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class)->withTrashed();

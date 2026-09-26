@@ -1,0 +1,17 @@
+# Analise estatica (Larastan = PHPStan + regras do Laravel).
+# Rodar: vendor/bin/phpstan analyse --memory-limit=1G
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - app
+        - config
+        - database
+        - routes
+    excludePaths:
+        # Paginas de referencia visual (temporarias, removidas antes da Fase 11).
+        - app/Support/Prototypes
+        - app/Http/Controllers/Prototypes
+    tmpDir: storage/framework/cache/phpstan

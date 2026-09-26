@@ -16,6 +16,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Dinheiro recebido (ou estornado). So inclusao: estorno e um novo registro
  * kind=refund.
+ *
+ * @property PaymentKind|null $kind
+ * @property PaymentMethod $method
+ * @property int $amount_cents
+ * @property int|null $tip_cents
+ * @property int|null $refunds_payment_id
  */
 class Payment extends Model
 {
@@ -40,16 +46,25 @@ class Payment extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Appointment, $this>
+     */
     public function appointment(): BelongsTo
     {
         return $this->belongsTo(Appointment::class);
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<Payment, $this>
+     */
     public function refunds(): BelongsTo
     {
         return $this->belongsTo(Payment::class, 'refunds_payment_id');

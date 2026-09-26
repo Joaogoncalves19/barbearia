@@ -23,11 +23,17 @@ class Advance extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class);
     }
 
+    /**
+     * @return BelongsTo<CommissionPayout, $this>
+     */
     public function payout(): BelongsTo
     {
         return $this->belongsTo(CommissionPayout::class, 'commission_payout_id');

@@ -142,6 +142,11 @@ final class ImportContext
         $this->count($table, 'issues');
     }
 
+    /**
+     * Linha NAO importada: conta como "skipped" e vira pendencia de erro.
+     *
+     * @param  array<string, mixed>  $context
+     */
     public function skip(string $table, ?string $sourceId, IssueClassification $classification, string $code, string $message, array $context = [], bool $needsDecision = true): void
     {
         $this->count($table, 'skipped');

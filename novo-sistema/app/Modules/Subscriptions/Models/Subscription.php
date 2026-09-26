@@ -17,6 +17,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * do tempo, mas so UMA vigente). active_customer_id e a sentinela do indice
  * unico: preenchida enquanto a assinatura vale (ativa ou com cancelamento
  * agendado), nula depois.
+ *
+ * @property SubscriptionStatus|null $status
+ * @property int $customer_id
+ * @property int|null $active_customer_id
  */
 #[UseFactory(SubscriptionFactory::class)]
 class Subscription extends Model
@@ -49,16 +53,25 @@ class Subscription extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<Plan, $this>
+     */
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class)->withTrashed();
     }
 
+    /**
+     * @return HasMany<SubscriptionPayment, $this>
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(SubscriptionPayment::class);

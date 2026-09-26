@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
@@ -33,6 +34,11 @@ use Illuminate\Support\Str;
  *
  * status, consentimento e vinculos de mesclagem ficam fora do $fillable:
  * mudam por acao explicita (servicos de dominio), nao por formulario.
+ *
+ * @property ?string $email
+ * @property CustomerStatus $status
+ * @property MarketingConsent $marketing_email_consent
+ * @property Carbon|null $birth_date
  */
 #[Fillable(['name', 'email', 'phone', 'cpf', 'password', 'birth_date'])]
 #[Hidden(['password', 'remember_token', 'cpf'])]
@@ -90,41 +96,65 @@ class Customer extends Authenticatable
         $this->attributes['cpf'] = Cpf::normalize($value);
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function referredBy(): BelongsTo
     {
         return $this->belongsTo(self::class, 'referred_by_customer_id');
     }
 
+    /**
+     * @return HasMany<Customer, $this>
+     */
     public function referrals(): HasMany
     {
         return $this->hasMany(self::class, 'referred_by_customer_id');
     }
 
+    /**
+     * @return HasMany<Appointment, $this>
+     */
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
     }
 
+    /**
+     * @return HasMany<Subscription, $this>
+     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
     }
 
+    /**
+     * @return HasMany<LoyaltyEntry, $this>
+     */
     public function loyaltyEntries(): HasMany
     {
         return $this->hasMany(LoyaltyEntry::class);
     }
 
+    /**
+     * @return HasMany<CustomerNote, $this>
+     */
     public function notes(): HasMany
     {
         return $this->hasMany(CustomerNote::class);
     }
 
+    /**
+     * @return BelongsToMany<Professional, $this>
+     */
     public function favoriteProfessionals(): BelongsToMany
     {
         return $this->belongsToMany(Professional::class, 'customer_favorite_professionals')->withPivot('created_at');
     }
 
+    /**
+     * @return HasMany<ConsentRecord, $this>
+     */
     public function consentRecords(): HasMany
     {
         return $this->hasMany(ConsentRecord::class);

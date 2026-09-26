@@ -37,7 +37,11 @@ abstract class Step
         $this->handle();
     }
 
-    /** created_at/updated_at dos registros criados pela migracao. */
+    /**
+     * created_at/updated_at dos registros criados pela migracao.
+     *
+     * @return array{created_at: \DateTimeInterface, updated_at: \DateTimeInterface}
+     */
     protected function stamps(?\DateTimeInterface $created = null): array
     {
         return ['created_at' => $created ?? $this->ctx->now, 'updated_at' => $this->ctx->now];

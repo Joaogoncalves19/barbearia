@@ -39,6 +39,9 @@ final class Reconciler
         return $v === null ? null : (int) $v;
     }
 
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function loyalty(): array
     {
         $erros = [];
@@ -59,6 +62,9 @@ final class Reconciler
         return ['ok' => $erros === [], 'detail' => ['clientes_conferidos' => $n, 'divergencias' => array_slice($erros, 0, 20)]];
     }
 
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function stock(): array
     {
         $erros = [];
@@ -79,6 +85,9 @@ final class Reconciler
         return ['ok' => $erros === [], 'detail' => ['produtos_conferidos' => $n, 'divergencias' => $erros]];
     }
 
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function optOuts(): array
     {
         $faltando = [];
@@ -97,6 +106,9 @@ final class Reconciler
         return ['ok' => $faltando === [], 'detail' => ['opt_outs' => $n, 'faltando' => count($faltando)]];
     }
 
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function subscriptions(): array
     {
         $erros = [];
@@ -128,6 +140,9 @@ final class Reconciler
      * So entram atendimentos cujos itens existem no catalogo (os demais tem
      * valor desconhecido nos dois lados e sao contados a parte).
      */
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function revenue(): array
     {
         $precos = [];
@@ -146,7 +161,7 @@ final class Reconciler
             }
             $serv = 0;
             foreach (V::csv($a['servicos_ids'] ?? null) as $id) {
-                if (! isset($precos[$id]) || $precos[$id] === null) {
+                if (! isset($precos[$id])) { // isset tambem e falso para preco nulo
                     $desconhecidos++;
 
                     continue 2;
@@ -182,6 +197,9 @@ final class Reconciler
         return ['ok' => $div === [], 'detail' => ['meses' => count($antigo), 'total_centavos' => array_sum($antigo), 'atendimentos_com_item_desconhecido' => $desconhecidos, 'divergencias' => $div]];
     }
 
+    /**
+     * @return array{ok: bool, detail: array<string, mixed>}
+     */
     private function financialSums(): array
     {
         $pares = [

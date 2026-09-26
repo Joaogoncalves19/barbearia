@@ -20,6 +20,11 @@ use Illuminate\Notifications\Notifiable;
  * `role` e `is_active` ficam fora do $fillable de proposito: mudar papel ou
  * desativar alguem e uma acao administrativa explicita (Fase 3), nunca efeito
  * colateral de um formulario com mass assignment.
+ *
+ * @property StaffRole|null $role
+ * @property bool|null $is_active
+ * @property string|null $email
+ * @property string|null $username
  */
 #[Fillable(['name', 'email', 'username', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -57,6 +62,9 @@ class User extends Authenticatable
         });
     }
 
+    /**
+     * @return HasOne<Professional, $this>
+     */
     public function professional(): HasOne
     {
         return $this->hasOne(Professional::class);

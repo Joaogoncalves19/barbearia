@@ -18,10 +18,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * Atendimento agendado. Contato do cliente e nome do profissional sao
  * fotografados na criacao. Mudanca de status so pelas transicoes do enum.
+ *
+ * @property Carbon|null $starts_at
+ * @property Carbon|null $ends_at
+ * @property AppointmentStatus $status
+ * @property string|null $code
  */
 #[UseFactory(AppointmentFactory::class)]
 class Appointment extends Model
@@ -92,41 +98,65 @@ class Appointment extends Model
         return $code;
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<Professional, $this>
+     */
     public function professional(): BelongsTo
     {
         return $this->belongsTo(Professional::class)->withTrashed();
     }
 
+    /**
+     * @return HasMany<AppointmentItem, $this>
+     */
     public function items(): HasMany
     {
         return $this->hasMany(AppointmentItem::class);
     }
 
+    /**
+     * @return HasMany<AppointmentAdjustment, $this>
+     */
     public function adjustments(): HasMany
     {
         return $this->hasMany(AppointmentAdjustment::class);
     }
 
+    /**
+     * @return HasMany<AppointmentEvent, $this>
+     */
     public function events(): HasMany
     {
         return $this->hasMany(AppointmentEvent::class);
     }
 
+    /**
+     * @return HasMany<AppointmentReminder, $this>
+     */
     public function reminders(): HasMany
     {
         return $this->hasMany(AppointmentReminder::class);
     }
 
+    /**
+     * @return HasMany<Payment, $this>
+     */
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
     }
 
+    /**
+     * @return HasOne<Review, $this>
+     */
     public function review(): HasOne
     {
         return $this->hasOne(Review::class);

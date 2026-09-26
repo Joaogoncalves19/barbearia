@@ -28,16 +28,25 @@ class CustomerMergeCandidate extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
+    /**
+     * @return BelongsTo<Customer, $this>
+     */
     public function duplicate(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'duplicate_customer_id');
     }
 
+    /**
+     * @return BelongsTo<ImportRun, $this>
+     */
     public function importRun(): BelongsTo
     {
         return $this->belongsTo(ImportRun::class);

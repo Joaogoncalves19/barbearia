@@ -21,6 +21,9 @@ class LegacyReference extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<ImportRun, $this>
+     */
     public function run(): BelongsTo
     {
         return $this->belongsTo(ImportRun::class, 'import_run_id');

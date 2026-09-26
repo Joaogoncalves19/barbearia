@@ -43,6 +43,9 @@ jobs:
       - name: Estilo (Pint)
         run: vendor/bin/pint --test
 
+      - name: Análise estática (Larastan nível 6)
+        run: vendor/bin/phpstan analyse --memory-limit=1G --no-progress
+
       - name: Auditoria de dependências
         run: |
           composer audit
@@ -51,6 +54,13 @@ jobs:
 
       - name: Testes PHP (unitários e de integração)
         run: php artisan test
+
+      - name: Importador com banco antigo fictício (simulação, importação, reexecução)
+        run: |
+          php artisan legacy:fixture storage/legado-ficticio.sqlite --customers=500 --appointments=3000
+          php artisan legacy:import storage/legado-ficticio.sqlite --dry-run
+          php artisan legacy:import storage/legado-ficticio.sqlite
+          php artisan legacy:import storage/legado-ficticio.sqlite
 
       - name: Build dos assets
         run: npm run build

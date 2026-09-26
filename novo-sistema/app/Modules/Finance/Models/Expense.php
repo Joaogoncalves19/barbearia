@@ -29,6 +29,9 @@ class Expense extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<Expense, $this>
+     */
     public function recurrenceParent(): BelongsTo
     {
         return $this->belongsTo(Expense::class, 'recurrence_parent_id');
