@@ -1,5 +1,9 @@
 # 15. Decisões pendentes (dono do produto)
 
+> Situação atualizada na Fase 1: ver [decisoes-fase-1.md](decisoes-fase-1.md). D-16 foi
+> autorizada e executada; D-02 e D-10 têm decisão técnica provisória; D-01, D-07 e D-08
+> seguem com o dono.
+
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
 

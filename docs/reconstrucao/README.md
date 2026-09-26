@@ -1,7 +1,8 @@
-# Reconstrução do Sistema da Barbearia — Fase 0
+# Reconstrução do Sistema da Barbearia
 
-> **Status:** Fase 0 (auditoria + documentação + planejamento) concluída.
-> **Fase 1:** aguardando autorização. Nenhuma linha do sistema atual foi alterada.
+> **Status:** Fase 0 concluída. **Fase 1 concluída, aguardando aprovação** para a Fase 2.
+> Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
+> ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
 Esta pasta reúne o diagnóstico do sistema atual ("Sistema Barbearia 3.0") e o
 plano para reconstruí-lo do zero, por etapas.
@@ -25,6 +26,17 @@ plano para reconstruí-lo do zero, por etapas.
 | 13 | [estrategia-testes.md](estrategia-testes.md) | Como garantir que cada fase está correta? |
 | 14 | [roadmap.md](roadmap.md) | Em que ordem reconstruir e quando cada fase acaba? |
 | 15 | [decisoes-pendentes.md](decisoes-pendentes.md) | O que precisa ser decidido pelo dono do produto? |
+
+### Fase 1
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [seguranca-correcoes.md](seguranca-correcoes.md) | Correções S-01 a S-04 no sistema atual e seus testes |
+| [decisoes-fase-1.md](decisoes-fase-1.md) | Decisões tomadas, provisórias e pendentes |
+| [arquitetura-nova.md](arquitetura-nova.md) | Estrutura, camadas, deny by default, dados históricos, ambientes, filas, convenções |
+| [identidade-visual.md](identidade-visual.md) | Duas direções visuais, paleta com contraste, tipografia, espaço, ícones, fotografia |
+| [design-system.md](design-system.md) | Componentes, estados, acessibilidade, mobile, desempenho, telas de referência |
+| [relatorio-fase-1.md](relatorio-fase-1.md) | Relatório final da Fase 1 |
 
 ## Legenda usada em todos os documentos
 

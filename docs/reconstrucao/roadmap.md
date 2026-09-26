@@ -33,7 +33,20 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 1 — Fundação técnica e design system
+## Fase 1 — Fundação técnica e design system ✅ (aguardando aprovação)
+
+> **Concluída em 2026-09-26, aguardando aprovação do dono para iniciar a Fase 2.**
+> Entregue: correção das 4 vulnerabilidades críticas no sistema atual (com testes);
+> `novo-sistema/` em Laravel 13 com autenticação da equipe, permissões deny-by-default,
+> CSP estrita, filas/agendador, diagnóstico e `Money`; design system com duas direções
+> visuais e 5 telas de referência; CI; documentação
+> ([arquitetura-nova.md](arquitetura-nova.md), [design-system.md](design-system.md),
+> [identidade-visual.md](identidade-visual.md), [seguranca-correcoes.md](seguranca-correcoes.md),
+> [decisoes-fase-1.md](decisoes-fase-1.md)).
+> **Não entregue (bloqueado):** deploy automatizado em homologação (depende de D-01) e
+> análise estática PHPStan (download bloqueado no ambiente; vai para o início da Fase 2).
+> **Pendente do dono:** escolher a direção visual (A/B), logo, fotos e hospedagem.
+
 
 - **Objetivo:** ter o esqueleto do novo sistema rodando em homologação, com qualidade automatizada.
 - **Escopo:** repositório/pasta do novo sistema; Laravel + PHP 8.3; estrutura de módulos;
@@ -55,6 +68,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 ---
 
 ## Fase 2 — Modelo de dados e importador
+
+> Acrescentado pela Fase 1: instalar PHPStan/Larastan no CI; decidir hospedagem (D-01) e
+> publicar a homologação; confirmar SQLite (D-02).
 
 - **Objetivo:** schema novo completo + importador que prova que os dados reais cabem nele.
 - **Escopo:** migrations de **todas** as entidades aprovadas (ver proposta-arquitetura 10.4);
