@@ -14,6 +14,96 @@ function retornarResposta($tipo, $msg, $is_ajax) {
     }
 }
 
+/**
+ * Seguranca (S-04): valida o reagendamento pedido pelo cliente com as mesmas
+ * regras do agendamento online (processar_agendamento.php). Antes, data e hora
+ * iam direto para o banco: horario ocupado, fora do expediente, texto
+ * arbitrario e ate agendamento cancelado voltavam como "aprovado".
+ *
+ * @return string Mensagem de erro para o cliente, ou '' se estiver tudo certo.
+ */
+function validarReagendamentoCliente(array $ag, $nova_data, $novo_horario) {
+    if (!in_array($ag['status'] ?? '', ['aprovado', 'pendente'], true)) {
+        return 'Este agendamento não pode mais ser reagendado.';
+    }
+    if (!is_string($nova_data) || !is_string($novo_horario)
+        || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $nova_data, $d)
+        || !checkdate((int) $d[2], (int) $d[3], (int) $d[1])
+        || !preg_match('/^([01]\d|2[0-3]):([0-5]\d)$/', $novo_horario, $h)) {
+        return 'Data ou horário inválido.';
+    }
+    if ((int) $h[2] % 30 !== 0) {
+        return 'Escolha um dos horários disponíveis.';
+    }
+
+    $inicioOriginal = strtotime(($ag['data'] ?? '') . ' ' . ($ag['hora'] ?? ''));
+    if ($inicioOriginal === false || $inicioOriginal < time()) {
+        return 'Este agendamento já passou e não pode ser reagendado.';
+    }
+
+    $inicio = strtotime($nova_data . ' ' . $novo_horario);
+    $cfg = carregarConfigAgendamento();
+    $minAntecedencia = (int) ($cfg['antecedencia_minima_minutos'] ?? 0);
+    $maxDias = (int) ($cfg['antecedencia_maxima'] ?? 0);
+    if ($inicio < time()) {
+        return 'Esse horário já passou. Escolha um horário futuro.';
+    }
+    if ($minAntecedencia > 0 && $inicio < time() + ($minAntecedencia * 60)) {
+        return 'É necessário reagendar com pelo menos ' . $minAntecedencia . ' minuto(s) de antecedência.';
+    }
+    if ($maxDias > 0 && strtotime($nova_data) > strtotime('+' . $maxDias . ' days', strtotime(date('Y-m-d')))) {
+        return 'Só é possível agendar com até ' . $maxDias . ' dia(s) de antecedência.';
+    }
+
+    // Duracao em slots de 30 min (mesma conta de getHorariosOcupados()).
+    $barbeiroId = (string) ($ag['barbeiro_id'] ?? '');
+    $servicosArr = lerDados('servicos', ['id', 'slots']);
+    $combosArr = lerDados('combos', ['id', 'servicos_ids']);
+    $slots = 0;
+    foreach (array_filter(array_map('trim', explode(',', (string) ($ag['servicos_ids'] ?? '')))) as $itemId) {
+        if (isset($servicosArr[$itemId])) {
+            $slots += max(1, (int) ($servicosArr[$itemId]['slots'] ?? 1));
+        } elseif (isset($combosArr[$itemId])) {
+            foreach (array_filter(array_map('trim', explode(',', (string) $combosArr[$itemId]['servicos_ids']))) as $sid) {
+                $slots += max(1, (int) ($servicosArr[$sid]['slots'] ?? 1));
+            }
+        } else {
+            $slots++;
+        }
+    }
+    $slots = max(1, $slots);
+
+    // Expediente do dia (getHorarioDeTrabalho ja devolve null em folga/ferias).
+    $expediente = getHorarioDeTrabalho($barbeiroId, (int) date('w', $inicio), $nova_data);
+    if (!$expediente) {
+        return 'O profissional não atende nesse dia. Escolha outra data.';
+    }
+    $fim = $inicio + ($slots * 30 * 60);
+    if ($inicio < strtotime($nova_data . ' ' . $expediente['inicio']) || $fim > strtotime($nova_data . ' ' . $expediente['fim'])) {
+        return 'O horário escolhido não pertence ao expediente do profissional.';
+    }
+
+    // Ocupacao, ignorando os slots do proprio agendamento (remarcar no mesmo dia).
+    $ocupados = getHorariosOcupados($barbeiroId, $nova_data);
+    if (($ag['data'] ?? '') === $nova_data) {
+        $iniProprio = (int) date('G', $inicioOriginal) * 60 + (int) date('i', $inicioOriginal);
+        $proprios = [];
+        for ($i = 0; $i < $slots; $i++) {
+            $m = $iniProprio + $i * 30;
+            $proprios[] = sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+        }
+        $ocupados = array_diff($ocupados, $proprios);
+    }
+    $iniNovo = (int) $h[1] * 60 + (int) $h[2];
+    for ($i = 0; $i < $slots; $i++) {
+        $m = $iniNovo + $i * 30;
+        if (in_array(sprintf('%02d:%02d', intdiv($m, 60), $m % 60), $ocupados, true)) {
+            return 'Esse horário já está ocupado. Escolha outro.';
+        }
+    }
+    return '';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action && $action !== 'marcar_lidas') {
     $token = $_POST['csrf_token'] ?? '';
     if (!verify_csrf_token($token)) {
@@ -153,12 +243,12 @@ if ($action === 'alterar_senha') {
 }
 
 if ($action === 'reagendar_agendamento') {
-    $agendamento_id = $_POST['reagendar_agendamento_id'];
-    $nova_data = $_POST['reagendar_data'];
-    $novo_horario = $_POST['reagendar_horario'];
+    $agendamento_id = $_POST['reagendar_agendamento_id'] ?? '';
+    $nova_data = $_POST['reagendar_data'] ?? '';
+    $novo_horario = $_POST['reagendar_horario'] ?? '';
     
     $pdo = getDB();
-    $stmtCheck = $pdo->prepare("SELECT id, cliente_id, telefone FROM agendamentos WHERE id = ?");
+    $stmtCheck = $pdo->prepare("SELECT id, cliente_id, telefone, barbeiro_id, servicos_ids, data, hora, status FROM agendamentos WHERE id = ?");
     $stmtCheck->execute([$agendamento_id]);
     $ag = $stmtCheck->fetch();
     
@@ -173,9 +263,25 @@ if ($action === 'reagendar_agendamento') {
             $is_meu_agendamento = ($telAgendamento === $telSessao);
         }
 
-        if ($is_meu_agendamento) {
-            $stmtUp = $pdo->prepare("UPDATE agendamentos SET data = ?, hora = ?, status = 'aprovado' WHERE id = ?");
-            $stmtUp->execute([$nova_data, $novo_horario, $agendamento_id]);
+        $erroReagendamento = $is_meu_agendamento ? validarReagendamentoCliente($ag, $nova_data, $novo_horario) : '';
+        $gravou = false;
+        if ($is_meu_agendamento && $erroReagendamento === '') {
+            // O status fica como esta (so aprovado/pendente chegam aqui): antes o
+            // UPDATE forcava 'aprovado', o que reativava agendamentos cancelados.
+            try {
+                $stmtUp = $pdo->prepare("UPDATE agendamentos SET data = ?, hora = ? WHERE id = ?");
+                $stmtUp->execute([$nova_data, $novo_horario, $agendamento_id]);
+                $gravou = true;
+            } catch (PDOException $e) {
+                // Indice unico de horario: outra pessoa pegou o horario agora.
+                log_activity('Reagendamento pelo cliente recusado pelo banco: ' . $e->getMessage());
+                $erroReagendamento = 'Esse horário acabou de ser reservado por outra pessoa. Escolha outro.';
+            }
+        }
+
+        if ($is_meu_agendamento && $erroReagendamento !== '') {
+            retornarResposta('erro', $erroReagendamento, $is_ajax);
+        } elseif ($gravou) {
             if (function_exists('registrarHistoricoAgenda')) {
                 registrarHistoricoAgenda($agendamento_id, 'Agendamento reagendado', 'Novo horário: ' . date('d/m/Y', strtotime($nova_data)) . ' às ' . $novo_horario, ($_SESSION['cliente_nome'] ?? 'Cliente') . ' (cliente)');
             }

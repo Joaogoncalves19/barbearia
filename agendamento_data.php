@@ -44,9 +44,11 @@ if (isset($_GET['erro_stripe'])) {
     }
 }
 
-if (isset($_GET['reagendar_id'])) {
-    $_SESSION['reagendar_id'] = $_GET['reagendar_id'];
-}
+// Seguranca (S-01): o antigo "?reagendar_id=" gravava qualquer ID na sessao e o
+// processamento apagava esse agendamento sem conferir o dono. Nenhuma tela usa
+// mais esse fluxo (o reagendamento acontece em cliente_actions.php), entao ele
+// foi desativado. Limpa tambem valores que tenham ficado em sessoes abertas.
+unset($_SESSION['reagendar_id']);
 
 $cliente_logado = isset($_SESSION['cliente_logado']) && $_SESSION['cliente_logado'];
 $form_disabled_class = $cliente_logado ? '' : 'form-disabled';
@@ -61,7 +63,9 @@ $app_accent = $themeConfig['secondary_color'] ?? '#f59e0b';
 
 $keys_agendamentos_completo = ['id', 'nome', 'email', 'telefone', 'barbeiro_id', 'servicos_ids', 'data', 'hora', 'status', 'desconto_aplicado', 'tipo_desconto', 'observacoes', 'produtos_vendidos', 'plano_provisorio', 'cliente_id', 'data_criacao'];
 
-$barbeirosArr = lerDados('barbeiros', ['id', 'nome', 'foto', 'username', 'status', 'servicos_ids']);
+// Seguranca (S-03): sem 'username' -- e o login do barbeiro e esta lista vai
+// inteira para o JavaScript da pagina publica.
+$barbeirosArr = lerDados('barbeiros', ['id', 'nome', 'foto', 'status', 'servicos_ids']);
 $barbeirosAtivosArr = array_filter($barbeirosArr, function($barbeiro) {
     $status = $barbeiro['status'] ?? 'ativo';
     return (empty($status) || $status === 'ativo');
@@ -93,8 +97,19 @@ foreach ($combosArr as $comboId => &$combo) {
 }
 unset($combo); 
 
-$avaliacoesArr = lerDados('avaliacoes', ['id', 'agendamento_id', 'cliente_id', 'barbeiro_id', 'rating', 'comment', 'timestamp']);
-$clientesArr = lerDados('clientes', ['id', 'nome']);
+// Seguranca (S-03): esta pagina e publica e serializa estes arrays no JS.
+// Antes iam todas as avaliacoes com cliente_id e agendamento_id, e a lista de
+// todos os clientes (id + nome). Agora so o necessario para o perfil do
+// barbeiro: nota, comentario e data. A lista de clientes nao e usada aqui.
+$avaliacoesArr = array_map(function ($av) {
+    return [
+        'barbeiro_id' => $av['barbeiro_id'] ?? '',
+        'rating'      => $av['rating'] ?? '',
+        'comment'     => $av['comment'] ?? '',
+        'timestamp'   => $av['timestamp'] ?? '',
+    ];
+}, lerDados('avaliacoes', ['id', 'barbeiro_id', 'rating', 'comment', 'timestamp']));
+$clientesArr = [];
 
 $assinaturaAtiva = null;
 $ultimo_agendamento = null;

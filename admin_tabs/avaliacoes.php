@@ -330,8 +330,8 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 const r = await fetch('ajax_gemini.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resumo_geral' }) });
                 const d = await r.json();
-                if (d.success) contentBox.innerHTML = '<strong style="display:block; margin-bottom:12px; color:#4c1d95;"><i class="fa fa-check-circle"></i> Análise Concluída:</strong>' + d.resposta.replace(/\n/g, '<br>');
-                else contentBox.innerHTML = '<span style="color:#ef4444; font-weight:bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + d.error + '</span>';
+                if (d.success) contentBox.innerHTML = '<strong style="display:block; margin-bottom:12px; color:#4c1d95;"><i class="fa fa-check-circle"></i> Análise Concluída:</strong>' + String(d.resposta).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])).replace(/\n/g, '<br>');
+                else contentBox.innerHTML = '<span style="color:#ef4444; font-weight:bold;"><i class="fa fa-exclamation-triangle"></i> Erro: ' + String(d.error).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) + '</span>';
             } catch (e) { contentBox.innerHTML = '<span style="color:#ef4444; font-weight:bold;">Erro de conexão com a IA.</span>'; }
             finally { btnResumo.disabled = false; btnResumo.innerHTML = '<i class="fa fa-sync-alt"></i> Atualizar Insights'; }
         });
