@@ -1,0 +1,5 @@
+# Banco SQLite e logs gerados em runtime
+_dados/*.sqlite
+_dados/*.sqlite-*
+_logs/*.log
+vendor/

@@ -1,0 +1,13 @@
+# Os arquivos desta pasta sao FRAGMENTOS de e-mail, incluidos pelo PHP via
+# caminho de arquivo (lib/email_functions.php). Nunca devem ser servidos por
+# HTTP: acessados direto, rodam com variaveis indefinidas e podem vazar dados.
+#
+# O include continua funcionando normalmente -- esta regra so vale para
+# requisicoes que chegam pelo Apache.
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

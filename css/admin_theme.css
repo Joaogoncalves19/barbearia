@@ -1,0 +1,823 @@
+/* =========================================================================
+   TEMA DO PAINEL ADMIN — modernização do shell + MODO ESCURO
+   -------------------------------------------------------------------------
+   Carregado por último. É ADITIVO: o modo claro existente não é alterado
+   (as regras de escuro vivem sob html.dark-mode). O shell novo (grupos de
+   menu, botão de tema) usa tokens que valem nos dois temas.
+   ========================================================================= */
+
+:root {
+    --dm-ground: #eef2f7;
+    --dm-surface: #ffffff;
+    --dm-surface-2: #f7f9fc;
+    --dm-surface-3: #f1f5f9;
+    --dm-sidebar: #ffffff;
+    --dm-border: #e4e9f0;
+    --dm-border-strong: #cbd5e1;
+    --dm-border-soft: #eef2f7;
+    --dm-text: #0f1b2d;
+    --dm-muted: #5b6b82;
+    --dm-faint: #8b98ab;
+    --dm-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px -18px rgba(15,23,42,.25);
+}
+html.dark-mode {
+    --dm-ground: #0a1120;
+    --dm-surface: #111b2e;
+    --dm-surface-2: #0e1728;
+    --dm-surface-3: #16223a;
+    --dm-sidebar: #0d1626;
+    --dm-border: #22314a;
+    --dm-border-strong: #334561;
+    --dm-border-soft: #1a2740;
+    --dm-text: #e7edf6;
+    --dm-muted: #93a1b8;
+    --dm-faint: #5f6f88;
+    --dm-shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px -18px rgba(0,0,0,.7);
+    color-scheme: dark;
+}
+
+/* =========================================================================
+   SHELL MODERNIZADO (vale nos dois temas)
+   ========================================================================= */
+
+/* Títulos de grupo na sidebar */
+.sidebar-nav .nav-group-title {
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--dm-faint);
+    margin: 16px 14px 6px;
+    padding: 0;
+}
+.sidebar-nav .nav-group-title:first-child { margin-top: 4px; }
+
+/* Item de menu ativo modernizado (fundo suave + trilho lateral) — os dois temas */
+.admin-sidebar .tab-btn { position: relative; }
+.admin-sidebar .tab-btn.active {
+    background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+    color: var(--secondary-color);
+    box-shadow: none;
+    font-weight: 700;
+}
+.admin-sidebar .tab-btn.active i { color: var(--secondary-color); }
+.admin-sidebar .tab-btn.active::before {
+    content: '';
+    position: absolute; left: 0; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 0 3px 3px 0;
+    background: var(--secondary-color);
+}
+
+/* Botão de alternar tema (topbar) */
+.admin-theme-toggle {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 999px;
+    border: 1px solid var(--dm-border);
+    background: var(--dm-surface);
+    color: var(--dm-muted);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    transition: background .15s, color .15s, transform .15s;
+}
+.admin-theme-toggle:hover { background: var(--dm-surface-3); color: var(--dm-text); transform: translateY(-1px); }
+
+/* =========================================================================
+   MODO ESCURO — overrides
+   ========================================================================= */
+
+/* ---- Base / layout ---- */
+html.dark-mode body.admin-page,
+html.dark-mode .admin-layout { background: var(--dm-ground); color: var(--dm-text); }
+html.dark-mode .admin-content-area { background: transparent; }
+html.dark-mode .admin-main { background: var(--dm-ground); }
+
+/* ---- Sidebar ---- */
+html.dark-mode .admin-sidebar { background: var(--dm-sidebar); border-right-color: var(--dm-border); box-shadow: none; }
+html.dark-mode .sidebar-header { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .sidebar-header h2 { color: var(--dm-text); }
+html.dark-mode .sidebar-header .barbearia-name { color: var(--dm-faint); }
+html.dark-mode .tab-btn { color: var(--dm-muted); }
+html.dark-mode .tab-btn i { color: var(--dm-faint); }
+html.dark-mode .tab-btn:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+html.dark-mode .tab-btn:hover i { color: var(--dm-text); }
+html.dark-mode .tab-btn.active { background: color-mix(in srgb, var(--secondary-color) 22%, transparent); color: var(--dm-text); }
+html.dark-mode .tab-btn.active i { color: var(--secondary-color); }
+html.dark-mode .sidebar-footer { background: transparent; border-top-color: var(--dm-border-soft); color: var(--dm-faint); }
+html.dark-mode .sidebar-footer a { color: var(--dm-faint); }
+
+/* ---- Topbar ---- */
+html.dark-mode .admin-topbar { background: color-mix(in srgb, var(--dm-surface) 82%, transparent); border-bottom-color: var(--dm-border); }
+html.dark-mode #boas-vindas-msg { color: var(--dm-faint) !important; }
+html.dark-mode #topbar-datetime { color: var(--dm-muted) !important; }
+html.dark-mode .admin-command-search { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-faint); }
+html.dark-mode .admin-command-search kbd { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .admin-user-chip { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .btn-refresh { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .btn-refresh:hover { background: var(--dm-surface-3); }
+html.dark-mode .topbar-icon-btn { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .topbar-icon-btn:hover { background: var(--dm-surface-3); color: var(--secondary-color); border-color: var(--dm-muted); }
+html.dark-mode .topbar-icon-btn.is-support { background: rgba(59,130,246,.14); border-color: rgba(59,130,246,.35); color: #93c5fd; }
+html.dark-mode .topbar-icon-btn.is-support:hover { background: var(--secondary-color); color: #fff; border-color: var(--secondary-color); }
+html.dark-mode .btn-logout { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.4); color: #f87171; }
+html.dark-mode .btn-logout:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* Marketing (reformulado) */
+html.dark-mode .mkt-metric { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .mkt-metric .mm-val { color: var(--dm-text); }
+html.dark-mode .mkt-metric .mm-lbl { color: var(--dm-muted); }
+html.dark-mode .mkt-metric.mm-blue i { background: rgba(37,99,235,.16); color: #93c5fd; }
+html.dark-mode .mkt-metric.mm-green i { background: rgba(5,150,105,.16); color: #6ee7b7; }
+html.dark-mode .mkt-metric.mm-purple i { background: rgba(124,58,237,.16); color: #c4b5fd; }
+html.dark-mode .mkt-metric.mm-amber i { background: rgba(217,119,6,.16); color: #fcd34d; }
+html.dark-mode .mkt-metric.mm-slate i { background: var(--dm-surface-2); color: var(--dm-muted); }
+html.dark-mode .camp-item { background: var(--dm-surface); border-color: var(--dm-border-soft); }
+html.dark-mode .camp-info strong { color: var(--dm-text); }
+html.dark-mode .camp-info small { color: var(--dm-faint); }
+html.dark-mode .cupom-code { background: var(--dm-surface-2); color: var(--dm-text); }
+html.dark-mode .cupom-code[style] { background: rgba(124,58,237,.18) !important; color: #c4b5fd !important; }
+html.dark-mode .badge-off { background: var(--dm-surface-2); color: var(--dm-faint); }
+html.dark-mode .btn-soft { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .btn-soft:hover { color: var(--secondary-color); border-color: var(--dm-muted); }
+html.dark-mode .tag-item { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .tag-item:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+html.dark-mode .mkt-count-badge { background: rgba(37,99,235,.16); border-color: rgba(37,99,235,.35); color: #93c5fd; }
+html.dark-mode .mkt-progress-box { background: var(--dm-surface); }
+html.dark-mode .mkt-progress-box h3 { color: var(--dm-text); }
+html.dark-mode .mkt-progress-box p, html.dark-mode .mkt-progress-stats { color: var(--dm-muted); }
+html.dark-mode .mkt-progress-stats b { color: var(--dm-text); }
+html.dark-mode .mkt-bar { background: var(--dm-surface-3); }
+html.dark-mode .widget-desc { color: var(--dm-muted); }
+
+/* Avaliações (reformulado) */
+html.dark-mode .reminder-alert-card { background: linear-gradient(to right, rgba(245,158,11,.12), rgba(217,119,6,.08)); border-color: rgba(245,158,11,.35); }
+html.dark-mode .reminder-info h4 { color: #fcd34d; }
+html.dark-mode .reminder-info p, html.dark-mode .btn-link-toggle { color: #fbbf24; }
+html.dark-mode .pend-item { background: var(--dm-surface-2); border-color: rgba(245,158,11,.28); }
+html.dark-mode .pend-item .pi-info strong { color: #fcd34d; } html.dark-mode .pend-item .pi-info small { color: #fbbf24; }
+html.dark-mode .ia-summary-card { background: linear-gradient(135deg, rgba(124,58,237,.14), rgba(109,40,217,.10)); border-color: rgba(139,92,246,.35); }
+html.dark-mode .ia-header-flex h4 { color: #c4b5fd; }
+html.dark-mode .ia-content-box { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .filter-bar { border-bottom-color: var(--dm-border); }
+html.dark-mode .filter-bar h3 { color: var(--dm-text); }
+html.dark-mode .modern-filter-form .modern-select, html.dark-mode .modern-filter-form input { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .btn-clear { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .btn-clear:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+html.dark-mode .btn-export { background: rgba(5,150,105,.14); border-color: rgba(5,150,105,.35); color: #6ee7b7; }
+html.dark-mode .review-response { background: var(--dm-surface-2); }
+html.dark-mode .review-response strong { color: var(--dm-text); } html.dark-mode .review-response p { color: var(--dm-muted); }
+html.dark-mode .review-comment { color: var(--dm-text); }
+html.dark-mode .review-services span { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .card-client-sub, html.dark-mode .review-date { color: var(--dm-faint); }
+html.dark-mode .av-progress-box { background: var(--dm-surface); }
+html.dark-mode .av-progress-box h3 { color: var(--dm-text); }
+html.dark-mode .av-progress-box p, html.dark-mode .av-progress-stats { color: var(--dm-muted); } html.dark-mode .av-progress-stats b { color: var(--dm-text); }
+html.dark-mode .av-bar { background: var(--dm-surface-3); }
+
+/* Central de Suporte */
+html.dark-mode .sup-intro { color: var(--dm-muted); }
+html.dark-mode .sup-block-label, html.dark-mode .sup-field-label { color: var(--dm-text); }
+html.dark-mode .sup-type-inner { background: var(--dm-surface-2); border-color: var(--dm-border); }
+html.dark-mode .sup-type-inner b { color: var(--dm-text); }
+html.dark-mode .sup-type-inner i, html.dark-mode .sup-type-inner small { color: var(--dm-faint); }
+html.dark-mode .sup-type:hover .sup-type-inner { border-color: var(--dm-muted); }
+html.dark-mode .sup-type input:checked + .sup-type-inner { background: rgba(59,130,246,.14); border-color: var(--secondary-color); }
+html.dark-mode .sup-diag { color: var(--dm-muted); }
+html.dark-mode .sup-quick { border-top-color: var(--dm-border-soft); }
+html.dark-mode .sup-quick > span { color: var(--dm-faint); }
+html.dark-mode .sup-quick-link { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .sup-quick-link:hover { background: var(--dm-surface-3); color: var(--secondary-color); border-color: var(--dm-muted); }
+
+/* Sino de alertas + popover */
+html.dark-mode .admin-alert-trigger { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .admin-alert-popover { background: var(--dm-surface); border-color: var(--dm-border); box-shadow: var(--dm-shadow); }
+html.dark-mode .admin-alert-popover-head { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .admin-alert-popover-head strong { color: var(--dm-text); }
+html.dark-mode .admin-alert-popover-item { color: var(--dm-muted); border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .admin-alert-popover-item:hover { background: var(--dm-surface-3); }
+html.dark-mode .admin-alert-popover-item > i:first-child { background: var(--dm-surface-2); }
+html.dark-mode .admin-alert-popover-item.is-danger > i:first-child { color: #f87171; background: rgba(220,38,38,.14); }
+html.dark-mode .admin-alert-popover-item.is-warning > i:first-child { color: #fbbf24; background: rgba(217,119,6,.14); }
+html.dark-mode .admin-alert-popover-item.is-info > i:first-child { color: #a78bfa; background: rgba(124,58,237,.16); }
+html.dark-mode .admin-alert-popover-item.is-success > i:first-child { color: #34d399; background: rgba(5,150,105,.14); }
+html.dark-mode .admin-alert-popover-go { color: var(--dm-faint); }
+html.dark-mode .ausencia-item { background: var(--dm-surface-2); border-color: var(--dm-border); }
+html.dark-mode .ausencia-item strong { color: var(--dm-text); }
+html.dark-mode .ausencia-item small { color: var(--dm-faint); }
+html.dark-mode .ausencia-del { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.4); color: #f87171; }
+html.dark-mode .risco-chip { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .risco-chip.is-active { background: var(--secondary-color); border-color: var(--secondary-color); color: #fff; }
+html.dark-mode .risco-lista { border-color: var(--dm-border); }
+html.dark-mode .risco-item { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .risco-info strong { color: var(--dm-text); }
+html.dark-mode .risco-info small { color: var(--dm-faint); }
+html.dark-mode .comanda-itens { border-color: var(--dm-border); }
+html.dark-mode .comanda-item { color: var(--dm-muted); border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .comanda-item i { color: var(--dm-faint); }
+html.dark-mode .comanda-chip { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .comanda-chip:has(input:checked) { background: rgba(14,165,233,.18); border-color: #0ea5e9; color: #7dd3fc; }
+html.dark-mode .comanda-chip:has(input:checked) b { color: #7dd3fc; }
+html.dark-mode .comanda-total-row { background: var(--dm-surface-2); }
+html.dark-mode .comanda-total-row span { color: var(--dm-muted); }
+html.dark-mode .comanda-total-row strong { color: var(--dm-text); }
+html.dark-mode #manual_horarios-container .horario-btn { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode #manual_horarios-container .horario-btn.ocupado { background: var(--dm-surface); border-color: var(--dm-border-soft); color: var(--dm-faint); }
+html.dark-mode #manual_horarios-container .horario-btn.selecionado { background: var(--secondary-color); border-color: var(--secondary-color); color: #fff; }
+html.dark-mode #reagendar_horarios-container .horario-btn { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode #reagendar_horarios-container .horario-btn:hover { background: var(--dm-surface-3); }
+html.dark-mode .ag-times-legend { color: var(--dm-muted); }
+html.dark-mode .ag-times-legend .dot-livre { background: var(--dm-surface-2); border-color: var(--dm-border); }
+html.dark-mode .ag-times-legend .dot-ocupado { background: var(--dm-border); }
+html.dark-mode .ag-times-hint { color: var(--dm-faint); }
+/* Registro do Dia (diário) */
+html.dark-mode .diario-head h3 { color: var(--dm-text); }
+html.dark-mode .diario-head .diario-sub { color: var(--dm-faint); }
+html.dark-mode .diario-kpi { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .diario-kpi .k-label { color: var(--dm-muted); }
+html.dark-mode .diario-kpi .k-value { color: var(--dm-text); }
+html.dark-mode .diario-pagamentos { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .diario-pag-chip { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .diario-col h4 { color: var(--dm-text); }
+html.dark-mode .diario-empty { background: var(--dm-surface-2); color: var(--dm-faint); }
+html.dark-mode .diario-tl-body { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .diario-tl-top strong { color: var(--dm-text); }
+html.dark-mode .diario-tl-meta { color: var(--dm-muted); }
+html.dark-mode .diario-tl-det { background: var(--dm-surface-2); color: var(--dm-muted); }
+html.dark-mode .diario-table-wrap { border-color: var(--dm-border); }
+html.dark-mode .diario-table th { background: var(--dm-surface-2); color: var(--dm-muted); border-bottom-color: var(--dm-border); }
+html.dark-mode .diario-table td { color: var(--dm-muted); border-bottom-color: var(--dm-border-soft); }
+
+/* Busca global (overlay) */
+html.dark-mode .admin-search-dialog { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .admin-search-input-wrap { border-bottom-color: var(--dm-border); }
+html.dark-mode .admin-search-input-wrap input { background: transparent; color: var(--dm-text); }
+html.dark-mode .admin-search-results { color: var(--dm-muted); }
+html.dark-mode .admin-search-empty { color: var(--dm-faint); }
+html.dark-mode .admin-search-group { color: var(--dm-faint); }
+html.dark-mode .admin-search-hint { color: var(--dm-faint); border-top-color: var(--dm-border); }
+html.dark-mode .admin-command-search:hover { background: var(--dm-surface); border-color: var(--dm-muted); }
+html.dark-mode .admin-search-result { color: var(--dm-muted); }
+html.dark-mode .admin-search-result:hover, html.dark-mode .admin-search-result.is-selected { background: var(--dm-surface-2); }
+html.dark-mode .admin-search-result strong { color: var(--dm-text); }
+html.dark-mode .admin-search-result small { color: var(--dm-faint); }
+html.dark-mode .admin-search-result > i { background: var(--dm-surface-2); color: var(--secondary-color); }
+html.dark-mode .admin-search-result em { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .admin-search-input-wrap button { background: var(--dm-surface-2); color: var(--dm-muted); }
+
+/* Barra de notificação */
+html.dark-mode .notification-bar { background: var(--secondary-color); color: #fff; }
+
+/* ---- Componentes compartilhados (admin_components.css) ---- */
+html.dark-mode .dash-header-bar,
+html.dark-mode .section-header-bar,
+html.dark-mode .widget-card,
+html.dark-mode .kpi-card,
+html.dark-mode .kpi-tile,
+html.dark-mode .modern-card,
+html.dark-mode .config-card,
+html.dark-mode .modern-table-wrapper {
+    background: var(--dm-surface);
+    border-color: var(--dm-border);
+    box-shadow: var(--dm-shadow);
+}
+html.dark-mode .dash-title h3,
+html.dark-mode .section-header-info h3,
+html.dark-mode .widget-header,
+html.dark-mode .widget-header h4,
+html.dark-mode .kpi-info .value,
+html.dark-mode .kpi-tile-value,
+html.dark-mode .card-client-name,
+html.dark-mode .card-stat-value { color: var(--dm-text); }
+html.dark-mode .dash-title p,
+html.dark-mode .section-header-info p,
+html.dark-mode .kpi-info h4,
+html.dark-mode .kpi-tile-label,
+html.dark-mode .kpi-tile-foot,
+html.dark-mode .card-stat-label { color: var(--dm-muted); }
+html.dark-mode .widget-header { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .modern-card-header { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .modern-card-footer { background: var(--dm-surface-2); border-top-color: var(--dm-border-soft); }
+html.dark-mode .card-stat-item { border-right-color: var(--dm-border-soft); }
+html.dark-mode .card-avatar { border-color: var(--dm-border); }
+
+/* Sub-abas */
+html.dark-mode .sub-tab-btn { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .sub-tab-btn:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+
+/* Tabelas */
+html.dark-mode .modern-table th { background: var(--dm-surface-2); color: var(--dm-muted); border-bottom-color: var(--dm-border); }
+html.dark-mode .modern-table td { color: var(--dm-text); border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .modern-table tr:hover td,
+html.dark-mode .modern-table tr:hover { background: var(--dm-surface-2); }
+html.dark-mode .modern-table tr { border-color: var(--dm-border); }
+
+/* Campos de formulário */
+html.dark-mode .modern-input,
+html.dark-mode .modern-select,
+html.dark-mode .modern-textarea,
+html.dark-mode .status-select {
+    background: var(--dm-surface-2);
+    border-color: var(--dm-border-strong);
+    color: var(--dm-text);
+}
+html.dark-mode .modern-input::placeholder,
+html.dark-mode .modern-textarea::placeholder { color: var(--dm-faint); }
+html.dark-mode .form-group label,
+html.dark-mode .modern-label { color: var(--dm-muted); }
+
+/* Paginação */
+html.dark-mode .modern-pagination a { background: var(--dm-surface); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .modern-pagination a:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+
+/* Estado vazio */
+html.dark-mode .empty-state { background: var(--dm-surface); border-color: var(--dm-border-strong); color: var(--dm-muted); }
+html.dark-mode .empty-state h3 { color: var(--dm-text); }
+
+/* Dashboard: lista de ranking + feed de atividade */
+html.dark-mode .modern-list li { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .item-info strong,
+html.dark-mode .stat-val { color: var(--dm-text); }
+html.dark-mode .item-info span,
+html.dark-mode .stat-label { color: var(--dm-muted); }
+html.dark-mode .item-img { border-color: var(--dm-border); }
+html.dark-mode .activity-feed li { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .activity-body strong { color: var(--dm-text); }
+html.dark-mode .activity-body small { color: var(--dm-faint); }
+
+/* Relatórios: cartões de tabela e de gráfico */
+html.dark-mode .table-card,
+html.dark-mode .rel-chart-card { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .table-card-header,
+html.dark-mode .rel-chart-header { color: var(--dm-text); border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .modern-report-table th { background: var(--dm-surface-2); color: var(--dm-muted); }
+html.dark-mode .modern-report-table td { color: var(--dm-text); border-bottom-color: var(--dm-border-soft); }
+
+/* ---- Modais ---- */
+html.dark-mode .modal-content { background: var(--dm-surface); color: var(--dm-text); box-shadow: 0 20px 50px -12px rgba(0,0,0,.7); }
+html.dark-mode .modern-modal-header { background: var(--dm-surface-2); border-bottom-color: var(--dm-border); }
+html.dark-mode .modern-modal-header h3 { color: var(--dm-text); }
+html.dark-mode .modal-close { background: var(--dm-surface-3); color: var(--dm-muted); }
+html.dark-mode .modal-close:hover { background: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .bloqueio-header { background: var(--dm-surface-2); border-bottom-color: var(--dm-border); }
+html.dark-mode .bloqueio-header h3 { color: var(--dm-text); }
+
+/* ---- SweetAlert2 ---- */
+html.dark-mode .swal2-popup { background: var(--dm-surface) !important; }
+html.dark-mode .swal2-title { color: var(--dm-text) !important; }
+html.dark-mode .swal2-html-container { color: var(--dm-muted) !important; }
+html.dark-mode .swal2-cancel { background-color: var(--dm-surface-3) !important; color: var(--dm-text) !important; }
+
+/* ---- Alertas de topo (success/error) ---- */
+html.dark-mode .modern-alert.success { background: linear-gradient(to right, rgba(16,185,129,.12), var(--dm-surface)); border-color: rgba(16,185,129,.35); color: #6ee7b7; }
+html.dark-mode .modern-alert.error { background: linear-gradient(to right, rgba(239,68,68,.12), var(--dm-surface)); border-color: rgba(239,68,68,.35); color: #fca5a5; }
+
+/* =========================================================================
+   REDE DE SEGURANÇA — captura estilos inline "claros" dentro das abas.
+   Seletores de atributo + !important vencem o style inline (que não usa
+   !important). Só toca FUNDOS claros e TEXTOS escuros — nunca "color:#fff".
+   ========================================================================= */
+html.dark-mode .tabcontent [style*="background:#fff"],
+html.dark-mode .tabcontent [style*="background: #fff"],
+html.dark-mode .tabcontent [style*="background:#ffffff"],
+html.dark-mode .tabcontent [style*="background: #ffffff"],
+html.dark-mode .tabcontent [style*="background:#FFFFFF"],
+html.dark-mode .tabcontent [style*="background: #FFFFFF"] { background: var(--dm-surface) !important; }
+
+html.dark-mode .tabcontent [style*="background:#f8fafc"],
+html.dark-mode .tabcontent [style*="background: #f8fafc"],
+html.dark-mode .tabcontent [style*="background:#f1f5f9"],
+html.dark-mode .tabcontent [style*="background: #f1f5f9"],
+html.dark-mode .tabcontent [style*="background:#fdfdfd"],
+html.dark-mode .tabcontent [style*="background: #fdfdfd"] { background: var(--dm-surface-2) !important; }
+
+html.dark-mode .tabcontent [style*="color:#1e293b"],
+html.dark-mode .tabcontent [style*="color: #1e293b"],
+html.dark-mode .tabcontent [style*="color:#0f172a"],
+html.dark-mode .tabcontent [style*="color: #0f172a"],
+html.dark-mode .tabcontent [style*="color:#172033"],
+html.dark-mode .tabcontent [style*="color: #172033"],
+html.dark-mode .tabcontent [style*="color:#334155"],
+html.dark-mode .tabcontent [style*="color: #334155"] { color: var(--dm-text) !important; }
+
+html.dark-mode .tabcontent [style*="color:#475569"],
+html.dark-mode .tabcontent [style*="color: #475569"],
+html.dark-mode .tabcontent [style*="color:#64748b"],
+html.dark-mode .tabcontent [style*="color: #64748b"] { color: var(--dm-muted) !important; }
+
+/* Reduz o brilho de blocos com tint claro semântico (ex.: caixas #f0f9ff, #fef2f2)
+   deixando o texto legível sem apagar a intenção de cor. */
+html.dark-mode .tabcontent [style*="background:#f0f9ff"],
+html.dark-mode .tabcontent [style*="background: #f0f9ff"],
+html.dark-mode .tabcontent [style*="background:#f8fafc"] { color: var(--dm-text); }
+
+/* No mobile a navegação vira horizontal (pílulas) — os rótulos de grupo
+   não fazem sentido nesse layout. */
+@media (max-width: 768px) {
+    .sidebar-nav .nav-group-title { display: none; }
+}
+
+/* Barras de rolagem no modo escuro */
+html.dark-mode * {
+    scrollbar-color: #3c4b64 transparent;
+}
+html.dark-mode *::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+}
+html.dark-mode *::-webkit-scrollbar-thumb {
+    background-color: #3c4b64;
+}
+html.dark-mode *::-webkit-scrollbar-thumb:hover {
+    background-color: #556485;
+}
+
+/* IA: briefing do dia */
+html.dark-mode .diario-briefing { background: var(--dm-surface-2); border-color: var(--dm-border); }
+html.dark-mode .diario-briefing .db-head h4 { color: #c4b5fd; }
+html.dark-mode .diario-briefing .db-texto { color: var(--dm-muted); }
+
+/* =========================================================================
+   AJUSTES DE ABAS — superfícies claras definidas nos <style> de cada aba
+   (configuracoes, financeiro, relatorios, clientes, barbeiros, fidelidade,
+   agendamentos, landingpage). Usam !important porque os estilos inline das
+   abas vêm depois no documento; mapeiam tudo para as variáveis --dm-*.
+   ========================================================================= */
+
+/* -- Superfícies de cartão/painel (branco -> superfície escura) -- */
+html.dark-mode .cfg-card,
+html.dark-mode .cfg-sidebar,
+html.dark-mode .cfg-savebar,
+html.dark-mode .fin-panel,
+html.dark-mode .dre-card,
+html.dark-mode .fin-filter-bar,
+html.dark-mode .goal-progress-card,
+html.dark-mode .report-kpi-card,
+html.dark-mode .report-header-bar,
+html.dark-mode .agenda-toolbar,
+html.dark-mode .ag-list-wrapper,
+html.dark-mode .client-view-switch,
+html.dark-mode .config-schedule-section {
+    background: var(--dm-surface) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text);
+}
+
+/* -- Preenchimentos neutros suaves (#f8fafc/#f1f5f9 -> superfície 2) -- */
+html.dark-mode .client-toolbar,
+html.dark-mode .barbeiro-toolbar,
+html.dark-mode .config-block,
+html.dark-mode .inline-adjust-form,
+html.dark-mode .ag-input-group,
+html.dark-mode .media-preview-container,
+html.dark-mode .card-stat-item,
+html.dark-mode .goal-bar-bg {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* -- Controles de formulário e botões-superfície (texto claro) -- */
+html.dark-mode :is(.tabcontent,.modal-content) input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),
+html.dark-mode :is(.tabcontent,.modal-content) select,
+html.dark-mode :is(.tabcontent,.modal-content) textarea,
+html.dark-mode .filter-input,
+html.dark-mode .input-adjust,
+html.dark-mode .search-input,
+html.dark-mode .btn-step,
+html.dark-mode .ag-btn-outline,
+html.dark-mode .ag-date-pill,
+html.dark-mode .btn-filtrar,
+html.dark-mode .report-nav-btn,
+html.dark-mode .gestao-form input,
+html.dark-mode .gestao-form select,
+html.dark-mode .gestao-form textarea {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text) !important;
+}
+html.dark-mode .tabcontent input::placeholder,
+html.dark-mode .tabcontent textarea::placeholder { color: var(--dm-faint); }
+html.dark-mode :is(.tabcontent,.modal-content) input[type=file]::file-selector-button {
+    background: var(--dm-surface-3) !important;
+    color: var(--dm-text) !important;
+    border: 1px solid var(--dm-border) !important;
+    border-radius: 6px;
+}
+html.dark-mode .filter-input:focus,
+html.dark-mode .ag-date-pill:hover,
+html.dark-mode .report-nav-btn:hover,
+html.dark-mode .btn-step:hover { border-color: var(--dm-border-strong) !important; background: var(--dm-surface-3) !important; }
+html.dark-mode .ag-date-pill.active,
+html.dark-mode .report-nav-btn.active {
+    background: color-mix(in srgb, var(--secondary-color) 20%, transparent) !important;
+    border-color: var(--secondary-color) !important;
+    color: var(--dm-text) !important;
+}
+
+/* -- Chips/badges neutros -- */
+html.dark-mode .ag-id-badge,
+html.dark-mode .cfg-sidebar .ico,
+html.dark-mode .cfg-card .ico,
+html.dark-mode .rel-delta-neutral {
+    background: var(--dm-surface-3) !important;
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+
+/* -- Ícones-chip pastel dos KPIs (mantêm a cor do ícone, fundo escuro) -- */
+html.dark-mode .kpi-icon,
+html.dark-mode .fc-icon,
+html.dark-mode .camp-ic,
+html.dark-mode .report-kpi-card .icon {
+    background: var(--dm-surface-3) !important;
+}
+
+/* -- Alternadores/segmented controls e botões neutros das abas -- */
+html.dark-mode .ag-view-toggle a,
+html.dark-mode .report-quick-ranges button,
+html.dark-mode .segmented a,
+html.dark-mode .segmented button {
+    background: var(--dm-surface-2) !important;
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .ag-view-toggle a.active,
+html.dark-mode .report-quick-ranges button.active,
+html.dark-mode .segmented a.active,
+html.dark-mode .segmented button.active {
+    background: color-mix(in srgb, var(--secondary-color) 20%, transparent) !important;
+    color: var(--dm-text) !important;
+    border-color: var(--secondary-color) !important;
+}
+html.dark-mode .modern-card-header { background: transparent !important; }
+html.dark-mode .ag-view-toggle,
+html.dark-mode .segmented,
+html.dark-mode .report-quick-ranges { background: var(--dm-surface-2) !important; border-color: var(--dm-border) !important; }
+
+/* Topbar: chip do usuário (nome/role) */
+html.dark-mode .admin-user-chip :is(span,strong,small,b,p):not([class*="avatar"]) { color: var(--dm-text); }
+html.dark-mode .admin-user-chip :is(.role,.user-role,.chip-sub) { color: var(--dm-muted); }
+
+/* Topbar: pill de data/hora */
+html.dark-mode .topbar-datetime { background: var(--dm-surface) !important; border-color: var(--dm-border) !important; }
+html.dark-mode .topbar-datetime :is(strong,span,b,time) { color: var(--dm-text); }
+html.dark-mode .topbar-datetime i { color: var(--secondary-color); }
+html.dark-mode .topbar-datetime .topbar-date { color: var(--dm-muted); }
+html.dark-mode .topbar-datetime-sep { background: var(--dm-border); }
+
+/* Configurações: item de navegação (hover/ativo) e ícone do menu lateral */
+html.dark-mode .cfg-nav-item .ico { background: var(--dm-surface-3) !important; color: var(--dm-muted) !important; }
+html.dark-mode .cfg-nav-item:hover { background: var(--dm-surface-3) !important; color: var(--dm-text) !important; }
+html.dark-mode .cfg-nav-item.active { background: color-mix(in srgb, var(--secondary-color) 22%, transparent) !important; color: var(--dm-text) !important; }
+html.dark-mode .cfg-nav-item.active .ico { background: var(--secondary-color) !important; color: #fff !important; }
+html.dark-mode .cfg-nav-item.danger.active { background: rgba(220,38,38,.15) !important; }
+html.dark-mode .cfg-nav-item.danger.active .ico { background: #ef4444 !important; color: #fff !important; }
+
+/* Botão discreto de IA (marketing) */
+html.dark-mode .btn-ia-discreto { background: var(--dm-surface-2) !important; border-color: var(--dm-border) !important; color: #c4b5fd !important; }
+html.dark-mode .btn-ia-discreto:hover { background: var(--dm-surface-3) !important; }
+
+/* Relatórios: card "Resumo executivo (IA)" */
+html.dark-mode .rel-exec-ia { background: var(--dm-surface) !important; border-color: var(--dm-border) !important; }
+html.dark-mode .rel-exec-ia h4 { color: var(--dm-text) !important; }
+html.dark-mode .rel-exec-texto { background: var(--dm-surface-2) !important; border-color: var(--dm-border) !important; color: var(--dm-muted) !important; }
+
+/* -- Cabeçalhos e células neutras de tabelas nas abas -- */
+html.dark-mode :is(.tabcontent,.modal-content) table th,
+html.dark-mode :is(.tabcontent,.modal-content) thead th {
+    background: var(--dm-surface-2) !important;
+    color: var(--dm-muted) !important;
+    border-color: var(--dm-border) !important;
+}
+html.dark-mode .tabcontent td.num { background: var(--dm-surface-2) !important; color: var(--dm-text) !important; }
+
+/* -- Componentes internos de modais (superfícies claras) -- */
+html.dark-mode .modal-content .servico-btn-modal,
+html.dark-mode .modal-content .checkbox-card,
+html.dark-mode .modal-content .subscription-guide-item,
+html.dark-mode .modal-content .subscription-commission-box,
+html.dark-mode .modal-content .subscription-commission-preview,
+html.dark-mode .modal-content .horario-grid,
+html.dark-mode .modal-content .modern-calendar,
+html.dark-mode .modal-content .bloqueio-horarios-panel,
+html.dark-mode .modal-content .bloqueio-footer,
+html.dark-mode .modal-content .btn-selecionar-todos,
+html.dark-mode .modal-content fieldset,
+html.dark-mode .modal-content .form-section,
+html.dark-mode .modal-content .modal-section {
+    background: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+    color: var(--dm-text);
+}
+html.dark-mode .modal-content .servico-btn-modal:hover,
+html.dark-mode .modal-content .checkbox-card:hover,
+html.dark-mode .modal-content .horario-grid .disponivel:hover { background: var(--dm-surface-3) !important; }
+html.dark-mode .modal-content .servico-btn-modal.selecionado,
+html.dark-mode .modal-content .checkbox-card.selecionado,
+html.dark-mode .modal-content .checkbox-card input:checked ~ * {
+    background: color-mix(in srgb, var(--secondary-color) 20%, transparent) !important;
+    border-color: var(--secondary-color) !important;
+}
+/* Ícone-chip do cabeçalho de modal: mantém a cor, escurece o fundo */
+html.dark-mode .modal-content .modern-modal-icon { background: var(--dm-surface-3) !important; }
+/* Calendário: dias/números */
+html.dark-mode .modal-content .modern-calendar :is(td,th,.cal-day,.day) { background: transparent !important; }
+
+/* Modal-content pode ter fundo claro fixo/inline em alguns modais */
+html.dark-mode .modal-content { background: var(--dm-surface) !important; }
+
+/* =========================================================================
+   ESTILOS INLINE claros/escuros dentro de abas e modais
+   Muitos componentes trazem style="background:#fff" / style="color:#1e293b"
+   direto no HTML; só um seletor de atributo com !important vence o inline.
+   Cobrem apenas tons NEUTROS (o âmbar #fffbeb e afins ficam intactos).
+   ========================================================================= */
+html.dark-mode :is(.tabcontent,.modal-content) :is(
+  [style*="background:#ffffff"],[style*="background: #ffffff"],
+  [style*="background:#fff;"],[style*="background: #fff;"],
+  [style*="background:#fff "],[style*="background: #fff "],
+  [style*="background:white"],[style*="background: white"],
+  [style*="background:#f8fafc"],[style*="background: #f8fafc"],
+  [style*="background:#f8f9fa"],[style*="background: #f8f9fa"],
+  [style*="background:#f1f5f9"],[style*="background: #f1f5f9"],
+  [style*="background:#f9fafb"],[style*="background: #f9fafb"],
+  [style*="background:#fafafa"],[style*="background: #fafafa"],
+  [style*="background:#fbfcfe"],[style*="background: #fbfcfe"],
+  [style*="background:rgba(244, 247, 250"],[style*="background: rgba(244, 247, 250"],
+  [style*="background:rgba(244,247,250"],[style*="background: rgba(244,247,250"],
+  [style*="background:rgba(248, 250, 252"],[style*="background: rgba(248, 250, 252"]) {
+    background-color: var(--dm-surface-2) !important;
+    border-color: var(--dm-border) !important;
+}
+/* Callouts/boxes de IA com fundo lilás/verde claro (sólido OU gradiente inline).
+   background: kill do gradiente para superfície escura + borda de acento. */
+html.dark-mode :is(.tabcontent,.modal-content) :is(
+  [style*="#f5f3ff"],[style*="#ede9fe"]) {
+    background: var(--dm-surface) !important;
+    border-color: color-mix(in srgb, #8b5cf6 45%, var(--dm-border)) !important;
+}
+html.dark-mode :is(.tabcontent,.modal-content) :is(
+  [style*="#f0fdf4"],[style*="#dcfce7"]) {
+    background: var(--dm-surface) !important;
+    border-color: color-mix(in srgb, #10b981 45%, var(--dm-border)) !important;
+}
+/* Textos pálidos de acento (roxo/verde/vermelho) -> tons claros legíveis */
+html.dark-mode :is(.tabcontent,.modal-content) :is([style*="color:#5b21b6"],[style*="color: #5b21b6"],[style*="color:#4c1d95"],[style*="color: #4c1d95"],[style*="color:#6d28d9"],[style*="color: #6d28d9"],[style*="color:#8b5cf6"],[style*="color: #8b5cf6"]) { color: #c4b5fd !important; }
+html.dark-mode :is(.tabcontent,.modal-content) :is([style*="color:#166534"],[style*="color: #166534"],[style*="color:#14532d"],[style*="color: #14532d"],[style*="color:#15803d"],[style*="color: #15803d"]) { color: #86efac !important; }
+html.dark-mode :is(.tabcontent,.modal-content) :is([style*="color:#991b1b"],[style*="color: #991b1b"],[style*="color:#b91c1c"],[style*="color: #b91c1c"]) { color: #fca5a5 !important; }
+
+html.dark-mode :is(.tabcontent,.modal-content) :is(
+  [style*="color:#1e293b"],[style*="color: #1e293b"],
+  [style*="color:#334155"],[style*="color: #334155"],
+  [style*="color:#0f172a"],[style*="color: #0f172a"],
+  [style*="color:#475569"],[style*="color: #475569"],
+  [style*="color:#64748b"],[style*="color: #64748b"],
+  [style*="color:#1f2937"],[style*="color: #1f2937"],
+  [style*="color:#374151"],[style*="color: #374151"],
+  [style*="color:#4b5563"],[style*="color: #4b5563"],
+  [style*="color:#111827"],[style*="color: #111827"],
+  [style*="color:#27364b"],[style*="color: #27364b"]) {
+    color: var(--dm-text) !important;
+}
+
+/* -- Texto interno herdado nos cartões escurecidos -- */
+html.dark-mode .cfg-card,
+html.dark-mode .fin-panel,
+html.dark-mode .dre-card,
+html.dark-mode .report-kpi-card,
+html.dark-mode .goal-progress-card { color: var(--dm-text); }
+
+/* -- Texto neutro escuro dentro das abas -----------------------------------
+   Ao escurecer as superfícies, textos com cor escura fixa (slate/preto) ficam
+   ilegíveis. Esta regra clareia o texto estrutural das abas, EXCLUINDO os
+   elementos de acento que gerenciam a própria cor sobre fundo tingido
+   (badges, status, pills, chips, tags, alerts, notas). Assim badges e status
+   permanecem intactos e todo o texto neutro passa a ser legível no escuro. */
+html.dark-mode :is(.tabcontent,.modal-content,.admin-search-dialog) :is(p,strong,b,small,span,label,h1,h2,h3,h4,h5,h6,
+  li,dt,dd,th,td,div,legend,figcaption,.txt,.title,.label,.dre-value,.value):not([class*="badge"]):not([class*="status"]):not([class*="pill"]):not([class*="chip"]):not([class*="tag"]):not([class*="alert"]):not([class*="observ"]):not([class*="delta"]):not([class*="icon"]):not([class*="-ic"]) {
+    color: var(--dm-text);
+}
+/* Texto secundário/auxiliar mantém tom suave onde marcado */
+html.dark-mode :is(.tabcontent,.modal-content) :is(.muted,.text-muted,.subtitle,.hint,.help,small.muted) { color: var(--dm-muted) !important; }
+
+/* ----- Tema escuro: central de alertas e busca global (topbar) ----- */
+html.dark-mode .admin-alert-trigger:hover { border-color: var(--dm-border-strong); color: var(--dm-text); }
+html.dark-mode .admin-alert-trigger span { border-color: var(--dm-surface); }
+html.dark-mode .admin-alert-popover-title small { color: var(--dm-faint); }
+html.dark-mode .admin-alert-refresh { color: var(--dm-muted); background: var(--dm-surface-2); }
+html.dark-mode .admin-alert-refresh:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+html.dark-mode .admin-alert-summary { border-bottom-color: var(--dm-border-soft); }
+html.dark-mode .admin-alert-chip.is-danger { color: #f87171; background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.35); }
+html.dark-mode .admin-alert-chip.is-warning { color: #fbbf24; background: rgba(217,119,6,.14); border-color: rgba(217,119,6,.35); }
+html.dark-mode .admin-alert-chip.is-info { color: #a78bfa; background: rgba(124,58,237,.16); border-color: rgba(124,58,237,.35); }
+html.dark-mode .admin-alert-item-body strong { color: var(--dm-text); }
+html.dark-mode .admin-alert-item-body small { color: var(--dm-faint); }
+html.dark-mode .admin-alert-popover-item:focus-visible { background: var(--dm-surface-3); }
+html.dark-mode .admin-search-filters { border-bottom-color: var(--dm-border); }
+html.dark-mode .admin-search-chip { color: var(--dm-muted); background: var(--dm-surface-2); border-color: var(--dm-border); }
+html.dark-mode .admin-search-chip:hover { background: var(--dm-surface-3); color: var(--dm-text); }
+html.dark-mode .admin-search-chip.is-active { color: #fff; background: var(--secondary-color); border-color: var(--secondary-color); }
+html.dark-mode .admin-search-result mark { color: #bfdbfe; background: rgba(37,99,235,.28); }
+html.dark-mode .admin-search-footer { color: var(--dm-faint); background: var(--dm-surface-2); border-top-color: var(--dm-border); }
+html.dark-mode .admin-search-keys kbd { color: var(--dm-muted); background: var(--dm-surface); border-color: var(--dm-border); }
+/* O reset genérico do tema escuro alcança spans dentro do diálogo; o contador
+   do rodapé precisa continuar discreto. */
+html.dark-mode .admin-search-footer #admin-global-search-count { color: var(--dm-faint); }
+
+/* =========================================================================
+   TEMA ESCURO — abas Dashboard e Assinaturas
+   -------------------------------------------------------------------------
+   Estas abas definem os próprios componentes em <style> local (cartões,
+   chips, tabela). Como o reset genérico do tema clareia o TEXTO dentro de
+   .tabcontent mas não mexe nos FUNDOS declarados nessas regras locais, os
+   blocos ficavam brancos com texto branco — ilegíveis. Aqui cada superfície
+   ganha o par escuro correspondente.
+   ========================================================================= */
+
+/* ---- Selos de variação dos KPIs (admin_components.css, usados em várias abas) ---- */
+html.dark-mode .kpi-trend.trend-up { background: rgba(5,150,105,.16); color: #6ee7b7; }
+html.dark-mode .kpi-trend.trend-down { background: rgba(220,38,38,.16); color: #fca5a5; }
+html.dark-mode .kpi-trend.trend-flat { background: var(--dm-surface-3); color: var(--dm-muted); }
+
+/* ---- Dashboard: filtros de período ---- */
+html.dark-mode .period-preset { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .period-preset:hover { background: var(--dm-surface-3); border-color: var(--dm-border-strong); color: var(--dm-text); }
+html.dark-mode .period-preset.active { color: #fff; }
+html.dark-mode .modern-filter-form input[type="date"] { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .modern-filter-form input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.65); }
+
+/* ---- Dashboard: faixa "hoje" ---- */
+html.dark-mode .today-card { background: var(--dm-surface); border-color: var(--dm-border); box-shadow: var(--dm-shadow); }
+html.dark-mode .today-label { color: var(--dm-muted); }
+html.dark-mode .today-value { color: var(--dm-text); }
+html.dark-mode .today-meta { color: var(--dm-faint); }
+
+/* ---- Dashboard: chips de alerta ---- */
+html.dark-mode .chip-text { color: var(--dm-muted); }
+html.dark-mode .chip-danger { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.38); }
+html.dark-mode .chip-danger i, html.dark-mode .chip-danger .chip-count { color: #f87171; }
+html.dark-mode .chip-warn { background: rgba(217,119,6,.14); border-color: rgba(217,119,6,.38); }
+html.dark-mode .chip-warn i, html.dark-mode .chip-warn .chip-count { color: #fbbf24; }
+html.dark-mode .chip-info { background: rgba(2,132,199,.16); border-color: rgba(2,132,199,.40); }
+html.dark-mode .chip-info i, html.dark-mode .chip-info .chip-count { color: #7dd3fc; }
+html.dark-mode .alert-ok { background: rgba(5,150,105,.14); border-color: rgba(5,150,105,.38); color: #6ee7b7; }
+
+/* ---- Dashboard: mini KPIs ---- */
+html.dark-mode .mini-kpi { background: var(--dm-surface); border-color: var(--dm-border); box-shadow: var(--dm-shadow); }
+html.dark-mode .mini-kpi:hover { border-color: var(--dm-border-strong); }
+html.dark-mode .mini-kpi-icon { background: var(--dm-surface-3) !important; }
+html.dark-mode .mini-kpi-label { color: var(--dm-muted); }
+html.dark-mode .mini-kpi-value { color: var(--dm-text); }
+html.dark-mode .mini-kpi-value small { color: var(--dm-faint); }
+html.dark-mode .kpi-grid-main .kpi-head h4 { color: var(--dm-muted); }
+
+/* ---- Dashboard: listas com barra proporcional e feed ---- */
+html.dark-mode .bar-avatar, html.dark-mode .item-img { border-color: var(--dm-border); }
+html.dark-mode .bar-rank { background: var(--dm-surface-3); color: var(--dm-muted); }
+html.dark-mode .bar-rank.is-first { background: rgba(217,119,6,.18); color: #fbbf24; }
+html.dark-mode .bar-name,
+html.dark-mode .bar-value,
+html.dark-mode .item-info strong,
+html.dark-mode .item-link,
+html.dark-mode .activity-body strong { color: var(--dm-text); }
+html.dark-mode .bar-sub,
+html.dark-mode .bar-value small,
+html.dark-mode .item-info span,
+html.dark-mode .activity-body small { color: var(--dm-faint); }
+html.dark-mode .bar-track { background: var(--dm-surface-3); }
+html.dark-mode .modern-list li, html.dark-mode .activity-feed li { border-bottom-color: var(--dm-border-soft); }
+
+/* ---- Dashboard: consultor de IA (gradiente lilás claro) ---- */
+html.dark-mode .ia-card {
+    background: var(--dm-surface);
+    border-color: color-mix(in srgb, #8b5cf6 45%, var(--dm-border));
+    box-shadow: var(--dm-shadow);
+}
+html.dark-mode .ia-head h4 { color: #c4b5fd; }
+
+/* ---- Assinaturas: barra de filtros ---- */
+html.dark-mode .assin-toolbar { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode .assin-toolbar .filter-input { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .assin-toolbar .filter-input::placeholder { color: var(--dm-faint); }
+html.dark-mode .assin-search-control > i { color: var(--dm-faint); }
+html.dark-mode .assin-toolbar .modern-select { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-text); }
+html.dark-mode .btn-clear-filter { background: var(--dm-surface-2); border-color: var(--dm-border); color: var(--dm-muted); }
+html.dark-mode .btn-clear-filter:hover { background: rgba(220,38,38,.14); border-color: rgba(220,38,38,.40); color: #f87171; }
+
+/* ---- Assinaturas: tabela ---- */
+html.dark-mode .assin-table-wrap { background: var(--dm-surface); border-color: var(--dm-border); }
+html.dark-mode table.assin-table th { background: var(--dm-surface-2); color: var(--dm-muted); border-bottom-color: var(--dm-border); }
+html.dark-mode table.assin-table td { color: var(--dm-text); border-bottom-color: var(--dm-border-soft); }
+html.dark-mode table.assin-table tr:hover td { background: var(--dm-surface-3); }
+html.dark-mode .assin-cli-nome { color: var(--dm-text); }
+html.dark-mode .assin-cli-contato { color: var(--dm-faint); }
+html.dark-mode .assin-valor { color: #34d399; }
+html.dark-mode .assin-gateway { color: var(--dm-muted); }
+html.dark-mode .assin-venc strong { color: var(--dm-text); }
+html.dark-mode .assin-venc small { color: var(--dm-faint); }
+html.dark-mode .assin-venc.is-urgent strong { color: #f87171; }
+html.dark-mode .assin-badge.ativa { background: rgba(16,185,129,.16); color: #6ee7b7; }
+html.dark-mode .assin-badge.cancelamento_agendado { background: rgba(217,119,6,.16); color: #fbbf24; }
+html.dark-mode .assin-badge.encerrada { background: var(--dm-surface-3); color: var(--dm-faint); }
+
+/* ---- Assinaturas: aviso de vencimento próximo ---- */
+html.dark-mode .assin-alert-vencendo { background: rgba(217,119,6,.12) !important; border-color: rgba(217,119,6,.40) !important; }
+html.dark-mode .assin-alert-vencendo, html.dark-mode .assin-alert-vencendo .modern-alert-text { color: #fbbf24 !important; }

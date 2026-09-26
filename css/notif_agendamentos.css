@@ -1,0 +1,211 @@
+/* css/notif_agendamentos.css
+   Notificação rica de novos agendamentos — compartilhada pelo painel do admin
+   e do barbeiro. Desktop: pilha no canto inferior direito. Mobile: folha de
+   largura total na base. Suporta modo escuro (classe .dark-mode no <html>). */
+
+.na-stack {
+    position: fixed;
+    z-index: 4000;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(380px, calc(100vw - 40px));
+    pointer-events: none; /* só os cartões capturam clique */
+}
+
+.na-card {
+    pointer-events: auto;
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 18px 45px -12px rgba(15, 23, 42, 0.35);
+    overflow: hidden;
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+    transition: transform .35s cubic-bezier(.22,1,.36,1), opacity .35s ease;
+}
+
+.na-card.na-show { transform: translateY(0) scale(1); opacity: 1; }
+.na-card.na-hide { transform: translateY(10px) scale(0.98); opacity: 0; }
+
+/* Barra de acento no topo do cartão */
+.na-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+
+.na-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 8px 18px -6px rgba(99, 102, 241, 0.7);
+}
+
+.na-card-body { min-width: 0; }
+
+.na-card-title {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #6366f1;
+    margin: 2px 0 4px;
+}
+
+.na-card-cliente {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 18px; /* espaço para o X */
+}
+
+.na-card-linha {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: .82rem;
+    color: #475569;
+    margin: 2px 0;
+    line-height: 1.35;
+}
+.na-card-linha i { width: 14px; text-align: center; color: #94a3b8; flex: none; }
+.na-card-linha span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.na-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.na-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4338ca;
+    white-space: nowrap;
+}
+.na-badge.na-st-pendente  { background: #fef3c7; color: #92400e; }
+.na-badge.na-st-aprovado  { background: #dcfce7; color: #166534; }
+.na-badge.na-st-cancelado,
+.na-badge.na-st-rejeitado  { background: #fee2e2; color: #991b1b; }
+.na-badge.na-st-concluido  { background: #e0e7ff; color: #3730a3; }
+
+.na-card-ver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .8rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: 7px 14px;
+    border-radius: 10px;
+    transition: filter .2s ease, transform .2s ease;
+    white-space: nowrap;
+}
+.na-card-ver:hover { filter: brightness(1.07); transform: translateY(-1px); }
+
+.na-card-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: .85rem;
+    line-height: 1;
+    transition: background .2s ease, color .2s ease;
+}
+.na-card-close:hover { background: rgba(148, 163, 184, .18); color: #475569; }
+
+/* “+N novos” quando chega mais de um de uma vez */
+.na-card-extra {
+    grid-column: 1 / -1;
+    margin-top: 8px;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #6366f1;
+}
+
+/* ---------- Modo escuro ---------- */
+html.dark-mode .na-card,
+.dark-mode .na-card {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 18px 45px -12px rgba(0, 0, 0, 0.6);
+}
+html.dark-mode .na-card-cliente,
+.dark-mode .na-card-cliente { color: #f1f5f9; }
+html.dark-mode .na-card-linha,
+.dark-mode .na-card-linha { color: #94a3b8; }
+html.dark-mode .na-badge,
+.dark-mode .na-badge { background: rgba(99,102,241,.18); color: #c7d2fe; }
+html.dark-mode .na-card-close:hover,
+.dark-mode .na-card-close:hover { background: rgba(148,163,184,.16); color: #cbd5e1; }
+
+/* ---------- Mobile: folha na base ---------- */
+@media (max-width: 640px) {
+    .na-stack {
+        right: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        gap: 8px;
+        padding: 0 10px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    .na-card {
+        border-radius: 16px 16px 0 0;
+        border-bottom: none;
+    }
+    .na-stack .na-card:not(:first-child) {
+        /* no celular, mostra só o mais recente (inserido no topo) com destaque total */
+        display: none;
+    }
+    .na-card-foot { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .na-card { transition: opacity .2s ease; transform: none; }
+    .na-card.na-show { transform: none; }
+}

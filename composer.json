@@ -1,0 +1,16 @@
+{
+    "name": "barbearia",
+    "description": "Sistema de gestão de barbearia (agendamento, painel, PWA).",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=7.3",
+        "ext-pdo": "*",
+        "ext-pdo_sqlite": "*",
+        "ext-gd": "*",
+        "phpmailer/phpmailer": "^6.10"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
