@@ -406,23 +406,36 @@ final class AppointmentsStep extends Step
         }
     }
 
-    /** Sobreposicao no mesmo profissional: pendencia (bloqueante se for futuro). */
+    /**
+     * Sobreposicao no mesmo profissional entre agendamentos ATIVOS que ainda
+     * nao terminaram: pendencia bloqueante (resolver antes da virada).
+     * Varredura ordenada O(n log n), sem auto-junção da tabela inteira.
+     */
     private function detectConflicts(): void
     {
-        $ativos = ['pending', 'awaiting_payment', 'confirmed'];
-        $pares = DB::table('appointments as a')
-            ->join('appointments as b', function ($j) {
-                $j->on('a.professional_id', '=', 'b.professional_id')->whereColumn('a.id', '<', 'b.id')
-                    ->whereColumn('a.starts_at', '<', 'b.ends_at')->whereColumn('b.starts_at', '<', 'a.ends_at');
-            })
-            ->whereIn('a.status', $ativos)->whereIn('b.status', $ativos)
-            ->where('a.source', 'legacy')->where('b.source', 'legacy')
-            ->where('b.starts_at', '>=', $this->ctx->now)
-            ->get(['a.code as a', 'b.code as b', 'b.starts_at']);
+        $linhas = DB::table('appointments')
+            ->whereIn('status', ['pending', 'awaiting_payment', 'confirmed'])
+            ->where('source', 'legacy')->whereNotNull('professional_id')
+            ->where('ends_at', '>', $this->ctx->now)
+            ->orderBy('professional_id')->orderBy('starts_at')->orderBy('id')
+            ->get(['code', 'professional_id', 'starts_at', 'ends_at']);
 
-        foreach ($pares as $p) {
-            $this->ctx->issue('agendamentos', $p->b, C::Duplicate, S::Error, 'future_overlap',
-                "Agendamento futuro sobreposto a {$p->a} no mesmo profissional: resolver com a recepcao antes da virada.", ['outro' => $p->a, 'inicio_utc' => (string) $p->starts_at], true);
+        $prof = null;
+        $maiorFim = null;
+        $dono = null;
+        foreach ($linhas as $l) {
+            if ($l->professional_id !== $prof) {
+                [$prof, $maiorFim, $dono] = [$l->professional_id, $l->ends_at, $l->code];
+
+                continue;
+            }
+            if ($l->starts_at < $maiorFim) {
+                $this->ctx->issue('agendamentos', $l->code, C::Duplicate, S::Error, 'future_overlap',
+                    "Agendamento futuro sobreposto a {$dono} no mesmo profissional: resolver com a recepcao antes da virada.", ['outro' => $dono, 'inicio_utc' => (string) $l->starts_at], true);
+            }
+            if ($l->ends_at > $maiorFim) {
+                [$maiorFim, $dono] = [$l->ends_at, $l->code];
+            }
         }
     }
 }

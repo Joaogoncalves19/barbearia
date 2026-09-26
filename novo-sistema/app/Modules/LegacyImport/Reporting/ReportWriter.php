@@ -72,7 +72,7 @@ class ReportWriter
         $md .= '| Situação | **'.$r['status']."** |\n";
         $md .= '| Origem | `'.basename($r['source'])."` |\n";
         $md .= '| SHA-256 da origem (antes = depois) | `'.substr($r['source_sha256'], 0, 16).'…` '.($r['source_unchanged'] ? '✅ inalterada' : '❌ ALTERADA')." |\n";
-        $md .= '| Duração | '.$r['duration_seconds']." s |\n";
+        $md .= '| Duração | '.$r['duration_seconds'].' s (memória de pico: '.($r['peak_memory_mb'] ?? '?')." MB) |\n";
         $md .= '| Pendências | '.count($r['issues']).' (precisam de decisão: '.count(array_filter($r['issues'], fn ($i) => $i['needs_decision'])).") |\n";
         if (isset($r['error'])) {
             $md .= '| Erro | '.str_replace('|', '/', $r['error'])." |\n";

@@ -111,6 +111,7 @@ class LegacyImporter
         $resultado['counters'] = $ctx->counters;
         $resultado['issues'] = $ctx->issues;
         $resultado['duration_seconds'] = round(microtime(true) - $inicio, 3);
+        $resultado['peak_memory_mb'] = round(memory_get_peak_usage(true) / 1048576, 1);
         $resultado['source_sha256_after'] = $source->sha256();
         $resultado['source_unchanged'] = $resultado['source_sha256_after'] === $hashAntes;
         $resultado['status'] = isset($resultado['error']) ? 'failed' : ($dryRun ? 'rolled_back' : 'completed');
