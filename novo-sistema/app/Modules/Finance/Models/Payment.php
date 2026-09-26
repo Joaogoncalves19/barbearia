@@ -58,8 +58,9 @@ class Payment extends Model
     protected static function booted(): void
     {
         static::saving(function (self $p): void {
-            if ($p->amount_cents <= 0 || $p->tip_cents < 0) {
-                throw DomainRuleViolation::rule('R-DINHEIRO', 'Pagamento deve ter valor positivo e gorjeta nao negativa.');
+            $gorjeta = (int) ($p->tip_cents ?? 0);
+            if ($p->amount_cents < 0 || $gorjeta < 0 || $p->amount_cents + $gorjeta <= 0) {
+                throw DomainRuleViolation::rule('R-DINHEIRO', 'Pagamento: valor e gorjeta nao negativos e total positivo.');
             }
             if (($p->kind === PaymentKind::Refund) !== ($p->refunds_payment_id !== null)) {
                 throw DomainRuleViolation::rule('R-HIST', 'Estorno deve apontar o pagamento estornado (e so estorno aponta).');

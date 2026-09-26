@@ -49,8 +49,10 @@ class User extends Authenticatable
             $u->email = $u->email === null ? null : (mb_strtolower(trim($u->email)) ?: null);
             $u->username = $u->username === null ? null : (mb_strtolower(trim($u->username)) ?: null);
 
-            if ($u->email === null && $u->username === null) {
-                throw DomainRuleViolation::rule('R-EQUIPE', 'Usuario da equipe precisa de e-mail ou nome de usuario.');
+            // Sem identificador so enquanto inativo (ex.: conta importada com
+            // usuario repetido, aguardando decisao): nunca entra no painel.
+            if ($u->is_active !== false && $u->email === null && $u->username === null) {
+                throw DomainRuleViolation::rule('R-EQUIPE', 'Usuario ativo da equipe precisa de e-mail ou nome de usuario.');
             }
         });
     }
