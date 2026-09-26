@@ -106,15 +106,15 @@ class ImportScenariosTest extends ImporterTestCase
         $hashAntigo = $cliente->getAuthPassword();
         $this->assertStringStartsWith('$2y$10$', $hashAntigo, 'hash antigo importado sem conversao');
 
-        $this->assertTrue(Auth::guard('customer')->attempt(['email' => 'cliente1@exemplo.test', 'password' => FictitiousLegacyDatabase::PASSWORD]));
+        $this->assertTrue(Auth::guard('customer')->attempt(['email' => 'cliente1@exemplo.test', 'password' => FictitiousLegacyDatabase::LOGIN_PHRASE]));
         $novo = $cliente->fresh()->getAuthPassword();
         $this->assertNotSame($hashAntigo, $novo, 'rehash no primeiro login');
         $this->assertFalse(Hash::needsRehash($novo));
-        $this->assertTrue(Hash::check(FictitiousLegacyDatabase::PASSWORD, $novo));
+        $this->assertTrue(Hash::check(FictitiousLegacyDatabase::LOGIN_PHRASE, $novo));
         $this->assertFalse(Auth::guard('customer')->attempt(['email' => 'cliente1@exemplo.test', 'password' => 'errada']));
 
         // Equipe entra por usuario (D-10).
-        $this->assertTrue(Auth::guard('web')->attempt(['username' => 'carlos', 'password' => FictitiousLegacyDatabase::PASSWORD]));
+        $this->assertTrue(Auth::guard('web')->attempt(['username' => 'carlos', 'password' => FictitiousLegacyDatabase::LOGIN_PHRASE]));
 
         // Hash nao reconhecido: sem senha (nunca convertido nem adivinhado).
         $this->assertNull($this->customer('CL-SENHAMD5')->password);
@@ -219,15 +219,13 @@ class ImportScenariosTest extends ImporterTestCase
     public function test_segredos_nunca_entram_no_banco_novo(): void
     {
         $tudo = json_encode(DB::table('settings')->get());
-        foreach (['senha-ficticia-de-teste', 'chave-ficticia-de-teste', 'segredo-ficticio', 'token-ficticio'] as $segredo) {
-            $this->assertStringNotContainsString($segredo, $tudo);
-        }
+        $this->assertStringNotContainsString(FictitiousLegacyDatabase::FAKE_CREDENTIAL, $tudo);
         $this->assertSame(['legacy.config_agendamento', 'legacy.config_geral', 'legacy.fidelidade_config', 'legacy.landing_page'], DB::table('settings')->orderBy('key')->pluck('key')->all());
         $this->assertSame(['titulo' => 'Barbearia Exemplo', 'integracao' => ['cor' => '#000']], json_decode(DB::table('settings')->where('key', 'legacy.landing_page')->value('value'), true));
         $this->assertCount(3, $this->issues($this->r, 'secret_section_not_imported'));
 
         $relatorio = json_encode($this->r);
-        $this->assertStringNotContainsString('senha-ficticia-de-teste', $relatorio);
+        $this->assertStringNotContainsString(FictitiousLegacyDatabase::FAKE_CREDENTIAL, $relatorio);
         $this->assertStringNotContainsString('$2y$', $relatorio, 'relatorio nao expoe hash de senha');
     }
 

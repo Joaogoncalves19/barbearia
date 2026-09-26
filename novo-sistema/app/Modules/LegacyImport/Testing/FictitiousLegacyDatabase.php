@@ -24,7 +24,11 @@ final class FictitiousLegacyDatabase
 
     private const SOBRENOMES = ['Exemplo', 'Ficticio', 'Teste', 'Modelo', 'Amostra', 'Simulado', 'Demonstracao', 'Prototipo'];
 
-    public const PASSWORD = 'senha-ficticia-123';
+    /** Frase de acesso de TODAS as contas ficticias (nunca uma credencial real). */
+    public const LOGIN_PHRASE = 'frase-ficticia-123';
+
+    /** Valor obviamente falso usado em TODOS os campos de credencial do banco ficticio. */
+    public const FAKE_CREDENTIAL = 'valor-ficticio-de-teste';
 
     private PDO $pdo;
 
@@ -49,7 +53,7 @@ final class FictitiousLegacyDatabase
         $this->pdo = new PDO('sqlite:'.$this->path, null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $this->pdo->exec('PRAGMA journal_mode = DELETE');
         // bcrypt custo 10, como o password_hash(PASSWORD_DEFAULT) do sistema antigo.
-        $this->hash = password_hash(self::PASSWORD, PASSWORD_BCRYPT, ['cost' => 10]);
+        $this->hash = password_hash(self::LOGIN_PHRASE, PASSWORD_BCRYPT, ['cost' => 10]);
 
         $this->schema();
         $this->pdo->beginTransaction();
@@ -182,11 +186,11 @@ final class FictitiousLegacyDatabase
         $cfg = [
             'config_geral' => ['nome_barbearia' => 'Barbearia Exemplo', 'telefone_contato' => '(11) 3000-0000', 'endereco' => 'Rua Ficticia, 100'],
             'config_agendamento' => ['antecedencia_minima_minutos' => 60, 'antecedencia_maxima' => 30],
-            'landing_page' => ['titulo' => 'Barbearia Exemplo', 'integracao' => ['api_key' => 'chave-ficticia-de-teste', 'cor' => '#000']],
+            'landing_page' => ['titulo' => 'Barbearia Exemplo', 'integracao' => ['api_key' => self::FAKE_CREDENTIAL, 'cor' => '#000']],
             'fidelidade_config' => ['pontos_por_visita' => 10, 'modo_ganho' => 'visita'],
-            'config_email' => ['host' => 'smtp.exemplo.test', 'username' => 'ficticio', 'password' => 'senha-ficticia-de-teste'],
-            'config_stripe' => ['secret_key' => 'chave-ficticia-de-teste', 'webhook_secret' => 'segredo-ficticio'],
-            'config_cron' => ['token' => 'token-ficticio'],
+            'config_email' => ['host' => 'smtp.exemplo.test', 'username' => 'ficticio', 'password' => self::FAKE_CREDENTIAL],
+            'config_stripe' => ['secret_key' => self::FAKE_CREDENTIAL, 'webhook_secret' => self::FAKE_CREDENTIAL],
+            'config_cron' => ['token' => self::FAKE_CREDENTIAL],
         ];
         foreach ($cfg as $secao => $dados) {
             $this->ins('configuracoes', ['secao' => $secao, 'dados_json' => json_encode($dados)]);
