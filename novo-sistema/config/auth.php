@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 
 return [
@@ -42,6 +43,15 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Clientes finais: tabela e sessao proprias, separadas da equipe.
+        // Rotas de login do cliente chegam na Fase 3; o guard ja existe para
+        // que senhas importadas do sistema antigo sejam verificadas e
+        // re-hasheadas no primeiro login (hashing.rehash_on_login).
+        'customer' => [
+            'driver' => 'session',
+            'provider' => 'customers',
+        ],
     ],
 
     /*
@@ -65,6 +75,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'customers' => [
+            'driver' => 'eloquent',
+            'model' => Customer::class,
         ],
 
         // 'users' => [

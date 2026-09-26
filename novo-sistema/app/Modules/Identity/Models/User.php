@@ -3,11 +3,14 @@
 namespace App\Modules\Identity\Models;
 
 use App\Modules\Identity\Enums\StaffRole;
+use App\Modules\Shared\Exceptions\DomainRuleViolation;
+use App\Modules\Team\Models\Professional;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -18,7 +21,7 @@ use Illuminate\Notifications\Notifiable;
  * desativar alguem e uma acao administrativa explicita (Fase 3), nunca efeito
  * colateral de um formulario com mass assignment.
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'username', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 #[UseFactory(UserFactory::class)]
 class User extends Authenticatable
@@ -38,6 +41,23 @@ class User extends Authenticatable
             'role' => StaffRole::class,
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $u): void {
+            $u->email = $u->email === null ? null : (mb_strtolower(trim($u->email)) ?: null);
+            $u->username = $u->username === null ? null : (mb_strtolower(trim($u->username)) ?: null);
+
+            if ($u->email === null && $u->username === null) {
+                throw DomainRuleViolation::rule('R-EQUIPE', 'Usuario da equipe precisa de e-mail ou nome de usuario.');
+            }
+        });
+    }
+
+    public function professional(): HasOne
+    {
+        return $this->hasOne(Professional::class);
     }
 
     /**
