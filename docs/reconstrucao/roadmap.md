@@ -33,9 +33,12 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 1 — Fundação técnica e design system ✅ (aguardando aprovação)
+## Fase 1 — Fundação técnica e design system ✅
 
-> **Concluída em 2026-09-26, aguardando aprovação do dono para iniciar a Fase 2.**
+> **Concluída e aprovada em 2026-09-26.** Direção visual A aprovada no início da Fase 2.
+> Correção feita na Fase 2: o CI falhava desde a Fase 1 no `composer install` (runner com PHP 8.3; as
+> dependências travadas exigem 8.4.1) e, depois, por rodar o build do Vite após os testes. Requisito passou a
+> ser **PHP 8.4+**.
 > Entregue: correção das 4 vulnerabilidades críticas no sistema atual (com testes);
 > `novo-sistema/` em Laravel 13 com autenticação da equipe, permissões deny-by-default,
 > CSP estrita, filas/agendador, diagnóstico e `Money`; design system com duas direções
@@ -45,11 +48,11 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 > [decisoes-fase-1.md](decisoes-fase-1.md)).
 > **Não entregue (bloqueado):** deploy automatizado em homologação (depende de D-01) e
 > análise estática PHPStan (download bloqueado no ambiente; vai para o início da Fase 2).
-> **Pendente do dono:** escolher a direção visual (A/B), logo, fotos e hospedagem.
+> **Pendente do dono:** logo, fotos e hospedagem.
 
 
 - **Objetivo:** ter o esqueleto do novo sistema rodando em homologação, com qualidade automatizada.
-- **Escopo:** repositório/pasta do novo sistema; Laravel + PHP 8.3; estrutura de módulos;
+- **Escopo:** repositório/pasta do novo sistema; Laravel + PHP 8.4; estrutura de módulos;
   `.env` e segredos; CI (lint, análise estática, testes, build, auditoria de dependências);
   deploy automatizado em **homologação**; tokens de design, componentes base e página viva de
   componentes; layout base do site e do painel (casca vazia); página de saúde; política de CSP;
@@ -67,10 +70,19 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 2 — Modelo de dados e importador
+## Fase 2 — Modelo de dados e importador ✅ (aguardando aprovação)
 
-> Acrescentado pela Fase 1: instalar PHPStan/Larastan no CI; decidir hospedagem (D-01) e
-> publicar a homologação; confirmar SQLite (D-02).
+> **Concluída em 2026-09-26, aguardando aprovação do dono para iniciar a Fase 3.** Relatório:
+> [relatorio-fase-2.md](relatorio-fase-2.md).
+> Entregue: modelo de dados definitivo (49 tabelas de domínio, [modelo-dados.md](modelo-dados.md)),
+> 35 regras com implementação e teste ([regras-dados.md](regras-dados.md)), importador `legacy:import`
+> com simulação, idempotência, conciliação e relatórios ([importador.md](importador.md)), banco antigo
+> fictício para validação, mapa antigo → novo, estratégias de histórico e duplicidades, Larastan nível 6
+> sem erros e importador no CI.
+> **Diferença em relação ao plano abaixo:** o importador foi validado **só com dados fictícios** (o briefing
+> da fase proibiu dados reais); a importação do banco real, o anonimizador de homologação e a aprovação das
+> anomalias pelo dono passam para o primeiro ensaio com a cópia real (antes ou durante a Fase 3). O
+> importador ficou em `app/Modules/LegacyImport` (não em `tools/`).
 
 - **Objetivo:** schema novo completo + importador que prova que os dados reais cabem nele.
 - **Escopo:** migrations de **todas** as entidades aprovadas (ver proposta-arquitetura 10.4);

@@ -27,6 +27,8 @@ export default defineConfig({
               command: `php artisan serve --host=127.0.0.1 --port=${porta}`,
               url: `${baseURL}/up`,
               reuseExistingServer: !process.env.CI,
-              env: { BARBEARIA_PROTOTYPES: 'true' },
+              // APP_URL igual ao endereco do servidor: as URLs de assets saem com a mesma
+              // origem da pagina e a CSP ('self') aceita fontes e scripts.
+              env: { BARBEARIA_PROTOTYPES: 'true', APP_URL: baseURL },
           },
 });

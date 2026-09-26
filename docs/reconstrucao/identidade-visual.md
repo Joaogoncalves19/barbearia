@@ -1,9 +1,11 @@
 # Identidade visual — proposta (Fase 1)
 
-> **Status: aguardando aprovação do dono.** Há **duas direções** implementadas e navegáveis
-> nas telas de referência (`/prototipos?direcao=a` e `?direcao=b`). A escolha entre elas é de
-> preferência de marca, então **não** foi decidida silenciosamente. A direção **A** é a
-> recomendação técnica e está como padrão.
+> **Status: direção A "Ofício contemporâneo" aprovada pelo dono no início da Fase 2 e oficial.**
+> A direção B "Urbano gráfico" ficou só como **referência histórica**: os primitivos e a fonte dela estão em
+> `resources/css/prototypes/direcao-b.css`, carregado apenas nas páginas de referência
+> (`/prototipos?direcao=b`, com a flag `BARBEARIA_PROTOTYPES`). Nenhuma tela do produto a carrega; o layout
+> força a direção A fora dos protótipos (teste `ReferenceScreensTest::test_direcao_a_e_a_oficial_...`).
+> As seções abaixo que descrevem a B são registro da comparação feita na Fase 1.
 >
 > **Logo, nome de exibição e fotos reais são pendências do dono** (D-07, D-08). As telas usam
 > "Barbearia Exemplo", um monograma provisório e marcadores de foto identificados.
@@ -187,7 +189,7 @@ premium"). Promessas concretas e verificáveis.
 
 ## 11. O que o dono precisa decidir
 
-1. **Direção A ou B** (ou ajustes numa delas). Recomendação: **A**.
+1. ~~Direção A ou B~~ — **decidido: A** (início da Fase 2).
 2. **Logo** em vetor (o monograma atual é provisório).
 3. **Nome de exibição** e frase da marca (o "Corte, barba e boa conversa." é exemplo).
 4. **Sessão de fotos** (D-08).

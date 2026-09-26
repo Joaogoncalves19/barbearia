@@ -1,6 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fase 0 concluída. **Fase 1 concluída, aguardando aprovação** para a Fase 2.
+> **Status:** Fases 0 e 1 concluídas. **Fase 2 concluída, aguardando aprovação** para a Fase 3
+> ([relatorio-fase-2.md](relatorio-fase-2.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -37,6 +38,18 @@ plano para reconstruí-lo do zero, por etapas.
 | [identidade-visual.md](identidade-visual.md) | Duas direções visuais, paleta com contraste, tipografia, espaço, ícones, fotografia |
 | [design-system.md](design-system.md) | Componentes, estados, acessibilidade, mobile, desempenho, telas de referência |
 | [relatorio-fase-1.md](relatorio-fase-1.md) | Relatório final da Fase 1 |
+
+### Fase 2
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
+| [regras-dados.md](regras-dados.md) | 35 regras de dados: onde são garantidas e qual teste as prova |
+| [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
+| [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
+| [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
+| [estrategia-historico.md](estrategia-historico.md) | O que é imutável, snapshot, razão ou soft delete |
+| [relatorio-fase-2.md](relatorio-fase-2.md) | Relatório final da Fase 2 |
 
 ## Legenda usada em todos os documentos
 

@@ -3,6 +3,12 @@
 > Situação atualizada na Fase 1: ver [decisoes-fase-1.md](decisoes-fase-1.md). D-16 foi
 > autorizada e executada; D-02 e D-10 têm decisão técnica provisória; D-01, D-07 e D-08
 > seguem com o dono.
+>
+> **Fase 2:** D-07 (direção visual) decidida: **A**. Logo e nome seguem pendentes.
+> D-10 continua pendente: a equipe antiga entra por **usuário** (`users.username`); o e-mail é opcional até a
+> decisão. D-11, D-17, D-20 e D-21 foram implementadas **na forma mais conservadora** (arquivar, importar como
+> está e marcar para revisão, só o resumo, nunca mesclar), sem fechar a decisão. Ver
+> [relatorio-fase-2.md](relatorio-fase-2.md#decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
