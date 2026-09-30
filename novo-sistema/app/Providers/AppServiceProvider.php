@@ -132,6 +132,12 @@ class AppServiceProvider extends ServiceProvider
         // impede testar tokens em sequencia.
         RateLimiter::for('token-use', fn (Request $request) => Limit::perMinute(10)->by('token|'.$request->ip()));
 
+        // Reservar/remarcar/cancelar (Fase 5): segura robo que tenta ocupar a
+        // agenda. Por conta logada (equipe ou cliente) + IP.
+        RateLimiter::for('booking', fn (Request $request) => Limit::perMinute(20)->by(
+            'booking|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
+        ));
+
         // Troca/confirmacao de senha logado: segura quem tenta adivinhar a
         // senha atual numa sessao roubada.
         RateLimiter::for('password-check', fn (Request $request) => Limit::perMinute($max)->by(

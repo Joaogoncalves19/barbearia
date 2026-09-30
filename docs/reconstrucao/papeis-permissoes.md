@@ -1,4 +1,4 @@
-# Papéis e permissões (Fases 3 e 4)
+# Papéis e permissões (Fases 3 a 5)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -42,6 +42,11 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `appointments.view_all` / `appointments.view_own` | Ver a agenda de todos / só a própria | Fase 5 |
 | `appointments.manage` / `appointments.manage_own` | Criar e remarcar qualquer agendamento / só os da própria agenda | Fase 5 |
 | `appointments.cancel` | Cancelar qualquer agendamento | Fase 5 |
+| `agenda.view` | Consultar a agenda (todos ou só a própria, conforme `view_all`/`view_own`) | **Fase 5** |
+| `schedule.settings` | Horário de funcionamento e regras da agenda | **Fase 5** |
+| `schedule.working_hours` | Expediente e pausas dos profissionais | **Fase 5** |
+| `schedule.time_off` | Lançar e remover folgas | **Fase 5** |
+| `schedule.blocks` | Criar e remover bloqueios | **Fase 5** |
 | `services.view` | Ver serviços e categorias | **Fase 4** |
 | `services.create` | Criar serviços e categorias (inclui o preço inicial) | **Fase 4** |
 | `services.update` | Editar serviços e categorias (nome, descrição, duração, categoria) | **Fase 4** |
@@ -82,6 +87,11 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `appointments.manage` | ✔ | ✔ | ✔ | | |
 | `appointments.manage_own` | | | | | ✔ |
 | `appointments.cancel` | ✔ | ✔ | ✔ | | |
+| `agenda.view` | ✔ | ✔ | ✔ | | ✔ |
+| `schedule.settings` | ✔ | ✔ | | | |
+| `schedule.working_hours` | ✔ | ✔ | | | |
+| `schedule.time_off` | ✔ | ✔ | ✔ | | |
+| `schedule.blocks` | ✔ | ✔ | ✔ | | |
 | `services.view` | ✔ | ✔ | ✔ | | |
 | `services.create` | ✔ | ✔ | | | |
 | `services.update` | ✔ | ✔ | | | |
@@ -123,7 +133,12 @@ diferente recebe 403, sem gravar nada (`CatalogAuthorizationTest`).
 | Recepção | ver, editar | ver, alterar, cancelar | ver | — |
 | Financeiro | — | — | — (404) | — |
 | Profissional | ver só quem tem agendamento com ele | ver/alterar/cancelar só na própria agenda | só a própria | — |
-| Cliente | só o próprio (sem CPF de terceiros) | ver só os próprios; remarcar/cancelar: **ainda não** (D-13, Fase 5) | — | — |
+| Cliente | só o próprio (sem CPF de terceiros) | ver, remarcar e cancelar só os próprios e futuros (prazos no `BookingService`); alheio = 404 | — | — |
+
+**Fase 5 — agenda:** consultar (`agenda.view`) é separado de configurar (`schedule.*`). O profissional
+consulta **só a própria** agenda (filtro na URL é ignorado), cria e remarca só nela (`createFor`) e não
+configura nada. A recepção lança folgas e bloqueios, mas não mexe no funcionamento, nas regras nem no
+expediente. Criar agendamento em nome de um profissional passa por `AppointmentPolicy@createFor`.
 
 Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz:
 `HorizontalAccessTest::test_matriz_das_policies_de_cliente_e_agendamento_por_papel`.

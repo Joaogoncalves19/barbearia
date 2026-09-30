@@ -145,7 +145,7 @@ test('profissional: vê a própria ficha e não a de outro, nem a gestão de usu
 
     let r = await page.goto(ficha);
     expect(r.status()).toBe(200);
-    await expect(page.getByRole('heading', { name: 'Barbeiro A E2E' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: `Barbeiro A ${info.project.name}` })).toBeVisible();
 
     r = await page.goto(`/painel/profissionais/${id + 1}`);
     expect(r.status(), 'ficha de outro profissional pela URL').toBe(404);

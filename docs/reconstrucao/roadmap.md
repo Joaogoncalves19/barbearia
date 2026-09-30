@@ -137,9 +137,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 4 — Catálogo e equipe ✅ (aguardando aprovação)
+## Fase 4 — Catálogo e equipe ✅
 
-> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 5.** Relatório:
+> **Concluída em 2026-09-30 e aprovada** (início da Fase 5 autorizado; D-24 decidida: opção A). Relatório:
 > [relatorio-fase-4.md](relatorio-fase-4.md). Branch `claude/fase-4-catalogo-equipe` (a partir da Fase 3).
 > Entregue: categorias e serviços (preço em centavos, duração em minutos com regra única, ativo/inativo,
 > ordem, visibilidade/destaque no site, imagem, exclusão só do que nunca foi usado); profissionais (conta de
@@ -170,7 +170,24 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 5 — Motor de agenda e agendamento
+## Fase 5 — Motor de agenda e agendamento ✅ (aguardando aprovação)
+
+> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 6.** Relatório:
+> [relatorio-fase-5.md](relatorio-fase-5.md). Branch `claude/fase-5-agenda` (a partir da Fase 4).
+> Entregue: horário de funcionamento (vários períodos por dia), expediente e pausas por profissional, folgas,
+> bloqueios (do profissional ou da barbearia), regras configuráveis (antecedência, alcance, grade, prazos de
+> cancelamento/remarcação, confirmação manual), **uma** regra de disponibilidade (`Availability`), **uma** de
+> criação/remarcação/cancelamento (`BookingService`), proteção estrutural contra dupla reserva com teste de
+> concorrência real (4 processos), preço/duração/nomes congelados, fuso horário centralizado, agendamento pelo
+> site sem login prévio (login só na confirmação), conta do cliente (ver, remarcar, cancelar), agenda da equipe
+> (dia por profissional; profissional só a própria), 5 permissões novas, auditoria
+> ([agenda.md](agenda.md), [horarios.md](horarios.md), [disponibilidade.md](disponibilidade.md),
+> [agendamento.md](agendamento.md), [regras-cancelamento.md](regras-cancelamento.md),
+> [regras-reagendamento.md](regras-reagendamento.md)).
+> **Diferenças em relação ao plano abaixo:** e-mails de confirmação e lembretes ficaram para a Fase 10
+> (Comunicação; dependem do provedor de e-mail, D-05). Não há visão de semana. "Concluir atendimento" fica
+> com o caixa (Fase 6). "Teste com 5 pessoas / < 90 s" e "teste de carga" não foram executados (não há
+> ambiente de homologação, D-01).
 
 - **Objetivo:** a peça central: disponibilidade e agendamentos consistentes em todos os canais.
 - **Escopo:** `Availability`; `BookingService` (criar, remarcar, cancelar, concluir, falta);

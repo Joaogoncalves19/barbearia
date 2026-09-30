@@ -267,3 +267,126 @@ select.control {
     margin-bottom: var(--space-2);
     font-weight: var(--fw-semibold);
 }
+
+/* --- Dias e horarios (agendamento do site e do painel; Fase 5 move para ca) ---------------- */
+/* Botoes (prototipo) ou LINKS (fluxo real: os horarios vem do servidor). */
+.days {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 4.25rem;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: thin;
+}
+
+.day {
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: var(--space-2) 0;
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-control);
+    background: var(--c-surface);
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    cursor: pointer;
+}
+
+.day strong {
+    font-size: var(--fs-lg);
+    font-variant-numeric: tabular-nums;
+}
+
+.day[aria-pressed='true'] {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+}
+
+.day:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+    gap: var(--space-2);
+}
+
+.slot {
+    min-height: var(--touch);
+    border: var(--border-width) solid var(--c-border-control);
+    border-radius: var(--radius-control);
+    background: var(--c-surface);
+    color: var(--c-text);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+
+.slot[aria-pressed='true'] {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+}
+
+a.day,
+a.slot {
+    text-decoration: none;
+}
+
+a.slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.day[aria-current='date'],
+.slot[aria-current='true'] {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+}
+
+.day:hover,
+.slot:hover {
+    border-color: var(--c-accent);
+}
+
+
+/* Horario como opcao de formulario (radio escondido dentro do label.slot):
+   remarcar e agendar pelo painel, sem JavaScript. */
+label.slot {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+label.slot input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+label.slot:has(input:checked) {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+}
+
+label.slot:has(input:focus-visible) {
+    outline: var(--focus-width) solid var(--c-focus);
+    outline-offset: var(--focus-offset);
+}
+
+/* Legenda do horario: quem esta livre (sem preferencia de profissional). */
+.slot small {
+    display: block;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-regular);
+}

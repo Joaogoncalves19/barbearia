@@ -205,14 +205,23 @@ class HorizontalAccessTest extends TestCase
         }
     }
 
-    public function test_cliente_nao_remarca_nem_cancela_por_enquanto(): void
+    public function test_cliente_remarca_e_cancela_so_os_proprios_e_futuros(): void
     {
+        // Fase 5: o cliente passou a remarcar/cancelar os proprios (prazos no BookingService).
         $cliente = Customer::factory()->create();
-        $ag = Appointment::factory()->create(['customer_id' => $cliente->id]);
+        $outro = Customer::factory()->create();
+        $futuro = Appointment::factory()->create(['customer_id' => $cliente->id]);
+        $alheio = Appointment::factory()->create(['customer_id' => $outro->id]);
+        $passado = Appointment::factory()->create(['customer_id' => $cliente->id, 'starts_at' => now()->subDay(), 'ends_at' => now()->subDay()->addMinutes(30)]);
 
-        $this->assertTrue(Gate::forUser($cliente)->allows('view', $ag));
-        $this->assertFalse(Gate::forUser($cliente)->allows('update', $ag));
-        $this->assertFalse(Gate::forUser($cliente)->allows('cancel', $ag));
+        $g = Gate::forUser($cliente);
+        $this->assertTrue($g->allows('view', $futuro));
+        $this->assertTrue($g->allows('reschedule', $futuro));
+        $this->assertTrue($g->allows('cancel', $futuro));
+        $this->assertFalse($g->allows('update', $futuro), 'observacoes e status sao da equipe');
+        $this->assertFalse($g->allows('reschedule', $alheio));
+        $this->assertFalse($g->allows('cancel', $alheio));
+        $this->assertFalse($g->allows('cancel', $passado), 'ja aconteceu');
     }
 
     // --- Equipe: conta propria -------------------------------------------------------------

@@ -24,10 +24,28 @@ use Illuminate\Support\Carbon;
  * Atendimento agendado. Contato do cliente e nome do profissional sao
  * fotografados na criacao. Mudanca de status so pelas transicoes do enum.
  *
+ * Criar, remarcar, cancelar e mudar status: SO pelo BookingService (Fase 5).
+ *
+ * @property int $id
  * @property Carbon|null $starts_at
  * @property Carbon|null $ends_at
  * @property AppointmentStatus $status
  * @property string|null $code
+ * @property int|null $customer_id
+ * @property int|null $professional_id
+ * @property string|null $professional_name
+ * @property string $customer_name
+ * @property string|null $customer_email
+ * @property string|null $customer_phone
+ * @property AppointmentSource $source
+ * @property string|null $notes
+ * @property int|null $total_cents
+ * @property Carbon|null $cancelled_at
+ * @property CancelledBy|null $cancelled_by
+ * @property string|null $cancellation_reason
+ * @property Carbon|null $confirmed_at
+ * @property int $customer_reschedules
+ * @property int|null $created_by_user_id
  */
 #[UseFactory(AppointmentFactory::class)]
 class Appointment extends Model
@@ -39,6 +57,14 @@ class Appointment extends Model
     private const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
     protected $table = 'appointments';
+
+    /**
+     * Contato do cliente fica fora da auditoria (dado pessoal desnecessario
+     * na trilha; o agendamento ja guarda a fotografia).
+     *
+     * @var list<string>
+     */
+    protected array $auditExclude = ['customer_email', 'customer_phone'];
 
     protected $guarded = ['id'];
 
@@ -56,6 +82,7 @@ class Appointment extends Model
             'subtotal_cents' => 'integer',
             'discount_cents' => 'integer',
             'total_cents' => 'integer',
+            'customer_reschedules' => 'integer',
             'cancelled_at' => 'datetime',
             'confirmation_requested_at' => 'datetime',
             'confirmed_at' => 'datetime',

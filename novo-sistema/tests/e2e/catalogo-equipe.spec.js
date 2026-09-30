@@ -125,6 +125,8 @@ test('categoria e serviço: cadastro, erro de validação, preço e ativação c
 
     // Desativar: pede confirmacao; Esc cancela e devolve o foco
     await page.goto('/painel/servicos');
+    // O modal depende do JS da pagina: espera carregar (servidor embutido e lento em paralelo).
+    await page.waitForLoadState('networkidle');
     const desativar = page.getByRole('button', { name: `Desativar ${servico}` });
     await desativar.click();
     const modal = page.getByRole('dialog', { name: `Desativar ${servico}?` });
@@ -195,6 +197,7 @@ test('profissional: cadastro com foto e vínculo com serviços', async ({ page }
 
     // Desativar o profissional (confirmacao) e ver que sai da lista de ativos
     await page.goto('/painel/profissionais');
+    await page.waitForLoadState('networkidle');
     await page.getByRole('button', { name: `Desativar ${nome}` }).click();
     await page.getByRole('dialog', { name: `Desativar ${nome}?` }).getByRole('button', { name: 'Desativar' }).click();
     await expect(page.getByText(`${nome} foi desativado`)).toBeVisible();

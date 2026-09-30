@@ -23,6 +23,12 @@
 > manter os combos do sistema antigo (`packages`: preço próprio, duração = soma) com tela própria, ou
 > representar "Corte + Barba" como um serviço comum? Recomendação e impacto em
 > [relatorio-fase-4.md](relatorio-fase-4.md#4-decisões).
+>
+> **Fase 5:** **D-24 decidida (opção A):** "Corte + Barba" é um serviço comum, sem entidade nem tela de combos.
+> **D-06:** confirmação automática (como hoje), com opção configurável de exigir confirmação da equipe para
+> agendamentos do site. **D-13:** implementada com os valores recomendados como padrão configurável: o cliente
+> cancela/remarca até 2 h antes, no máximo 2 remarcações; depois disso, só pela barbearia. O dono pode ajustar
+> em "Funcionamento e regras". Ver [relatorio-fase-5.md](relatorio-fase-5.md).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

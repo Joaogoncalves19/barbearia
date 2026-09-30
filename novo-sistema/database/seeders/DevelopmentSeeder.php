@@ -2,9 +2,12 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Models\Service;
+use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
+use App\Modules\Scheduling\Models\BusinessHour;
 use App\Modules\Team\Models\Professional;
 use Database\Factories\CustomerFactory;
 use Illuminate\Database\Seeder;
@@ -40,6 +43,22 @@ class DevelopmentSeeder extends Seeder
             if ($role === StaffRole::Professional && ! $user->professional()->exists()) {
                 Professional::query()->create(['user_id' => $user->id, 'display_name' => 'Profissional (dev)', 'is_active' => true, 'is_bookable' => true]);
             }
+        }
+
+        // Agenda de exemplo (Fase 5): terca a sabado, 09:00-19:00, e tres
+        // servicos ("Corte + Barba" e um servico comum, decisao D-24).
+        if (! BusinessHour::query()->exists()) {
+            foreach ([2, 3, 4, 5, 6] as $dia) {
+                BusinessHour::query()->create(['weekday' => $dia, 'starts_at' => '09:00', 'ends_at' => '19:00']);
+            }
+        }
+        $cabelo = ServiceCategory::query()->firstOrCreate(['slug' => 'cabelo'], ['name' => 'Cabelo', 'is_active' => true, 'sort_order' => 10]);
+        $profissional = Professional::query()->whereHas('user', fn ($q) => $q->where('username', 'professional'))->first();
+        foreach ([['Corte', 30, 5000], ['Barba', 30, 3500], ['Corte + Barba', 60, 7500]] as $i => [$nome, $min, $preco]) {
+            $s = Service::query()->firstOrCreate(['name' => $nome], [
+                'category_id' => $cabelo->id, 'duration_minutes' => $min, 'price_cents' => $preco, 'is_active' => true, 'sort_order' => ($i + 1) * 10,
+            ]);
+            $profissional?->services()->syncWithoutDetaching([$s->id]);
         }
 
         $cliente = Customer::query()->firstOrNew(['email' => 'cliente@barbearia.test']);

@@ -50,6 +50,17 @@ return [
         'appointments.manage_own' => 'Criar e remarcar agendamentos da própria agenda',
         'appointments.cancel' => 'Cancelar qualquer agendamento',
 
+        // Agenda (Fase 5). agenda.view abre a tela da agenda; QUAIS agendamentos
+        // aparecem (todos ou so os proprios) vem de appointments.view_all/view_own.
+        'agenda.view' => 'Consultar a agenda',
+
+        // Configuracao da agenda (Fase 5). Consultar a agenda NAO da direito a
+        // configura-la: cada configuracao tem a sua habilidade.
+        'schedule.settings' => 'Configurar horário de funcionamento e regras da agenda',
+        'schedule.working_hours' => 'Configurar expediente e pausas dos profissionais',
+        'schedule.time_off' => 'Lançar e remover folgas dos profissionais',
+        'schedule.blocks' => 'Criar e remover bloqueios de agenda',
+
         // Catalogo de servicos e categorias (Fase 4). As categorias usam as
         // mesmas habilidades dos servicos (fazem parte do mesmo catalogo).
         'services.view' => 'Ver serviços e categorias',
@@ -85,10 +96,11 @@ return [
     'roles' => [
         // Proprietario: administracao completa, habilidade por habilidade.
         'owner' => [
-            'panel.access', 'system.health.view',
+            'panel.access', 'agenda.view', 'system.health.view',
             'users.manage', 'audit.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf', 'customers.anonymize',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'schedule.settings', 'schedule.working_hours', 'schedule.time_off', 'schedule.blocks',
             'services.view', 'services.create', 'services.update', 'services.toggle', 'services.price', 'services.display',
             'professionals.view', 'professionals.create', 'professionals.update', 'professionals.toggle', 'professionals.services', 'professionals.display',
             'checkout.operate', 'finance.view', 'finance.manage', 'reports.view',
@@ -98,9 +110,10 @@ return [
         // Gerente: opera a barbearia; nao mexe em usuarios, auditoria,
         // configuracoes, lancamentos financeiros nem LGPD.
         'manager' => [
-            'panel.access', 'system.health.view',
+            'panel.access', 'agenda.view', 'system.health.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'schedule.settings', 'schedule.working_hours', 'schedule.time_off', 'schedule.blocks',
             'services.view', 'services.create', 'services.update', 'services.toggle', 'services.price', 'services.display',
             'professionals.view', 'professionals.create', 'professionals.update', 'professionals.toggle', 'professionals.services', 'professionals.display',
             'checkout.operate', 'finance.view', 'reports.view',
@@ -110,9 +123,10 @@ return [
         // Recepcao: agenda, clientes e caixa do dia. Catalogo e equipe so
         // para consulta (precisa saber preco, duracao e quem faz o que).
         'reception' => [
-            'panel.access',
+            'panel.access', 'agenda.view',
             'customers.view', 'customers.create', 'customers.update',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'schedule.time_off', 'schedule.blocks',
             'services.view', 'professionals.view',
             'checkout.operate',
         ],
@@ -125,7 +139,7 @@ return [
 
         // Profissional: so o que e dele (Policies conferem o registro).
         'professional' => [
-            'panel.access',
+            'panel.access', 'agenda.view',
             'customers.view_own',
             'appointments.view_own', 'appointments.manage_own',
         ],

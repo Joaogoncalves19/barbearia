@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 3 concluídas. **Fase 4 concluída, aguardando aprovação** para a Fase 5
-> ([relatorio-fase-4.md](relatorio-fase-4.md)).
+> **Status:** Fases 0 a 4 concluídas. **Fase 5 concluída, aguardando aprovação** para a Fase 6
+> ([relatorio-fase-5.md](relatorio-fase-5.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -44,7 +44,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
-| [regras-dados.md](regras-dados.md) | Regras de dados (35 da Fase 2 + 36–43 da Fase 4): onde são garantidas e qual teste as prova |
+| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5): onde são garantidas e qual teste as prova |
 | [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
 | [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
@@ -70,6 +70,18 @@ plano para reconstruí-lo do zero, por etapas.
 | [profissionais.md](profissionais.md) | User × Professional × Customer, estados, histórico, ficha própria |
 | [relacao-profissional-servico.md](relacao-profissional-servico.md) | Quem executa o quê; a consulta única que a agenda vai usar |
 | [relatorio-fase-4.md](relatorio-fase-4.md) | Relatório final da Fase 4 |
+
+### Fase 5
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [agenda.md](agenda.md) | Arquitetura da agenda, telas e permissões |
+| [horarios.md](horarios.md) | Fuso horário, funcionamento, expediente, pausas, folgas, bloqueios, regras configuráveis |
+| [disponibilidade.md](disponibilidade.md) | A regra única de disponibilidade, conflitos e duração |
+| [agendamento.md](agendamento.md) | Criação, snapshot, status, concorrência (dupla reserva), cliente, equipe, auditoria |
+| [regras-cancelamento.md](regras-cancelamento.md) | Quem, quando e o que acontece ao cancelar |
+| [regras-reagendamento.md](regras-reagendamento.md) | Os passos da remarcação e o que não muda |
+| [relatorio-fase-5.md](relatorio-fase-5.md) | Relatório final da Fase 5 |
 
 ## Legenda usada em todos os documentos
 

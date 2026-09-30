@@ -3,16 +3,27 @@
 namespace App\Modules\Team\Models;
 
 use App\Modules\Shared\Exceptions\DomainRuleViolation;
+use App\Modules\Shared\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * Expediente do profissional: UM intervalo por dia da semana (hora de
+ * parede da barbearia). Pausas (almoco) ficam em ScheduleBreak, nunca como
+ * um segundo intervalo: uma forma so de representar a mesma coisa
+ * (horarios.md). Profissional sem nenhum expediente cadastrado segue o
+ * horario de funcionamento da barbearia.
+ *
+ * @property int $id
+ * @property int $professional_id
  * @property int $weekday
  * @property string $starts_at
  * @property string $ends_at
  */
 class WorkingHour extends Model
 {
+    use Auditable;
+
     protected $table = 'working_hours';
 
     protected $guarded = ['id'];

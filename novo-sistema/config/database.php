@@ -38,10 +38,15 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
+            // Concorrencia (Fase 5): transacoes IMMEDIATE pegam o bloqueio de
+            // escrita ja no BEGIN, entao duas reservas simultaneas sao
+            // serializadas (a segunda ESPERA, ate busy_timeout ms, e revalida a
+            // disponibilidade) em vez de falharem com "database is locked".
+            // WAL: leituras nao bloqueiam a escrita (decisao D-02).
+            'busy_timeout' => (int) env('DB_BUSY_TIMEOUT', 10000),
+            'journal_mode' => env('DB_JOURNAL_MODE', 'wal'),
             'synchronous' => null,
-            'transaction_mode' => 'DEFERRED',
+            'transaction_mode' => 'IMMEDIATE',
         ],
 
         'mysql' => [

@@ -12,6 +12,9 @@
     ];
 
     $operacao = [$item('Início', 'house', 'panel.home', 'panel.home')];
+    if ($user->can('agenda.view')) {
+        $operacao[] = $item('Agenda', 'calendar-days', 'panel.agenda', 'panel.agenda');
+    }
     if ($user->professional !== null) {
         $minhaFicha = route('panel.professionals.show', $user->professional);
         $operacao[] = ['label' => 'Minha ficha', 'icon' => 'user', 'href' => $minhaFicha, 'current' => request()->url() === $minhaFicha];
@@ -26,6 +29,17 @@
         $cadastros[] = $item('Profissionais', 'users', 'panel.professionals.index', 'panel.professionals.*');
     }
 
+    $configAgenda = [];
+    if ($user->can('schedule.settings')) {
+        $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
+    }
+    if ($user->can('schedule.time_off')) {
+        $configAgenda[] = $item('Folgas', 'coffee', 'panel.time-off.index', 'panel.time-off.*');
+    }
+    if ($user->can('schedule.blocks')) {
+        $configAgenda[] = $item('Bloqueios', 'circle-x', 'panel.blocks.index', 'panel.blocks.*');
+    }
+
     $admin = [];
     if ($user->can('users.manage')) {
         $admin[] = $item('Usuários', 'users', 'panel.users.index', 'panel.users.*');
@@ -35,6 +49,9 @@
     }
 
     $nav = [['group' => '', 'items' => $operacao]];
+    if ($configAgenda !== []) {
+        $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];
+    }
     if ($cadastros !== []) {
         $nav[] = ['group' => 'Cadastros', 'items' => $cadastros];
     }

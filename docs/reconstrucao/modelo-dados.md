@@ -1,8 +1,9 @@
-# Modelo de dados do novo sistema (Fases 2 a 4)
+# Modelo de dados do novo sistema (Fases 2 a 5)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
-> (seção 2.1); a Fase 4, `2026_09_30_000100_add_catalog_and_team_admin_columns` (seções 2.3 e 2.4).
+> (seção 2.1); a Fase 4, `2026_09_30_000100_add_catalog_and_team_admin_columns` (seções 2.3 e 2.4);
+> a Fase 5, `2026_10_01_000100_create_agenda_tables` (seções 2.3 e 2.5).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -180,7 +181,14 @@ o profissional atende: `professional_package` com a mesma forma.
 Check: `ends_on >= starts_on`.
 
 **blocked_slots** (bloqueio pontual) — `professional_id`, `starts_at`, `ends_at` (UTC), `reason` (N).
-U(`professional_id`,`starts_at`).
+U(`professional_id`,`starts_at`). **Fase 5:** `professional_id` anulável (**nulo = barbearia inteira**:
+feriado, evento), `created_by_user_id` (N), I(`starts_at`,`ends_at`). `time_off` ganhou `created_by_user_id`.
+`professionals.schedule_version`: linha de bloqueio da agenda (proteção contra dupla reserva,
+[agendamento.md §5](agendamento.md#5-concorrência-dupla-reserva)).
+
+**business_hours** (Fase 5) — horário de funcionamento da barbearia: `weekday` (0–6), `starts_at`/`ends_at`
+(`time`, hora de parede no fuso da barbearia). Vários períodos por dia; dia sem linha = fechado.
+U(`weekday`,`starts_at`). Ver [horarios.md](horarios.md).
 
 ### 2.4 Catalog
 
@@ -210,7 +218,9 @@ Duração do combo = soma das durações dos serviços (regra do sistema atual).
 nulos quando algum preço é desconhecido), `cancelled_at`, `cancelled_by` (`customer`|`staff`|`system`),
 `cancellation_reason` (N), `confirmation_requested_at` (N), `confirmed_at` (N), `completed_at` (N),
 `payment_gateway` (N), `payment_gateway_reference` (N), `created_at`, `updated_at`. I(`professional_id`,`starts_at`),
-I(`customer_id`,`starts_at`), I(`status`,`starts_at`).
+I(`customer_id`,`starts_at`), I(`status`,`starts_at`). **Fase 5:** `customer_reschedules` (quantas vezes
+o cliente remarcou, padrão 0; limite em `agenda.policy`) e `created_by_user_id` (N, quem da equipe criou).
+Criação, remarcação e cancelamento só pelo `BookingService` ([agendamento.md](agendamento.md)).
 
 Status (`AppointmentStatus`): `pending`, `awaiting_payment`, `confirmed`, `completed`, `cancelled`, `no_show`.
 Transições permitidas ficam no enum (`canTransitionTo`) e são testadas.
@@ -322,7 +332,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (50 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (51 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 
 ### `advances`
 
@@ -432,6 +442,8 @@ Unicos: (appointment_id, kind)
 | `payment_gateway_reference` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `customer_reschedules` | integer | nao | `0` | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
 
 Unicos: (code)
 
@@ -461,14 +473,30 @@ Indices: (auditable_type, auditable_id) · (created_at)
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
-| `professional_id` | integer | nao | | professionals.id (cascade) |
+| `professional_id` | integer | sim | | professionals.id (cascade) |
 | `starts_at` | datetime | nao | | |
 | `ends_at` | datetime | nao | | |
 | `reason` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
 
 Unicos: (professional_id, starts_at)
+
+Indices: (starts_at, ends_at)
+
+### `business_hours`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `weekday` | integer | nao | | |
+| `starts_at` | time | nao | | |
+| `ends_at` | time | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Unicos: (weekday, starts_at)
 
 ### `campaigns`
 
@@ -936,6 +964,7 @@ Indices: (paid_at)
 | `is_public` | tinyint | nao | `1` | |
 | `is_featured` | tinyint | nao | `0` | |
 | `lock_version` | integer | nao | `0` | |
+| `schedule_version` | integer | nao | `0` | |
 
 Unicos: (slug) · (user_id)
 
@@ -1114,6 +1143,7 @@ Indices: (customer_id, status) · (gateway_customer_id)
 | `reason` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
 
 Indices: (professional_id, starts_on)
 

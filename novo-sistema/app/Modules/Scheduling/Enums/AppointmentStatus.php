@@ -61,6 +61,22 @@ enum AppointmentStatus: string
         return in_array($this, [self::Pending, self::AwaitingPayment, self::Confirmed, self::Completed], true);
     }
 
+    /**
+     * Status que ocupam horario (para consultas no banco).
+     *
+     * @return list<self>
+     */
+    public static function blockingSlot(): array
+    {
+        return array_values(array_filter(self::cases(), fn (self $s) => $s->blocksSlot()));
+    }
+
+    /** Ainda pode ser remarcado ou cancelado (nao aconteceu nem terminou). */
+    public function isOpen(): bool
+    {
+        return in_array($this, [self::Pending, self::AwaitingPayment, self::Confirmed], true);
+    }
+
     public function isFinal(): bool
     {
         return $this->allowedTransitions() === [];

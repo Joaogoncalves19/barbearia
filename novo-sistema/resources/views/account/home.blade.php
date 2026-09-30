@@ -18,7 +18,10 @@
     </x-ui.card>
 
     <section class="stack">
-        <h2 class="h3">Seus horários</h2>
+        <div class="cluster">
+            <h2 class="h3">Seus horários</h2>
+            <x-ui.button :href="route('booking.services')" variant="accent" size="sm" icon="calendar-plus">Agendar horário</x-ui.button>
+        </div>
 
         @if ($appointments->isEmpty())
             <x-ui.empty-state title="Nenhum horário ainda" icon="calendar">

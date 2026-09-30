@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\AccountHomeController;
 use App\Http\Controllers\Account\AccountPasswordController;
 use App\Http\Controllers\Account\AppointmentController as AccountAppointmentController;
+use App\Http\Controllers\Account\BookingController as AccountBookingController;
 use App\Http\Controllers\Account\CompleteProfileController;
 use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Auth\Customer\EmailVerificationController;
@@ -16,6 +17,12 @@ use App\Http\Controllers\Auth\Staff\ForgotPasswordController as StaffForgotPassw
 use App\Http\Controllers\Auth\Staff\LoginController as StaffLoginController;
 use App\Http\Controllers\Auth\Staff\ResetPasswordController as StaffResetPasswordController;
 use App\Http\Controllers\Panel\AccountController as PanelAccountController;
+use App\Http\Controllers\Panel\Agenda\AgendaController;
+use App\Http\Controllers\Panel\Agenda\AppointmentController as PanelAppointmentController;
+use App\Http\Controllers\Panel\Agenda\BlockController;
+use App\Http\Controllers\Panel\Agenda\ScheduleSettingsController;
+use App\Http\Controllers\Panel\Agenda\TimeOffController;
+use App\Http\Controllers\Panel\Agenda\WorkingHoursController;
 use App\Http\Controllers\Panel\AuditLogController;
 use App\Http\Controllers\Panel\Catalog\CategoryController;
 use App\Http\Controllers\Panel\Catalog\ServiceController;
@@ -24,6 +31,7 @@ use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
+use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Http\Controllers\Site\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,6 +55,15 @@ use Illuminate\Support\Facades\Route;
 
 // --- Publico ----------------------------------------------------------------
 Route::get('/', HomeController::class)->name('home');
+
+// --- Agendamento pelo site (Fase 5): sem login ate a confirmacao ---------------
+// So LEITURA (servicos, profissionais, horarios livres calculados pelo
+// servidor). Reservar exige conta: account.booking.*.
+Route::middleware('no-store')->group(function () {
+    Route::get('/agendar', [SiteBookingController::class, 'services'])->name('booking.services');
+    Route::get('/agendar/{service:slug}', [SiteBookingController::class, 'professional'])->name('booking.professional');
+    Route::get('/agendar/{service:slug}/horarios', [SiteBookingController::class, 'slots'])->name('booking.slots');
+});
 
 // --- Clientes: acesso -------------------------------------------------------
 Route::middleware(['guest:customer', 'no-store'])->group(function () {
@@ -98,8 +115,19 @@ Route::prefix('minha-conta')
             Route::put('/senha', [AccountPasswordController::class, 'update'])
                 ->middleware('throttle:password-check')->name('password.update');
 
+            // Agendar (Fase 5): confirmacao e reserva, sempre revalidadas no servidor.
+            Route::get('/agendar/confirmar', [AccountBookingController::class, 'confirm'])->name('booking.confirm');
+            Route::post('/agendamentos', [AccountBookingController::class, 'store'])
+                ->middleware('throttle:booking')->name('booking.store');
+
             Route::get('/agendamentos/{appointment:code}', [AccountAppointmentController::class, 'show'])
                 ->middleware('can:view,appointment')->name('appointments.show');
+            Route::post('/agendamentos/{appointment:code}/cancelar', [AccountAppointmentController::class, 'cancel'])
+                ->middleware(['can:cancel,appointment', 'throttle:booking'])->name('appointments.cancel');
+            Route::get('/agendamentos/{appointment:code}/remarcar', [AccountAppointmentController::class, 'editReschedule'])
+                ->middleware('can:reschedule,appointment')->name('appointments.reschedule');
+            Route::put('/agendamentos/{appointment:code}/remarcar', [AccountAppointmentController::class, 'reschedule'])
+                ->middleware(['can:reschedule,appointment', 'throttle:booking'])->name('appointments.reschedule.update');
         });
     });
 
@@ -152,6 +180,33 @@ Route::prefix('painel')
             Route::post('/usuarios/{user}/senha-provisoria', [UserController::class, 'temporaryPassword'])
                 ->middleware('can:setTemporaryPassword,user')->name('users.temporary-password');
         });
+
+        // --- Agenda (Fase 5) ---
+        // Consultar (agenda.view; todos ou so os proprios conforme
+        // appointments.view_all/view_own) e separado de configurar (schedule.*).
+        Route::get('/agenda', [AgendaController::class, 'index'])->middleware('can:agenda.view')->name('agenda');
+        Route::get('/agenda/novo', [PanelAppointmentController::class, 'create'])->middleware('can:agenda.view')->name('appointments.create');
+        Route::post('/agenda', [PanelAppointmentController::class, 'store'])->middleware(['can:agenda.view', 'throttle:booking'])->name('appointments.store');
+        Route::get('/agendamentos/{appointment:code}', [PanelAppointmentController::class, 'show'])->middleware('can:view,appointment')->name('appointments.show');
+        Route::put('/agendamentos/{appointment:code}/observacoes', [PanelAppointmentController::class, 'updateNotes'])->middleware('can:update,appointment')->name('appointments.notes');
+        Route::post('/agendamentos/{appointment:code}/confirmar', [PanelAppointmentController::class, 'confirm'])->middleware('can:update,appointment')->name('appointments.confirm');
+        Route::post('/agendamentos/{appointment:code}/falta', [PanelAppointmentController::class, 'noShow'])->middleware('can:update,appointment')->name('appointments.no-show');
+        Route::post('/agendamentos/{appointment:code}/cancelar', [PanelAppointmentController::class, 'cancel'])->middleware('can:cancel,appointment')->name('appointments.cancel');
+        Route::get('/agendamentos/{appointment:code}/remarcar', [PanelAppointmentController::class, 'editReschedule'])->middleware('can:reschedule,appointment')->name('appointments.reschedule');
+        Route::put('/agendamentos/{appointment:code}/remarcar', [PanelAppointmentController::class, 'reschedule'])->middleware(['can:reschedule,appointment', 'throttle:booking'])->name('appointments.reschedule.update');
+
+        Route::get('/agenda/configuracoes', [ScheduleSettingsController::class, 'edit'])->middleware('can:schedule.settings')->name('schedule.settings');
+        Route::put('/agenda/configuracoes', [ScheduleSettingsController::class, 'update'])->middleware('can:schedule.settings')->name('schedule.settings.update');
+        Route::get('/profissionais/{professional}/expediente', [WorkingHoursController::class, 'edit'])->middleware('can:schedule.working_hours')->name('schedule.working-hours');
+        Route::put('/profissionais/{professional}/expediente', [WorkingHoursController::class, 'update'])->middleware('can:schedule.working_hours')->name('schedule.working-hours.update');
+        Route::post('/profissionais/{professional}/pausas', [WorkingHoursController::class, 'storeBreak'])->middleware('can:schedule.working_hours')->name('schedule.breaks.store');
+        Route::delete('/profissionais/{professional}/pausas/{break}', [WorkingHoursController::class, 'destroyBreak'])->middleware('can:schedule.working_hours')->name('schedule.breaks.destroy');
+        Route::get('/folgas', [TimeOffController::class, 'index'])->middleware('can:schedule.time_off')->name('time-off.index');
+        Route::post('/folgas', [TimeOffController::class, 'store'])->middleware('can:schedule.time_off')->name('time-off.store');
+        Route::delete('/folgas/{timeOff}', [TimeOffController::class, 'destroy'])->middleware('can:schedule.time_off')->name('time-off.destroy');
+        Route::get('/bloqueios', [BlockController::class, 'index'])->middleware('can:schedule.blocks')->name('blocks.index');
+        Route::post('/bloqueios', [BlockController::class, 'store'])->middleware('can:schedule.blocks')->name('blocks.store');
+        Route::delete('/bloqueios/{block}', [BlockController::class, 'destroy'])->middleware('can:schedule.blocks')->name('blocks.destroy');
 
         // --- Catalogo: categorias e servicos (Fase 4) ---
         // Cada acao com a sua habilidade: ver, criar, editar, ativar/desativar,

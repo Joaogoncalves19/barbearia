@@ -49,6 +49,10 @@ class RouteAuthorizationTest extends TestCase
         'customer.password.reset' => 'formulario com o token do e-mail',
         'customer.password.update' => 'redefinicao (token validado pelo broker, throttle:token-use)',
         'customer.verification.verify' => 'link assinado de confirmacao de e-mail (signed)',
+        // Agendamento pelo site (Fase 5): so leitura; reservar exige conta.
+        'booking.services' => 'lista de servicos agendaveis',
+        'booking.professional' => 'profissionais que fazem o servico',
+        'booking.slots' => 'dias e horarios livres (calculados no servidor)',
     ];
 
     /** Rotas que so exigem estar logado (sem permissao especifica). */
@@ -194,6 +198,11 @@ class RouteAuthorizationTest extends TestCase
             'panel.password.update' => 'throttle:password-check',
             'panel.password.confirm.store' => 'throttle:password-check',
             'account.password.update' => 'throttle:password-check',
+            'account.booking.store' => 'throttle:booking',
+            'account.appointments.cancel' => 'throttle:booking',
+            'account.appointments.reschedule.update' => 'throttle:booking',
+            'panel.appointments.store' => 'throttle:booking',
+            'panel.appointments.reschedule.update' => 'throttle:booking',
         ];
 
         foreach ($limites as $nome => $throttle) {

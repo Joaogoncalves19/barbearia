@@ -51,5 +51,14 @@
         </x-ui.card>
     @endif
 
-    <p class="text-sm text-muted">Horários de trabalho, folgas e bloqueios entram com a agenda (Fase 5).</p>
+    <div class="cluster">
+        @can('agenda.view')
+            @if (auth('web')->user()->can('appointments.view_all') || $professional->user_id === auth('web')->id())
+                <x-ui.button :href="route('panel.agenda', ['profissional' => $professional->id])" variant="secondary" icon="calendar-days">Agenda</x-ui.button>
+            @endif
+        @endcan
+        @can('schedule.working_hours')
+            <x-ui.button :href="route('panel.schedule.working-hours', $professional)" variant="secondary" icon="clock">Expediente e pausas</x-ui.button>
+        @endcan
+    </div>
 </x-layouts.staff>

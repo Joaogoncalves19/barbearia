@@ -2,12 +2,15 @@
 
 namespace App\Console\Commands;
 
+use App\Modules\Catalog\Models\Service;
+use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Scheduling\Models\BusinessHour;
 use App\Modules\Team\Models\Professional;
 use Database\Factories\CustomerFactory;
 use Illuminate\Console\Command;
@@ -45,6 +48,8 @@ class E2eAccounts extends Command
             return self::FAILURE;
         }
 
+        DB::transaction(fn () => $this->agenda());
+
         foreach ($this->option('suffix') ?: ['local'] as $sufixo) {
             DB::transaction(fn () => $this->conjunto((string) $sufixo, $senha));
         }
@@ -61,14 +66,38 @@ class E2eAccounts extends Command
         // Catalogo e equipe (Fase 4): conta propria, para nao dividir o limite
         // de tentativas de login com os testes de acesso.
         $this->membro("e2e-gerente-{$s}", 'Gerente E2E', StaffRole::Manager, $senha);
-        $a = $this->barbeiro("e2e-barbeiro-a-{$s}", 'Barbeiro A E2E', $senha);
-        $b = $this->barbeiro("e2e-barbeiro-b-{$s}", 'Barbeiro B E2E', $senha);
+        $a = $this->barbeiro("e2e-barbeiro-a-{$s}", "Barbeiro A {$s}", $senha);
+        $b = $this->barbeiro("e2e-barbeiro-b-{$s}", "Barbeiro B {$s}", $senha);
 
         $ana = $this->cliente("e2e-cliente-{$s}@exemplo.test", 'Cliente E2E', $senha);
         $outra = $this->cliente("e2e-outra-{$s}@exemplo.test", 'Outra Cliente E2E', $senha);
 
         $this->agendamento("AG-E2E-A-{$s}", $ana, $a);
         $this->agendamento("AG-E2E-B-{$s}", $outra, $b);
+
+        // Agenda (Fase 5): os dois barbeiros fazem o servico de teste.
+        $corte = Service::query()->where('slug', 'corte-e2e')->firstOrFail();
+        $a->services()->syncWithoutDetaching([$corte->id]);
+        $b->services()->syncWithoutDetaching([$corte->id]);
+    }
+
+    /**
+     * Agenda minima para os testes: funcionamento todos os dias das 09:00 as
+     * 20:00 (so se ainda nao houver nenhum, para nao mexer na configuracao de
+     * quem desenvolve) e o servico "Corte E2E".
+     */
+    private function agenda(): void
+    {
+        if (! BusinessHour::query()->exists()) {
+            for ($d = 0; $d <= 6; $d++) {
+                BusinessHour::query()->create(['weekday' => $d, 'starts_at' => '09:00', 'ends_at' => '20:00']);
+            }
+        }
+
+        $categoria = ServiceCategory::query()->firstOrCreate(['slug' => 'e2e'], ['name' => 'E2E', 'is_active' => true, 'sort_order' => 999]);
+        $servico = Service::query()->firstOrNew(['slug' => 'corte-e2e']);
+        $servico->fill(['name' => 'Corte E2E', 'category_id' => $categoria->id, 'duration_minutes' => 30, 'price_cents' => 5000, 'is_active' => true, 'is_public' => true]);
+        $servico->save();
     }
 
     private function membro(string $username, string $nome, StaffRole $papel, string $senha, bool $provisoria = false): User
