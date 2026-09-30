@@ -29,7 +29,7 @@
 | Admin com autorização explícita | PASSOU | sem curinga, sem `Gate::before` (`test_nenhum_papel_tem_curinga_nem_o_proprietario`) |
 | Testes passando | PASSOU | 252 PHPUnit, 68 Playwright |
 | PHPStan sem erros | PASSOU | Larastan nível 6, 0 erros |
-| CI verde | ver §9 | |
+| CI verde | PASSOU | run nº 19, os dois jobs (§9) |
 | Testes de navegador | PASSOU | 68 passando, 2 ignorados de propósito (§7) |
 | Nenhum secret no código | PASSOU | `ConfigurationTest`, senhas de dev/E2E aleatórias por execução |
 | Nenhum dado real | PASSOU | factories e contas de E2E fictícias (e-mails `.test`, CPFs gerados) |
@@ -162,7 +162,17 @@ com uma senha **aleatória gerada pelo Playwright a cada execução**.
 
 ## 9. CI
 
-**PENDENTE** até o push desta branch. O resultado será registrado aqui.
+**PASSOU.** Run nº 19 (commit `51d1b66`,
+https://github.com/Joaogoncalves19/barbearia/actions/runs/36750244078), com PHP 8.4, os dois jobs verdes em
+todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP, importador com banco fictício (simulação, importação e reexecução) e Playwright + axe (inclusive as
+  contas fictícias do `global-setup`).
+- **Sistema atual, correções S-01 a S-04:** regressão de segurança, incluindo o teste de navegador de XSS,
+  que localmente não roda no Windows.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Pendências
 
