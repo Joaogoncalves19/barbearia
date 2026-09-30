@@ -15,6 +15,16 @@ class UserFactory extends Factory
 {
     protected $model = User::class;
 
+    /**
+     * Recarrega do banco depois de criar: o model do teste fica igual ao que
+     * a aplicacao le (inclusive colunas com valor padrao do banco), o que o
+     * modo estrito do Eloquent exige.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(fn ($model) => $model->refresh());
+    }
+
     protected static ?string $password;
 
     /**

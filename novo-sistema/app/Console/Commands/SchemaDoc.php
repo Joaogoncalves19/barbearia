@@ -15,7 +15,7 @@ class SchemaDoc extends Command
 
     protected $description = 'Imprime o esquema fisico do banco em Markdown (apendice de modelo-dados.md)';
 
-    private const TECNICAS = ['migrations', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'sessions', 'password_reset_tokens'];
+    private const TECNICAS = ['migrations', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'sessions', 'password_reset_tokens', 'customer_password_reset_tokens'];
 
     public function handle(): int
     {

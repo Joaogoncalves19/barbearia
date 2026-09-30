@@ -39,18 +39,21 @@ return [
     */
 
     'guards' => [
+        // Equipe (painel). "Manter conectado" dura no maximo 14 dias (o
+        // padrao do Laravel e ~5 anos).
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            'remember' => (int) env('AUTH_STAFF_REMEMBER_MINUTES', 60 * 24 * 14),
         ],
 
         // Clientes finais: tabela e sessao proprias, separadas da equipe.
-        // Rotas de login do cliente chegam na Fase 3; o guard ja existe para
-        // que senhas importadas do sistema antigo sejam verificadas e
-        // re-hasheadas no primeiro login (hashing.rehash_on_login).
+        // Senhas importadas do sistema antigo sao verificadas e re-hasheadas
+        // no primeiro login (hashing.rehash_on_login).
         'customer' => [
             'driver' => 'session',
             'provider' => 'customers',
+            'remember' => (int) env('AUTH_CUSTOMER_REMEMBER_MINUTES', 60 * 24 * 30),
         ],
     ],
 
@@ -108,9 +111,20 @@ return [
     */
 
     'passwords' => [
+        // Token guardado como hash, uso unico, expira em 60 min; um pedido
+        // novo por conta a cada 60 s (sem revelar isso na tela).
         'users' => [
             'provider' => 'users',
             'table' => env('AUTH_PASSWORD_RESET_TOKEN_TABLE', 'password_reset_tokens'),
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+
+        // Clientes: tabela propria (e-mail igual ao de alguem da equipe nao
+        // pode sobrescrever o token do outro).
+        'customers' => [
+            'provider' => 'customers',
+            'table' => 'customer_password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],
@@ -127,6 +141,8 @@ return [
     |
     */
 
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
+    // Reconfirmar a senha antes de acoes sensiveis (gestao de usuarios):
+    // vale por 15 minutos.
+    'password_timeout' => (int) env('AUTH_PASSWORD_TIMEOUT', 900),
 
 ];

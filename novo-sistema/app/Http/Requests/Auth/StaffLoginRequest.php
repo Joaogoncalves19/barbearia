@@ -17,7 +17,8 @@ class StaffLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email', 'max:255'],
+            // Nome de usuario OU e-mail no mesmo campo.
+            'identifier' => ['required', 'string', 'max:255'],
             'password' => ['required', 'string', 'max:255'],
             'remember' => ['sometimes', 'boolean'],
         ];
@@ -28,6 +29,6 @@ class StaffLoginRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return ['email' => 'e-mail', 'password' => 'senha'];
+        return ['identifier' => 'usuário ou e-mail', 'password' => 'senha'];
     }
 }

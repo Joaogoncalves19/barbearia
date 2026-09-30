@@ -2,7 +2,16 @@
 
 namespace App\Providers;
 
+use App\Modules\Customers\Models\Customer;
+use App\Modules\Customers\Policies\CustomerPolicy;
+use App\Modules\Identity\Authorization\PermissionMatrix;
 use App\Modules\Identity\Models\User;
+use App\Modules\Identity\Policies\UserPolicy;
+use App\Modules\Identity\Rules\MaxBytes;
+use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Scheduling\Policies\AppointmentPolicy;
+use App\Modules\Team\Models\Professional;
+use App\Modules\Team\Policies\ProfessionalPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
@@ -31,7 +40,9 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
         $this->configureQueueFailureLogging();
 
-        Password::defaults(fn () => Password::min(8)->letters()->numbers());
+        // bcrypt so considera os primeiros 72 bytes: acima disso a senha
+        // seria truncada em silencio, entao e recusada com mensagem clara.
+        Password::defaults(fn () => Password::min(8)->letters()->numbers()->rules([new MaxBytes(72)]));
         Paginator::defaultView('components.ui.pagination');
     }
 
@@ -61,30 +72,65 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * DENY BY DEFAULT: uma Gate por habilidade declarada em
-     * config/permissions.php. Habilidade nao declarada nao tem Gate e o
-     * Laravel nega. Nao existe Gate::before concedendo "tudo" a ninguem.
+     * DENY BY DEFAULT
+     *
+     * - Uma Gate por habilidade declarada em config/permissions.php (equipe e
+     *   clientes). Habilidade nao declarada nao tem Gate e o Laravel nega.
+     * - Nao existe Gate::before: nem o proprietario passa por cima das
+     *   Policies (briefing da Fase 3, item 13).
+     * - Policies por registro (acesso horizontal), registradas aqui porque os
+     *   models vivem em app/Modules e a descoberta automatica nao os acha.
      */
     private function configureAuthorization(): void
     {
-        foreach (array_keys(config('permissions.abilities', [])) as $ability) {
-            Gate::define($ability, fn (User $user) => $user->hasPermission($ability));
+        $habilidades = array_keys(PermissionMatrix::staffAbilities() + PermissionMatrix::customerAbilities());
+
+        foreach ($habilidades as $ability) {
+            Gate::define($ability, fn ($actor) => PermissionMatrix::allows($actor, $ability));
         }
+
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Customer::class, CustomerPolicy::class);
+        Gate::policy(Professional::class, ProfessionalPolicy::class);
+        Gate::policy(Appointment::class, AppointmentPolicy::class);
     }
 
+    /**
+     * Limites de tentativa (resposta 429). Chaves por conta usam o hash do
+     * identificador digitado, nunca o valor em claro.
+     */
     private function configureRateLimiting(): void
     {
-        RateLimiter::for('login', function (Request $request) {
-            $max = (int) config('barbearia.security.login_max_attempts', 5);
-            $email = mb_strtolower((string) $request->input('email'));
+        $max = (int) config('barbearia.security.login_max_attempts', 5);
+        $conta = fn (Request $r) => hash('sha256', mb_strtolower(trim((string) ($r->input('identifier') ?? $r->input('email')))));
 
-            return [
-                // Por conta + IP: segura tentativa de senha contra um e-mail.
-                Limit::perMinute($max)->by($email.'|'.$request->ip()),
-                // So por IP (folgado): segura "password spraying".
-                Limit::perMinute($max * 6)->by('ip|'.$request->ip()),
-            ];
-        });
+        // Login (equipe e clientes): por conta + IP segura tentativa de senha
+        // contra uma conta; so por IP (folgado) segura "password spraying".
+        RateLimiter::for('login', fn (Request $request) => [
+            Limit::perMinute($max)->by('login|'.$conta($request).'|'.$request->ip()),
+            Limit::perMinute($max * 6)->by('login-ip|'.$request->ip()),
+        ]);
+
+        // Pedidos que disparam e-mail (redefinicao de senha, link magico).
+        RateLimiter::for('email-requests', fn (Request $request) => [
+            Limit::perMinutes(10, 3)->by('email|'.$conta($request)),
+            Limit::perMinutes(10, (int) config('barbearia.security.email_requests_per_ip', 10))->by('email-ip|'.$request->ip()),
+        ]);
+
+        // Cadastro de cliente.
+        RateLimiter::for('registration', fn (Request $request) => Limit::perHour(
+            (int) config('barbearia.security.registrations_per_ip', 5)
+        )->by('register|'.$request->ip()));
+
+        // Uso de token (redefinir senha, link magico, confirmar e-mail):
+        // impede testar tokens em sequencia.
+        RateLimiter::for('token-use', fn (Request $request) => Limit::perMinute(10)->by('token|'.$request->ip()));
+
+        // Troca/confirmacao de senha logado: segura quem tenta adivinhar a
+        // senha atual numa sessao roubada.
+        RateLimiter::for('password-check', fn (Request $request) => Limit::perMinute($max)->by(
+            'pwd|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
+        ));
     }
 
     private function configureQueueFailureLogging(): void

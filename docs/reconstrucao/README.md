@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 e 1 concluídas. **Fase 2 concluída, aguardando aprovação** para a Fase 3
-> ([relatorio-fase-2.md](relatorio-fase-2.md)).
+> **Status:** Fases 0, 1 e 2 concluídas. **Fase 3 concluída, aguardando aprovação** para a Fase 4
+> ([relatorio-fase-3.md](relatorio-fase-3.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -50,6 +50,16 @@ plano para reconstruí-lo do zero, por etapas.
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
 | [estrategia-historico.md](estrategia-historico.md) | O que é imutável, snapshot, razão ou soft delete |
 | [relatorio-fase-2.md](relatorio-fase-2.md) | Relatório final da Fase 2 |
+
+### Fase 3
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [autenticacao.md](autenticacao.md) | Login da equipe e do cliente, link mágico, cadastro, senhas (inclusive legadas), sessões, primeiro proprietário |
+| [autorizacao.md](autorizacao.md) | Deny by default, Gates × Policies, proteções contra IDOR e escalada, receita para telas novas |
+| [papeis-permissoes.md](papeis-permissoes.md) | Papéis, habilidades e a matriz papel × habilidade |
+| [seguranca-contas.md](seguranca-contas.md) | CSRF, cookies, expiração, rate limit, enumeração, segredos, riscos aceitos |
+| [relatorio-fase-3.md](relatorio-fase-3.md) | Relatório final da Fase 3 |
 
 ## Legenda usada em todos os documentos
 

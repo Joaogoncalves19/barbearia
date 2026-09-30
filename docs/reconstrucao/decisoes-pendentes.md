@@ -9,6 +9,14 @@
 > decisão. D-11, D-17, D-20 e D-21 foram implementadas **na forma mais conservadora** (arquivar, importar como
 > está e marcar para revisão, só o resumo, nunca mesclar), sem fechar a decisão. Ver
 > [relatorio-fase-2.md](relatorio-fase-2.md#decisões).
+>
+> **Fase 3 (decisões do dono):** **D-10** decidida: a equipe entra por **usuário ou e-mail** (o usuário
+> continua sendo o identificador; o e-mail é opcional). **D-12** decidida: o cliente entra com **senha e
+> link mágico**, identificado pelo e-mail; **CPF obrigatório** para o cliente. **D-21**: continua valendo
+> nunca mesclar sozinho; casos ambíguos ficam como pendência. **D-17**: agendamentos antigos nunca concluídos
+> ficam como histórico, sem virar atendimento, receita, comissão ou pontos (testado no importador); a
+> classificação de cada um fica para a migração real. O sistema ainda não está em produção: não há dados
+> reais a migrar. Ver [relatorio-fase-3.md](relatorio-fase-3.md).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

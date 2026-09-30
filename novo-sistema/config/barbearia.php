@@ -41,9 +41,23 @@ return [
         'heartbeat_tolerance_minutes' => (int) env('SCHEDULER_HEARTBEAT_TOLERANCE', 5),
     ],
 
+    // Limites e validades das contas (ver docs/reconstrucao/seguranca-contas.md).
     'security' => [
-        // Tentativas de login da equipe por minuto (por e-mail + IP).
+        // Tentativas de login por minuto, por conta + IP (equipe e clientes).
+        // Por IP, sozinho, o limite e 6x maior (contra "password spraying").
         'login_max_attempts' => (int) env('LOGIN_MAX_ATTEMPTS', 5),
+
+        // Pedidos de e-mail (redefinicao, link magico) por IP a cada 10 min.
+        'email_requests_per_ip' => (int) env('AUTH_EMAIL_REQUESTS_PER_IP', 10),
+
+        // Cadastros de cliente por IP por hora.
+        'registrations_per_ip' => (int) env('AUTH_REGISTRATIONS_PER_IP', 5),
+
+        // Validade do link magico do cliente (minutos).
+        'magic_link_minutes' => (int) env('AUTH_MAGIC_LINK_MINUTES', 15),
+
+        // Validade do link de confirmacao de e-mail (minutos).
+        'email_verification_minutes' => (int) env('AUTH_EMAIL_VERIFICATION_MINUTES', 60 * 24),
     ],
 
 ];

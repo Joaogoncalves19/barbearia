@@ -73,8 +73,10 @@ Implementado desde a fundação:
 6. **Mass assignment:** `role` e `is_active` ficam fora de `$fillable`; mudar papel é ação explícita.
 7. **Arquivos privados:** o disco `local` não é servido por URL (`serve => false`).
 
-Papéis atuais: `owner`, `manager`, `reception`, `finance`, `professional` (`StaffRole`).
-Clientes terão modelo e *guard* próprios (Fase 3).
+Papéis atuais: `owner`, `manager`, `reception`, `finance`, `professional` (`StaffRole`). Clientes têm
+modelo e *guard* próprios (`customer`). **Fase 3:** o curinga `*` do proprietário foi removido (cada
+habilidade é listada) e as Policies por registro existem. Detalhes em [autorizacao.md](autorizacao.md) e
+[papeis-permissoes.md](papeis-permissoes.md).
 
 ## 4. Princípio: DADOS HISTÓRICOS IMUTÁVEIS
 

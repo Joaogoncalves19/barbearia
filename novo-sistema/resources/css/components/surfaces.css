@@ -222,3 +222,27 @@
 .ratio-landscape {
     --ratio: 3 / 2;
 }
+
+/* --- Telas de acesso (login, cadastro, senha) da equipe e dos clientes ----------------- */
+.auth-page {
+    display: grid;
+    min-height: 100dvh;
+    place-items: center;
+    padding: var(--space-6) var(--space-4);
+}
+
+.auth-card {
+    width: min(100%, 25rem);
+}
+
+.auth-card--wide {
+    width: min(100%, 32rem);
+}
+
+/* Links secundarios abaixo do formulario (esqueci a senha, criar conta...). */
+.auth-links {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+}
+

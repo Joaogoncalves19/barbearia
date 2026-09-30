@@ -10,6 +10,7 @@
     'userName' => 'Usuário',
     'userRole' => null,
     'logoutUrl' => null,
+    'accountUrl' => null,
     'prototype' => false,
 ])
 <x-layouts.document :title="$title" :direction="$direction" surface="clara" area="panel" :noindex="true">
@@ -65,7 +66,7 @@
                             <x-icon name="chevron-down" class="icon-sm" />
                         </x-slot:trigger>
                         @if ($userRole)<p class="dropdown__item text-muted">{{ $userRole }}</p><div class="dropdown__separator"></div>@endif
-                        <a class="dropdown__item" href="#"><x-icon name="settings" /> Minha conta</a>
+                        @if ($accountUrl)<a class="dropdown__item" href="{{ $accountUrl }}"><x-icon name="settings" /> Minha conta</a>@endif
                         @if ($logoutUrl)
                             <form method="POST" action="{{ $logoutUrl }}">
                                 @csrf

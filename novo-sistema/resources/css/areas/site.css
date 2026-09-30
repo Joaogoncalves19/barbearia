@@ -716,3 +716,24 @@
         display: none;
     }
 }
+
+/* --- Area do cliente ------------------------------------------------------------------ */
+/* Atalhos da conta no celular (no desktop o menu do cabecalho aparece). */
+.account-nav {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.account-nav .segmented__item {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
+    text-decoration: none;
+}
+
+@media (min-width: 64rem) {
+    .account-nav {
+        display: none;
+    }
+}

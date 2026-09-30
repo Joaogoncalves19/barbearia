@@ -473,14 +473,3 @@
     gap: var(--space-5);
 }
 
-/* --- Login (tela de acesso da equipe) ------------------------------------------------- */
-.auth-page {
-    display: grid;
-    min-height: 100dvh;
-    place-items: center;
-    padding: var(--space-6) var(--space-4);
-}
-
-.auth-card {
-    width: min(100%, 25rem);
-}

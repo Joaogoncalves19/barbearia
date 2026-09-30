@@ -1,12 +1,19 @@
 <?php
 
+use App\Http\Middleware\EnsureCustomerIsActive;
+use App\Http\Middleware\EnsureCustomerProfileIsComplete;
 use App\Http\Middleware\EnsurePrototypesEnabled;
 use App\Http\Middleware\EnsureStaffIsActive;
+use App\Http\Middleware\EnsureStaffPasswordIsCurrent;
+use App\Http\Middleware\PreventCaching;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+
+/** Area da equipe? (decide para qual login mandar quem nao esta logado) */
+$isPanel = fn (Request $request): bool => $request->is('painel', 'painel/*');
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -14,16 +21,20 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) use ($isPanel): void {
         $middleware->web(append: [SecurityHeaders::class]);
 
         $middleware->alias([
             'staff.active' => EnsureStaffIsActive::class,
+            'staff.password' => EnsureStaffPasswordIsCurrent::class,
+            'customer.active' => EnsureCustomerIsActive::class,
+            'customer.complete' => EnsureCustomerProfileIsComplete::class,
+            'no-store' => PreventCaching::class,
             'prototypes' => EnsurePrototypesEnabled::class,
         ]);
 
-        $middleware->redirectGuestsTo(fn () => route('login'));
-        $middleware->redirectUsersTo(fn () => route('panel.home'));
+        $middleware->redirectGuestsTo(fn (Request $r) => $isPanel($r) ? route('staff.login') : route('customer.login'));
+        $middleware->redirectUsersTo(fn (Request $r) => $isPanel($r) ? route('panel.home') : route('account.home'));
 
         // Em producao/homologacao so respondemos ao host do APP_URL.
         $middleware->trustHosts(

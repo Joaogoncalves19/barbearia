@@ -12,7 +12,8 @@ const telas = [
     ['Agenda (dia)', '/prototipos/agenda'],
     ['Agenda (lista)', '/prototipos/agenda?visao=lista'],
     ['Design System', '/design-system'],
-    ['Login', '/entrar'],
+    ['Login da equipe', '/painel/entrar'],
+    ['Login do cliente', '/entrar'],
 ];
 
 function observarErros(page) {

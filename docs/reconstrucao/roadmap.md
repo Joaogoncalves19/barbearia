@@ -70,9 +70,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 2 — Modelo de dados e importador ✅ (aguardando aprovação)
+## Fase 2 — Modelo de dados e importador ✅
 
-> **Concluída em 2026-09-26, aguardando aprovação do dono para iniciar a Fase 3.** Relatório:
+> **Concluída em 2026-09-26 e aprovada** (início da Fase 3 autorizado). Relatório:
 > [relatorio-fase-2.md](relatorio-fase-2.md).
 > Entregue: modelo de dados definitivo (49 tabelas de domínio, [modelo-dados.md](modelo-dados.md)),
 > 35 regras com implementação e teste ([regras-dados.md](regras-dados.md)), importador `legacy:import`
@@ -103,7 +103,22 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 3 — Identidade, acesso e auditoria
+## Fase 3 — Identidade, acesso e auditoria ✅ (aguardando aprovação)
+
+> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 4.** Relatório:
+> [relatorio-fase-3.md](relatorio-fase-3.md).
+> Decisões do dono: equipe entra por **usuário ou e-mail** (D-10); cliente entra com **senha e link mágico**
+> (D-12); **CPF obrigatório** para o cliente; o sistema ainda não está em produção (não há dados reais a migrar).
+> Entregue: login/logout/sessão da equipe e do cliente, cadastro com confirmação de e-mail, link mágico,
+> recuperação/redefinição/troca de senha, senha provisória com troca obrigatória, rate limits, auditoria de
+> acesso, 5 papéis + 24 habilidades declaradas (deny by default, **sem curinga nem bypass de administrador**),
+> Policies de usuário, cliente, profissional e agendamento, gestão de usuários pelo proprietário com
+> reconfirmação de senha, comando `app:create-owner`, fundação da área do cliente
+> ([autenticacao.md](autenticacao.md), [autorizacao.md](autorizacao.md),
+> [papeis-permissoes.md](papeis-permissoes.md), [seguranca-contas.md](seguranca-contas.md)).
+> **Diferenças em relação ao plano abaixo:** perfis editáveis pelo dono na tela ficaram para depois (a matriz
+> é configuração versionada e testada); as senhas antigas foram validadas só com dados fictícios, porque
+> não há produção.
 
 - **Objetivo:** contas e permissões corretas antes de qualquer funcionalidade.
 - **Escopo:** login da equipe; perfis e permissões (negar por padrão), incluindo o de

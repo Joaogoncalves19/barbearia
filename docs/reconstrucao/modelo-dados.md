@@ -1,7 +1,8 @@
-# Modelo de dados do novo sistema (Fase 2)
+# Modelo de dados do novo sistema (Fases 2 e 3)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
-> (2026_09_*). Mudanças posteriores entram por novas migrations, nunca editando as existentes
+> (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
+> (seção 2.1). Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
 > Documentos irmãos: [regras-dados.md](regras-dados.md) (regras e onde cada uma é garantida),
@@ -109,11 +110,20 @@ Legenda: **PK** chave · **FK** chave estrangeira (ação ao apagar o pai) · **
 ### 2.1 Identity
 
 **users** (equipe) — `id`, `name`, `email` (U, N), `username` (U, N), `password`, `role` (enum
-`StaffRole`), `is_active`, `last_login_at` (N), `remember_token`, timestamps.
-- `email` passou a ser anulável porque barbeiros antigos entram por **usuário** (D-10 continua
-  pendente). Regra: pelo menos um de `email`/`username` preenchido (garantido no model e testado).
+`StaffRole`), `is_active`, `last_login_at` (N), `must_change_password` (Fase 3), `password_changed_at`
+(N, Fase 3), `remember_token`, timestamps.
+- Login da equipe por **usuário ou e-mail** (decisão da Fase 3). O usuário é o identificador da conta;
+  o `email` é opcional e serve para entrar, recuperar a senha e receber avisos. Regra: pelo menos um de
+  `email`/`username` preenchido (garantido no model e testado).
+- `must_change_password`: senha provisória definida pelo proprietário (conta nova ou redefinição sem
+  e-mail); a troca é obrigatória no primeiro acesso.
 - Senha: hash bcrypt/argon aceito como está; rehash transparente no login (ver
-  [importador.md](importador.md#senhas)).
+  [importador.md](importador.md#senhas) e [autenticacao.md](autenticacao.md)).
+
+**customer_login_tokens** (Fase 3) — `id`, `customer_id` (FK customers, cascade), `token_hash` (U, SHA-256
+do token do link mágico), `expires_at`, `used_at` (N, uso único), `requested_ip` (N), `created_at`.
+
+Clientes autenticam pela própria tabela `customers` (guard `customer`), ver 2.2.
 
 ### 2.2 Customers
 
@@ -122,7 +132,11 @@ Legenda: **PK** chave · **FK** chave estrangeira (ação ao apagar o pai) · **
 `birth_date` (N), `photo_path` (N), `status` (`active`|`inactive`), `referral_code` (U, N),
 `referred_by_customer_id` (FK customers, **null on delete**, N), `marketing_email_consent`
 (`unknown`|`granted`|`revoked`), `marketing_consent_updated_at` (N), `merged_into_customer_id`
-(FK customers, N), `anonymized_at` (N), timestamps, **SD**.
+(FK customers, N), `anonymized_at` (N), `last_login_at` (N, Fase 3), `password_changed_at` (N, Fase 3),
+timestamps, **SD**.
+- **CPF é obrigatório para o cliente** (decisão da Fase 3). A coluna segue anulável só para registros
+  vindos do importador ou de um cadastro incompleto: sem CPF, o cliente é levado a informá-lo antes de
+  usar a conta (middleware `customer.complete`). Todo cadastro pelo site exige CPF válido.
 
 **customer_notes** — `customer_id` (FK cascade), `author_user_id` (FK users, null on delete, N),
 `author_label` (N, snapshot do autor), `visibility` (`team`|`professionals`), `body`, `created_at`.
@@ -290,8 +304,9 @@ Só o **resumo** (D-20). Destinatários ficam no arquivo morto do importador.
 
 ## 3. Tabelas técnicas do Laravel
 
-`password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`
-(criadas na Fase 1). Nenhum dado antigo é importado para elas.
+`password_reset_tokens` (equipe), `customer_password_reset_tokens` (clientes, Fase 3), `sessions`, `cache`,
+`cache_locks`, `jobs`, `job_batches`, `failed_jobs`. Nenhum dado antigo é importado para elas. Os tokens de
+redefinição ficam em tabelas separadas porque um cliente e alguém da equipe podem ter o mesmo e-mail.
 
 ## 4. Esquema físico
 
@@ -300,9 +315,10 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (50 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 
 ### `advances`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -316,6 +332,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `appointment_adjustments`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -330,6 +347,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `appointment_events`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -341,9 +359,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 
-Índices: (appointment_id, occurred_at)
+Indices: (appointment_id, occurred_at)
 
 ### `appointment_items`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -363,6 +382,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `appointment_reminders`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -373,9 +393,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (appointment_id, kind)
+Unicos: (appointment_id, kind)
 
 ### `appointments`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -405,11 +426,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (code)
+Unicos: (code)
 
-Índices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
+Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
 
 ### `audit_logs`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -425,9 +447,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `ip_address` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 
-Índices: (auditable_type, auditable_id) · (created_at)
+Indices: (auditable_type, auditable_id) · (created_at)
 
 ### `blocked_slots`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -438,9 +461,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (professional_id, starts_at)
+Unicos: (professional_id, starts_at)
 
 ### `campaigns`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -459,6 +483,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `commission_entries`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -473,6 +498,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `commission_payouts`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -488,9 +514,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Índices: (professional_id, paid_on)
+Indices: (professional_id, paid_on)
 
 ### `consent_records`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -503,9 +530,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `evidence` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 
-Índices: (customer_id, purpose) · (email)
+Indices: (customer_id, purpose) · (email)
 
 ### `coupon_redemptions`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -515,9 +543,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `redeemed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 
-Únicos: (coupon_id, customer_id)
+Unicos: (coupon_id, customer_id)
 
 ### `coupons`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -533,16 +562,34 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
 
-Únicos: (code)
+Unicos: (code)
 
 ### `customer_favorite_professionals`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `customer_id` | integer | nao | | customers.id (cascade) |
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `created_at` | datetime | sim | | |
 
+### `customer_login_tokens`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (cascade) |
+| `token_hash` | varchar | nao | | |
+| `expires_at` | datetime | nao | | |
+| `used_at` | datetime | sim | | |
+| `requested_ip` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+
+Unicos: (token_hash)
+
+Indices: (customer_id, used_at)
+
 ### `customer_merge_candidates`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -558,11 +605,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (customer_id, duplicate_customer_id, match_field)
+Unicos: (customer_id, duplicate_customer_id, match_field)
 
-Índices: (status)
+Indices: (status)
 
 ### `customer_notes`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -575,6 +623,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `customer_notifications`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -584,9 +633,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Índices: (customer_id, read_at)
+Indices: (customer_id, read_at)
 
 ### `customers`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -610,12 +660,15 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `password_changed_at` | datetime | sim | | |
+| `last_login_at` | datetime | sim | | |
 
-Únicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
+Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
 
-Índices: (name)
+Indices: (name)
 
 ### `email_suppressions`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -626,9 +679,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (email)
+Unicos: (email)
 
 ### `expenses`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -644,9 +698,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
 
-Índices: (status, due_on)
+Indices: (status, due_on)
 
 ### `financial_goals`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -658,6 +713,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `gateway_events`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -666,9 +722,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `type` | varchar | sim | | |
 | `processed_at` | datetime | sim | | |
 
-Únicos: (gateway, event_id)
+Unicos: (gateway, event_id)
 
 ### `gift_cards`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -683,9 +740,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 | `redeemed_appointment_id` | integer | sim | | appointments.id (set null) |
 
-Únicos: (code)
+Unicos: (code)
 
 ### `import_issues`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -700,9 +758,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `needs_decision` | tinyint | nao | `0` | |
 | `created_at` | datetime | sim | | |
 
-Índices: (import_run_id, code) · (source_table, source_id)
+Indices: (import_run_id, code) · (source_table, source_id)
 
 ### `import_runs`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -718,6 +777,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `legacy_references`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -730,11 +790,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (source_table, source_id)
+Unicos: (source_table, source_id)
 
-Índices: (entity_type, entity_id)
+Indices: (entity_type, entity_id)
 
 ### `loyalty_entries`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -746,9 +807,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 
-Índices: (customer_id, occurred_at)
+Indices: (customer_id, occurred_at)
 
 ### `package_items`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -758,9 +820,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (package_id, service_id)
+Unicos: (package_id, service_id)
 
 ### `packages`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -773,6 +836,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `deleted_at` | datetime | sim | | |
 
 ### `payments`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -789,15 +853,17 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Índices: (paid_at)
+Indices: (paid_at)
 
 ### `plan_services`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `plan_id` | integer | nao | | plans.id (cascade) |
 | `service_id` | integer | nao | | services.id (restrict) |
 
 ### `plans`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -810,6 +876,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `deleted_at` | datetime | sim | | |
 
 ### `products`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -824,18 +891,21 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `deleted_at` | datetime | sim | | |
 
 ### `professional_package`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `package_id` | integer | nao | | packages.id (cascade) |
 
 ### `professional_service`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `service_id` | integer | nao | | services.id (cascade) |
 
 ### `professionals`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -854,9 +924,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
 
-Únicos: (user_id)
+Unicos: (user_id)
 
 ### `review_replies`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -868,6 +939,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `reviews`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -881,11 +953,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (appointment_id)
+Unicos: (appointment_id)
 
-Índices: (professional_id, reviewed_at)
+Indices: (professional_id, reviewed_at)
 
 ### `schedule_breaks`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -899,6 +972,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 
 ### `service_categories`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -909,6 +983,7 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `deleted_at` | datetime | sim | | |
 
 ### `services`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -923,9 +998,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
 
-Índices: (is_active, sort_order)
+Indices: (is_active, sort_order)
 
 ### `settings`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -934,9 +1010,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (key)
+Unicos: (key)
 
 ### `stock_movements`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -949,9 +1026,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 
-Índices: (product_id, occurred_at)
+Indices: (product_id, occurred_at)
 
 ### `subscription_payments`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -968,11 +1046,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `paid_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 
-Únicos: (gateway_payment_id)
+Unicos: (gateway_payment_id)
 
-Índices: (customer_id, paid_at)
+Indices: (customer_id, paid_at)
 
 ### `subscriptions`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -991,11 +1070,12 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (active_customer_id) · (gateway_subscription_id)
+Unicos: (active_customer_id) · (gateway_subscription_id)
 
-Índices: (customer_id, status) · (gateway_customer_id)
+Indices: (customer_id, status) · (gateway_customer_id)
 
 ### `time_off`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1007,9 +1087,10 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Índices: (professional_id, starts_on)
+Indices: (professional_id, starts_on)
 
 ### `users`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1024,10 +1105,13 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `remember_token` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `must_change_password` | tinyint | nao | `0` | |
+| `password_changed_at` | datetime | sim | | |
 
-Únicos: (email) · (username)
+Unicos: (email) · (username)
 
 ### `working_hours`
+
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1038,5 +1122,4 @@ Gerado por `php artisan app:schema-doc` (49 tabelas de dominio; tabelas tecnicas
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 
-Únicos: (professional_id, weekday, starts_at)
-
+Unicos: (professional_id, weekday, starts_at)

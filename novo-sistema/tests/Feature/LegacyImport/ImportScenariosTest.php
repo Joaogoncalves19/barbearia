@@ -183,6 +183,22 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertCount(1, $this->issues($this->r, 'payment_amount_unknown', 'AG-ITEMSUMIU'));
     }
 
+    /**
+     * Decisao da Fase 3 (D-17): agendamento antigo nunca concluido fica como
+     * HISTORICO, mas nao vira atendimento, receita, comissao nem pontos.
+     */
+    public function test_agendamento_passado_nao_concluido_nao_gera_receita_comissao_nem_pontos(): void
+    {
+        $ag = $this->appointment('AG-PASSADOAPROV');
+
+        $this->assertNotNull($ag, 'preservado como historico');
+        $this->assertNotSame('completed', $ag->status);
+        $this->assertNull($ag->completed_at);
+        $this->assertSame(0, DB::table('payments')->where('appointment_id', $ag->id)->count(), 'sem receita');
+        $this->assertSame(0, DB::table('commission_entries')->where('appointment_id', $ag->id)->count(), 'sem comissao');
+        $this->assertSame(0, DB::table('loyalty_entries')->where('appointment_id', $ag->id)->count(), 'sem pontos');
+    }
+
     public function test_status_e_regras_de_tempo(): void
     {
         $velho = $this->appointment('AG-PAGVELHO');

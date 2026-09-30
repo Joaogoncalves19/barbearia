@@ -2,36 +2,118 @@
 
 /*
 |--------------------------------------------------------------------------
-| Matriz de permissoes da equipe (DENY BY DEFAULT)
+| Matriz de permissoes (DENY BY DEFAULT)
 |--------------------------------------------------------------------------
 |
-| - Toda habilidade precisa estar declarada em 'abilities'. Uma Gate e
-|   registrada para cada uma (AppServiceProvider). Habilidade nao declarada
-|   nao tem Gate e o Laravel nega.
-| - Cada papel lista explicitamente o que pode. Papel ausente = nada.
-| - '*' concede apenas as habilidades declaradas (nunca "qualquer coisa").
-| - Acesso a dados de OUTRO usuario/cliente (acesso horizontal) e decidido
-|   por Policies de cada modelo, a partir da Fase 2, alem destas Gates.
+| Documentacao: docs/reconstrucao/papeis-permissoes.md
 |
-| Nesta fase existem so as habilidades da fundacao. Cada fase acrescenta as
-| suas (ex.: 'agenda.view_all', 'finance.manage') com testes na matriz.
+| - Toda habilidade precisa estar declarada. Uma Gate e registrada para cada
+|   uma (AppServiceProvider). Habilidade nao declarada nao tem Gate e o
+|   Laravel nega.
+| - Cada papel lista EXPLICITAMENTE o que pode. Papel ausente = nada. Nao
+|   existe curinga: nem o proprietario recebe "tudo" (briefing da Fase 3).
+| - 'abilities' valem so para a EQUIPE (guard web, model User).
+|   'customer_abilities' valem so para CLIENTES (guard customer) e sao
+|   concedidas a todo cliente ativo. Um tipo nunca recebe as do outro.
+| - Habilidade = capacidade do papel ("pode ver clientes?"). Acesso a um
+|   REGISTRO de outra pessoa (acesso horizontal) e decidido pelas Policies
+|   (app/Modules/<M>/Policies), sempre alem da Gate.
+|
+| Habilidades de modulos futuros ja estao declaradas para que as proximas
+| fases so as usem; a tela de cada uma chega na fase do modulo.
 |
 */
 
 return [
 
     'abilities' => [
-        'panel.access' => 'Acessar o painel da equipe',
+        // Painel e conta propria
+        'panel.access' => 'Acessar o painel da equipe (e a própria conta)',
         'system.health.view' => 'Ver a saúde do sistema',
-        'users.manage' => 'Gerenciar usuários e perfis',
+
+        // Identidade e auditoria (Fase 3)
+        'users.manage' => 'Criar, editar, desativar e redefinir a senha de usuários da equipe',
+        'audit.view' => 'Ver a trilha de auditoria',
+
+        // Clientes (Fase 4+)
+        'customers.view' => 'Ver qualquer cliente',
+        'customers.view_own' => 'Ver só os clientes que atendeu ou vai atender',
+        'customers.create' => 'Cadastrar clientes',
+        'customers.update' => 'Editar clientes',
+        'customers.view_cpf' => 'Ver o CPF completo do cliente',
+        'customers.anonymize' => 'Anonimizar cliente (LGPD)',
+
+        // Agenda (Fase 5)
+        'appointments.view_all' => 'Ver a agenda de todos os profissionais',
+        'appointments.view_own' => 'Ver só a própria agenda',
+        'appointments.manage' => 'Criar e remarcar qualquer agendamento',
+        'appointments.manage_own' => 'Criar e remarcar agendamentos da própria agenda',
+        'appointments.cancel' => 'Cancelar qualquer agendamento',
+
+        // Equipe e catalogo (Fase 4)
+        'team.view' => 'Ver a equipe e os horários',
+        'team.manage' => 'Gerenciar profissionais, horários e ausências',
+        'catalog.manage' => 'Gerenciar serviços, combos, produtos e estoque',
+
+        // Caixa e financeiro (Fases 6 e 7)
+        'checkout.operate' => 'Fechar atendimento e lançar pagamento',
+        'finance.view' => 'Ver o financeiro',
+        'finance.manage' => 'Lançar despesas, vales e pagar comissões',
+        'reports.view' => 'Ver relatórios',
+
+        // Marketing e configuracoes (Fases 8 a 10)
+        'marketing.manage' => 'Gerenciar cupons, campanhas e fidelidade',
+        'settings.manage' => 'Alterar configurações do estabelecimento',
+    ],
+
+    'customer_abilities' => [
+        'account.access' => 'Acessar a própria conta de cliente',
     ],
 
     'roles' => [
-        'owner' => ['*'],
-        'manager' => ['panel.access', 'system.health.view'],
-        'reception' => ['panel.access'],
-        'finance' => ['panel.access'],
-        'professional' => ['panel.access'],
+        // Proprietario: administracao completa, habilidade por habilidade.
+        'owner' => [
+            'panel.access', 'system.health.view',
+            'users.manage', 'audit.view',
+            'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf', 'customers.anonymize',
+            'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'team.view', 'team.manage', 'catalog.manage',
+            'checkout.operate', 'finance.view', 'finance.manage', 'reports.view',
+            'marketing.manage', 'settings.manage',
+        ],
+
+        // Gerente: opera a barbearia; nao mexe em usuarios, auditoria,
+        // configuracoes, lancamentos financeiros nem LGPD.
+        'manager' => [
+            'panel.access', 'system.health.view',
+            'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf',
+            'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'team.view', 'team.manage', 'catalog.manage',
+            'checkout.operate', 'finance.view', 'reports.view',
+            'marketing.manage',
+        ],
+
+        // Recepcao: agenda, clientes e caixa do dia.
+        'reception' => [
+            'panel.access',
+            'customers.view', 'customers.create', 'customers.update',
+            'appointments.view_all', 'appointments.manage', 'appointments.cancel',
+            'team.view',
+            'checkout.operate',
+        ],
+
+        // Financeiro: numeros, sem agenda e sem clientes.
+        'finance' => [
+            'panel.access',
+            'finance.view', 'finance.manage', 'reports.view',
+        ],
+
+        // Profissional: so o que e dele (Policies conferem o registro).
+        'professional' => [
+            'panel.access',
+            'customers.view_own',
+            'appointments.view_own', 'appointments.manage_own',
+        ],
     ],
 
 ];

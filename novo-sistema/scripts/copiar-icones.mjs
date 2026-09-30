@@ -13,6 +13,8 @@ const icones = [
     'image', 'info', 'layout-dashboard', 'list', 'loader-circle', 'log-out', 'map-pin', 'menu',
     'message-circle', 'package', 'pencil', 'phone', 'plus', 'scissors', 'search', 'settings',
     'sparkles', 'star', 'store', 'trash-2', 'triangle-alert', 'user', 'users', 'wallet', 'x',
+    // Fase 3 (contas e acesso)
+    'mail', 'key-round', 'shield-check', 'history',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);

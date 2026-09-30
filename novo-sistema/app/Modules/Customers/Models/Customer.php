@@ -7,12 +7,15 @@ use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Support\Cpf;
 use App\Modules\Customers\Support\Email;
 use App\Modules\Customers\Support\Phone;
+use App\Modules\Identity\Notifications\CustomerResetPassword;
+use App\Modules\Identity\Notifications\CustomerVerifyEmail;
 use App\Modules\Loyalty\Models\LoyaltyEntry;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Shared\Models\Concerns\Auditable;
 use App\Modules\Subscriptions\Models\Subscription;
 use App\Modules\Team\Models\Professional;
 use Database\Factories\CustomerFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -22,12 +25,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 /**
  * Cliente final. Autentica pelo guard "customer" (tabela propria, separada
- * da equipe).
+ * da equipe), com senha ou link magico (Fase 3).
+ *
+ * CPF e OBRIGATORIO para o cliente (decisao da Fase 3). A coluna continua
+ * anulavel so porque registros vindos do importador (ou, no futuro, de um
+ * cadastro incompleto) podem chegar sem ele: esses clientes precisam
+ * informar o CPF antes de usar a conta (middleware customer.complete).
  *
  * Normalizacao na gravacao: e-mail minusculo, telefone E.164, CPF so
  * digitos. Valor invalido vira null (nunca um valor "quase certo").
@@ -39,19 +48,26 @@ use Illuminate\Support\Str;
  * @property CustomerStatus $status
  * @property MarketingConsent $marketing_email_consent
  * @property Carbon|null $birth_date
+ * @property ?string $cpf
+ * @property ?string $phone
+ * @property Carbon|null $email_verified_at
+ * @property Carbon|null $anonymized_at
+ * @property Carbon|null $last_login_at
+ * @property Carbon|null $password_changed_at
+ * @property int|null $merged_into_customer_id
  */
 #[Fillable(['name', 'email', 'phone', 'cpf', 'password', 'birth_date'])]
 #[Hidden(['password', 'remember_token', 'cpf'])]
 #[UseFactory(CustomerFactory::class)]
-class Customer extends Authenticatable
+class Customer extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<CustomerFactory> */
-    use Auditable, HasFactory, SoftDeletes;
+    use Auditable, HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'customers';
 
     /** @var list<string> */
-    protected array $auditExclude = ['password', 'remember_token'];
+    protected array $auditExclude = ['password', 'remember_token', 'last_login_at'];
 
     /** @var list<string> */
     protected array $auditMask = ['cpf'];
@@ -69,6 +85,8 @@ class Customer extends Authenticatable
             'marketing_email_consent' => MarketingConsent::class,
             'marketing_consent_updated_at' => 'datetime',
             'anonymized_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password_changed_at' => 'datetime',
         ];
     }
 
@@ -94,6 +112,47 @@ class Customer extends Authenticatable
     public function setCpfAttribute(?string $value): void
     {
         $this->attributes['cpf'] = Cpf::normalize($value);
+    }
+
+    /**
+     * Pode entrar e usar a conta? Ativo, nao mesclado em outro cadastro, nao
+     * anonimizado e nao excluido.
+     */
+    public function canSignIn(): bool
+    {
+        return $this->status === CustomerStatus::Active
+            && $this->merged_into_customer_id === null
+            && $this->anonymized_at === null
+            && ! $this->trashed();
+    }
+
+    /**
+     * Tem senha? Cliente cadastrado no balcao, importado com hash nao
+     * reconhecido ou que so usa link magico nao tem.
+     */
+    public function hasPassword(): bool
+    {
+        return $this->getAttribute('password') !== null;
+    }
+
+    /** Falta dado obrigatorio da conta (hoje: o CPF)? */
+    public function needsProfileCompletion(): bool
+    {
+        return $this->cpf === null;
+    }
+
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        if ($this->email !== null) {
+            $this->notify(new CustomerResetPassword($token));
+        }
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        if ($this->email !== null) {
+            $this->notify(new CustomerVerifyEmail);
+        }
     }
 
     /**
