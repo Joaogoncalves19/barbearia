@@ -1,8 +1,9 @@
-# Modelo de dados do novo sistema (Fases 2 e 3)
+# Modelo de dados do novo sistema (Fases 2 a 4)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
-> (seção 2.1). Mudanças posteriores entram por novas migrations, nunca editando as existentes
+> (seção 2.1); a Fase 4, `2026_09_30_000100_add_catalog_and_team_admin_columns` (seções 2.3 e 2.4).
+> Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
 > Documentos irmãos: [regras-dados.md](regras-dados.md) (regras e onde cada uma é garantida),
@@ -163,6 +164,8 @@ timestamps, **SD**.
 `is_active`, `is_bookable`, `sort_order`, `commission_rate_bp` (0–10000), `commission_on_products`,
 `subscription_commission_mode` (`default`|`percent`|`fixed`|`none`), `subscription_commission_rate_bp` (N),
 `subscription_commission_amount_cents` (N), timestamps, **SD**.
+**Fase 4:** `slug` (U, estável), `headline` (N, especialidade), `bio` (N), `is_public`, `is_featured`,
+`lock_version` (concorrência otimista); I(`is_active`,`sort_order`). Regras em [profissionais.md](profissionais.md).
 
 **professional_service** — PK (`professional_id` FK cascade, `service_id` FK cascade). Combos que
 o profissional atende: `professional_package` com a mesma forma.
@@ -181,9 +184,13 @@ U(`professional_id`,`starts_at`).
 
 ### 2.4 Catalog
 
-**service_categories** — `name`, `sort_order`, SD.
+**service_categories** — `name`, `sort_order`, SD. **Fase 4:** `slug` (U), `description` (N), `is_active`,
+`lock_version`.
 **services** — `category_id` (FK null on delete, N), `name`, `description` (N), `duration_minutes` (>0),
-`price_cents` (≥0), `is_active`, `sort_order`, timestamps, **SD**.
+`price_cents` (≥0), `is_active`, `sort_order`, timestamps, **SD**. **Fase 4:** `slug` (U), `is_public`,
+`is_featured`, `image_path` (N), `lock_version`. Duração: múltiplo de 5 entre 5 e 480 min; preço atual entre
+R$ 1,00 e R$ 10.000,00 (regras no model, valem sempre que o valor muda). Ver [servicos.md](servicos.md) e
+[precos.md](precos.md).
 **packages** (combos) — `category_id` (N), `name`, `price_cents`, `is_active`, SD.
 **package_items** — `package_id` (FK cascade), `service_id` (FK restrict), `quantity`. U(`package_id`,`service_id`).
 Duração do combo = soma das durações dos serviços (regra do sistema atual).
@@ -923,8 +930,16 @@ Indices: (paid_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `slug` | varchar | sim | | |
+| `headline` | varchar | sim | | |
+| `bio` | text | sim | | |
+| `is_public` | tinyint | nao | `1` | |
+| `is_featured` | tinyint | nao | `0` | |
+| `lock_version` | integer | nao | `0` | |
 
-Unicos: (user_id)
+Unicos: (slug) · (user_id)
+
+Indices: (is_active, sort_order)
 
 ### `review_replies`
 
@@ -981,6 +996,12 @@ Indices: (professional_id, reviewed_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `slug` | varchar | sim | | |
+| `description` | text | sim | | |
+| `is_active` | tinyint | nao | `1` | |
+| `lock_version` | integer | nao | `0` | |
+
+Unicos: (slug)
 
 ### `services`
 
@@ -997,6 +1018,13 @@ Indices: (professional_id, reviewed_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `slug` | varchar | sim | | |
+| `is_public` | tinyint | nao | `1` | |
+| `is_featured` | tinyint | nao | `0` | |
+| `image_path` | varchar | sim | | |
+| `lock_version` | integer | nao | `0` | |
+
+Unicos: (slug)
 
 Indices: (is_active, sort_order)
 

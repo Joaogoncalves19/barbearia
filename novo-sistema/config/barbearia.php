@@ -29,6 +29,12 @@ return [
     // o .env de desenvolvimento e o de homologacao ligam explicitamente.
     'prototypes_enabled' => (bool) env('BARBEARIA_PROTOTYPES', false),
 
+    // Disco das imagens publicas (fotos de profissionais, imagens de
+    // servicos). Local: "public" (storage/app/public, servido em /storage
+    // depois de `php artisan storage:link`). Producao pode usar outro disco
+    // (ex.: s3) sem mudar codigo. Imagens nunca vao para o banco nem o Git.
+    'media_disk' => env('MEDIA_DISK', 'public'),
+
     'queue' => [
         // Em hospedagem sem supervisor de processos, o agendador sobe um
         // worker a cada minuto que processa a fila e encerra (ver

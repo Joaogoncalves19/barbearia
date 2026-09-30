@@ -5,6 +5,7 @@ namespace App\Modules\Identity\Services;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
 use App\Modules\Shared\Exceptions\DomainRuleViolation;
+use App\Modules\Shared\Support\Ordering;
 use App\Modules\System\Services\AuditTrail;
 use App\Modules\Team\Models\Professional;
 use Illuminate\Support\Facades\DB;
@@ -96,11 +97,15 @@ final class StaffAccounts
             return;
         }
 
+        // Ficha minima: fora do site e sem receber agendamentos ate alguem
+        // com professionals.* completar (servicos, apresentacao, foto).
         Professional::query()->create([
             'user_id' => $user->id,
             'display_name' => $user->name,
             'is_active' => true,
             'is_bookable' => false,
+            'is_public' => false,
+            'sort_order' => Ordering::next(Professional::query()),
         ]);
     }
 }

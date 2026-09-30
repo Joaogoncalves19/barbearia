@@ -25,6 +25,15 @@ final class Money implements JsonSerializable, Stringable
         return new self($cents);
     }
 
+    /** Valor para campo de formulario ("1250,00"): o inverso exato de parse(). */
+    public function toInput(): string
+    {
+        $abs = abs($this->cents);
+        $texto = intdiv($abs, 100).','.str_pad((string) ($abs % 100), 2, '0', STR_PAD_LEFT);
+
+        return $this->cents < 0 ? '-'.$texto : $texto;
+    }
+
     public static function zero(): self
     {
         return new self(0);

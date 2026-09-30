@@ -1,4 +1,4 @@
-# Papéis e permissões (Fase 3)
+# Papéis e permissões (Fases 3 e 4)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -42,8 +42,18 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `appointments.view_all` / `appointments.view_own` | Ver a agenda de todos / só a própria | Fase 5 |
 | `appointments.manage` / `appointments.manage_own` | Criar e remarcar qualquer agendamento / só os da própria agenda | Fase 5 |
 | `appointments.cancel` | Cancelar qualquer agendamento | Fase 5 |
-| `team.view` / `team.manage` | Ver / gerenciar profissionais, horários e ausências | Fase 4 |
-| `catalog.manage` | Serviços, combos, produtos e estoque | Fase 4 |
+| `services.view` | Ver serviços e categorias | **Fase 4** |
+| `services.create` | Criar serviços e categorias (inclui o preço inicial) | **Fase 4** |
+| `services.update` | Editar serviços e categorias (nome, descrição, duração, categoria) | **Fase 4** |
+| `services.toggle` | Ativar/desativar serviços e categorias (e excluir os nunca usados) | **Fase 4** |
+| `services.price` | Alterar o preço atual dos serviços | **Fase 4** |
+| `services.display` | Ordem, destaque, visibilidade no site e imagem dos serviços e categorias | **Fase 4** |
+| `professionals.view` | Ver profissionais (lista e fichas) | **Fase 4** |
+| `professionals.create` | Cadastrar profissionais | **Fase 4** |
+| `professionals.update` | Editar profissionais (dados e conta de acesso vinculada) | **Fase 4** |
+| `professionals.toggle` | Ativar/desativar profissionais | **Fase 4** |
+| `professionals.services` | Definir quais serviços cada profissional executa | **Fase 4** |
+| `professionals.display` | Ordem, destaque, visibilidade no site, foto e apresentação dos profissionais | **Fase 4** |
 | `checkout.operate` | Fechar atendimento e lançar pagamento | Fase 6 |
 | `finance.view` / `finance.manage` | Ver o financeiro / lançar despesas, vales e pagar comissões | Fase 7 |
 | `reports.view` | Relatórios | Fase 7 |
@@ -72,9 +82,18 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `appointments.manage` | ✔ | ✔ | ✔ | | |
 | `appointments.manage_own` | | | | | ✔ |
 | `appointments.cancel` | ✔ | ✔ | ✔ | | |
-| `team.view` | ✔ | ✔ | ✔ | | |
-| `team.manage` | ✔ | ✔ | | | |
-| `catalog.manage` | ✔ | ✔ | | | |
+| `services.view` | ✔ | ✔ | ✔ | | |
+| `services.create` | ✔ | ✔ | | | |
+| `services.update` | ✔ | ✔ | | | |
+| `services.toggle` | ✔ | ✔ | | | |
+| `services.price` | ✔ | ✔ | | | |
+| `services.display` | ✔ | ✔ | | | |
+| `professionals.view` | ✔ | ✔ | ✔ | | |
+| `professionals.create` | ✔ | ✔ | | | |
+| `professionals.update` | ✔ | ✔ | | | |
+| `professionals.toggle` | ✔ | ✔ | | | |
+| `professionals.services` | ✔ | ✔ | | | |
+| `professionals.display` | ✔ | ✔ | | | |
 | `checkout.operate` | ✔ | ✔ | ✔ | | |
 | `finance.view` | ✔ | ✔ | | ✔ | |
 | `finance.manage` | ✔ | | | ✔ | |
@@ -87,6 +106,15 @@ sistema antigo. Ajustar é mudar uma linha em `config/permissions.php` e a linha
 aqui. Perfis editáveis pelo dono na tela ficaram para depois (ver o relatório da fase).
 
 ## 4. Regras por registro (Policies)
+
+**Fase 4:** `team.view`, `team.manage` e `catalog.manage` (declaradas na Fase 3, ainda sem telas) foram
+substituídas pelas habilidades granulares acima, uma por ação, como pediu o briefing. Produtos e estoque
+ganham habilidade própria quando tiverem tela (Fase 6). A recepção **consulta** catálogo e equipe (precisa
+saber preço, duração e quem faz o quê), mas não altera nada.
+
+**Permissão por campo:** preço (`services.price`) e exibição (`*.display`) são conferidos também **por
+campo**: quem edita o serviço sem poder mudar o preço nem vê o campo, e um pedido adulterado com o preço
+diferente recebe 403, sem gravar nada (`CatalogAuthorizationTest`).
 
 | Quem | Cliente (`Customer`) | Agendamento (`Appointment`) | Ficha (`Professional`) | Usuário (`User`) |
 |---|---|---|---|---|

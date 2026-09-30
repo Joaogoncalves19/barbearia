@@ -20,7 +20,10 @@
                         <td data-label="Quem">{{ $e->actor_label ?? 'Sistema' }}@if ($e->actor_type) <span class="text-muted text-xs">({{ $e->actor_type === 'User' ? 'equipe' : 'cliente' }})</span>@endif</td>
                         <td data-label="Ação"><code>{{ $e->action }}</code></td>
                         <td data-label="Registro">{{ $e->auditable_type ? $e->auditable_type.' #'.$e->auditable_id : '—' }}</td>
-                        <td data-label="Detalhe">{{ $e->description ?? '' }}</td>
+                        <td data-label="Detalhe">
+                            {{ $e->description ?? '' }}
+                            @if ($e->action !== 'created' && $e->changesSummary() !== '')<br><span class="text-sm text-muted">{{ $e->changesSummary() }}</span>@endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

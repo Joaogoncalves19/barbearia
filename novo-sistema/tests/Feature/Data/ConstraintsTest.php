@@ -9,6 +9,7 @@ use App\Modules\Scheduling\Enums\ItemType;
 use App\Modules\Scheduling\Enums\PriceSource;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Models\AppointmentItem;
+use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use App\Modules\Subscriptions\Enums\SubscriptionStatus;
 use App\Modules\Subscriptions\Models\Subscription;
 use Illuminate\Database\QueryException;
@@ -41,11 +42,32 @@ class ConstraintsTest extends TestCase
 
     public function test_valores_invalidos_viram_nulo_e_nao_colidem(): void
     {
-        $a = Customer::factory()->create(['email' => 'joao@', 'phone' => '123', 'cpf' => '111.111.111-11']);
-        $b = Customer::factory()->create(['email' => 'nao-e-email', 'phone' => '999', 'cpf' => '000']);
+        $a = Customer::factory()->create(['email' => 'joao@', 'phone' => '123']);
+        $b = Customer::factory()->create(['email' => 'nao-e-email', 'phone' => '999']);
         $this->assertNull($a->email);
         $this->assertNull($b->phone);
-        $this->assertNull($a->cpf);
+    }
+
+    /** Fase 4: CPF e obrigatorio em todo cliente novo; invalido = recusado (antes virava nulo). */
+    public function test_cliente_novo_com_cpf_invalido_ou_sem_cpf_e_recusado(): void
+    {
+        foreach (['111.111.111-11', '000', null] as $cpf) {
+            try {
+                Customer::factory()->create(['cpf' => $cpf]);
+                $this->fail('cliente criado com CPF '.var_export($cpf, true));
+            } catch (DomainRuleViolation $e) {
+                $this->assertStringContainsString('R-CPF', $e->getMessage());
+            }
+        }
+        $this->assertSame(0, Customer::query()->count());
+    }
+
+    public function test_cpf_nao_pode_ser_removido_de_quem_tem(): void
+    {
+        $c = Customer::factory()->create();
+
+        $this->expectException(DomainRuleViolation::class);
+        $c->update(['cpf' => null]);
     }
 
     public function test_codigos_unicos(): void

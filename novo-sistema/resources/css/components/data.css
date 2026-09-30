@@ -132,3 +132,24 @@
     pointer-events: none;
     opacity: 0.6;
 }
+
+/* --- Acoes por linha e ordem (Fase 4) ---------------------------------------------------- */
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.row-actions form {
+    display: inline-flex;
+}
+
+/* Miniatura de imagem (foto do profissional, imagem do servico). */
+.thumb {
+    width: 6rem;
+    aspect-ratio: 1;
+    border-radius: var(--radius-control);
+    object-fit: cover;
+    background: var(--c-surface-sunken);
+}

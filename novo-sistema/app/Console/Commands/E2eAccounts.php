@@ -58,6 +58,9 @@ class E2eAccounts extends Command
     {
         $this->membro("e2e-dono-{$s}", 'Dono E2E', StaffRole::Owner, $senha);
         $this->membro("e2e-provisorio-{$s}", 'Recepção E2E', StaffRole::Reception, $senha, provisoria: true);
+        // Catalogo e equipe (Fase 4): conta propria, para nao dividir o limite
+        // de tentativas de login com os testes de acesso.
+        $this->membro("e2e-gerente-{$s}", 'Gerente E2E', StaffRole::Manager, $senha);
         $a = $this->barbeiro("e2e-barbeiro-a-{$s}", 'Barbeiro A E2E', $senha);
         $b = $this->barbeiro("e2e-barbeiro-b-{$s}", 'Barbeiro B E2E', $senha);
 

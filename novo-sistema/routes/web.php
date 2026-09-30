@@ -17,9 +17,11 @@ use App\Http\Controllers\Auth\Staff\LoginController as StaffLoginController;
 use App\Http\Controllers\Auth\Staff\ResetPasswordController as StaffResetPasswordController;
 use App\Http\Controllers\Panel\AccountController as PanelAccountController;
 use App\Http\Controllers\Panel\AuditLogController;
+use App\Http\Controllers\Panel\Catalog\CategoryController;
+use App\Http\Controllers\Panel\Catalog\ServiceController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
-use App\Http\Controllers\Panel\ProfessionalController;
+use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
 use App\Http\Controllers\Site\HomeController;
@@ -151,9 +153,40 @@ Route::prefix('painel')
                 ->middleware('can:setTemporaryPassword,user')->name('users.temporary-password');
         });
 
-        // Ficha do profissional: a propria (profissional) ou qualquer uma (team.view).
-        Route::get('/profissionais/{professional}', [ProfessionalController::class, 'show'])
-            ->middleware('can:view,professional')->name('professionals.show');
+        // --- Catalogo: categorias e servicos (Fase 4) ---
+        // Cada acao com a sua habilidade: ver, criar, editar, ativar/desativar,
+        // ordem/exibicao. Preco tem habilidade propria, conferida no
+        // ServiceRequest (campo). Excluir: policy (so se nunca foi usado).
+        Route::get('/categorias', [CategoryController::class, 'index'])->middleware('can:services.view')->name('categories.index');
+        Route::get('/categorias/nova', [CategoryController::class, 'create'])->middleware('can:services.create')->name('categories.create');
+        Route::post('/categorias', [CategoryController::class, 'store'])->middleware('can:services.create')->name('categories.store');
+        Route::get('/categorias/{category}/editar', [CategoryController::class, 'edit'])->middleware('can:services.update')->name('categories.edit');
+        Route::put('/categorias/{category}', [CategoryController::class, 'update'])->middleware('can:services.update')->name('categories.update');
+        Route::post('/categorias/{category}/situacao', [CategoryController::class, 'status'])->middleware('can:services.toggle')->name('categories.status');
+        Route::post('/categorias/{category}/ordem', [CategoryController::class, 'move'])->middleware('can:services.display')->name('categories.move');
+        Route::delete('/categorias/{category}', [CategoryController::class, 'destroy'])->middleware('can:delete,category')->name('categories.destroy');
+
+        Route::get('/servicos', [ServiceController::class, 'index'])->middleware('can:services.view')->name('services.index');
+        Route::get('/servicos/novo', [ServiceController::class, 'create'])->middleware('can:services.create')->name('services.create');
+        Route::post('/servicos', [ServiceController::class, 'store'])->middleware('can:services.create')->name('services.store');
+        Route::get('/servicos/{service}/editar', [ServiceController::class, 'edit'])->middleware('can:services.update')->name('services.edit');
+        Route::put('/servicos/{service}', [ServiceController::class, 'update'])->middleware('can:services.update')->name('services.update');
+        Route::post('/servicos/{service}/situacao', [ServiceController::class, 'status'])->middleware('can:services.toggle')->name('services.status');
+        Route::post('/servicos/{service}/ordem', [ServiceController::class, 'move'])->middleware('can:services.display')->name('services.move');
+        Route::delete('/servicos/{service}', [ServiceController::class, 'destroy'])->middleware('can:delete,service')->name('services.destroy');
+
+        // --- Equipe profissional (Fase 4) ---
+        Route::get('/profissionais', [ProfessionalController::class, 'index'])->middleware('can:professionals.view')->name('professionals.index');
+        Route::get('/profissionais/novo', [ProfessionalController::class, 'create'])->middleware('can:professionals.create')->name('professionals.create');
+        Route::post('/profissionais', [ProfessionalController::class, 'store'])->middleware('can:professionals.create')->name('professionals.store');
+        // Ficha: a propria (profissional) ou qualquer uma (professionals.view); outra = 404.
+        Route::get('/profissionais/{professional}', [ProfessionalController::class, 'show'])->middleware('can:view,professional')->name('professionals.show');
+        Route::get('/profissionais/{professional}/editar', [ProfessionalController::class, 'edit'])->middleware('can:professionals.update')->name('professionals.edit');
+        Route::put('/profissionais/{professional}', [ProfessionalController::class, 'update'])->middleware('can:professionals.update')->name('professionals.update');
+        Route::post('/profissionais/{professional}/situacao', [ProfessionalController::class, 'status'])->middleware('can:professionals.toggle')->name('professionals.status');
+        Route::post('/profissionais/{professional}/ordem', [ProfessionalController::class, 'move'])->middleware('can:professionals.display')->name('professionals.move');
+        Route::get('/profissionais/{professional}/servicos', [ProfessionalController::class, 'editServices'])->middleware('can:professionals.services')->name('professionals.services.edit');
+        Route::put('/profissionais/{professional}/servicos', [ProfessionalController::class, 'updateServices'])->middleware('can:professionals.services')->name('professionals.services.update');
 
         Route::get('/auditoria', [AuditLogController::class, 'index'])
             ->middleware('can:audit.view')->name('audit.index');

@@ -17,6 +17,12 @@
 > ficam como histórico, sem virar atendimento, receita, comissão ou pontos (testado no importador); a
 > classificação de cada um fica para a migração real. O sistema ainda não está em produção: não há dados
 > reais a migrar. Ver [relatorio-fase-3.md](relatorio-fase-3.md).
+>
+> **Fase 4:** CPF obrigatório também no cadastro pelo balcão (decisão do dono), garantido no model para todo
+> cliente novo; legado sem CPF segue como exceção temporária. **Nova decisão pendente D-24 (combos):**
+> manter os combos do sistema antigo (`packages`: preço próprio, duração = soma) com tela própria, ou
+> representar "Corte + Barba" como um serviço comum? Recomendação e impacto em
+> [relatorio-fase-4.md](relatorio-fase-4.md#4-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

@@ -50,10 +50,22 @@ return [
         'appointments.manage_own' => 'Criar e remarcar agendamentos da própria agenda',
         'appointments.cancel' => 'Cancelar qualquer agendamento',
 
-        // Equipe e catalogo (Fase 4)
-        'team.view' => 'Ver a equipe e os horários',
-        'team.manage' => 'Gerenciar profissionais, horários e ausências',
-        'catalog.manage' => 'Gerenciar serviços, combos, produtos e estoque',
+        // Catalogo de servicos e categorias (Fase 4). As categorias usam as
+        // mesmas habilidades dos servicos (fazem parte do mesmo catalogo).
+        'services.view' => 'Ver serviços e categorias',
+        'services.create' => 'Criar serviços e categorias',
+        'services.update' => 'Editar serviços e categorias (nome, descrição, duração, categoria)',
+        'services.toggle' => 'Ativar e desativar serviços e categorias',
+        'services.price' => 'Alterar o preço dos serviços',
+        'services.display' => 'Alterar ordem, destaque, visibilidade no site e imagem dos serviços',
+
+        // Profissionais (Fase 4). Expediente/folgas entram com a agenda (Fase 5).
+        'professionals.view' => 'Ver profissionais',
+        'professionals.create' => 'Cadastrar profissionais',
+        'professionals.update' => 'Editar profissionais (dados e conta de acesso vinculada)',
+        'professionals.toggle' => 'Ativar e desativar profissionais',
+        'professionals.services' => 'Definir quais serviços cada profissional executa',
+        'professionals.display' => 'Alterar ordem, destaque, visibilidade no site, foto e apresentação dos profissionais',
 
         // Caixa e financeiro (Fases 6 e 7)
         'checkout.operate' => 'Fechar atendimento e lançar pagamento',
@@ -77,7 +89,8 @@ return [
             'users.manage', 'audit.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf', 'customers.anonymize',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
-            'team.view', 'team.manage', 'catalog.manage',
+            'services.view', 'services.create', 'services.update', 'services.toggle', 'services.price', 'services.display',
+            'professionals.view', 'professionals.create', 'professionals.update', 'professionals.toggle', 'professionals.services', 'professionals.display',
             'checkout.operate', 'finance.view', 'finance.manage', 'reports.view',
             'marketing.manage', 'settings.manage',
         ],
@@ -88,17 +101,19 @@ return [
             'panel.access', 'system.health.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
-            'team.view', 'team.manage', 'catalog.manage',
+            'services.view', 'services.create', 'services.update', 'services.toggle', 'services.price', 'services.display',
+            'professionals.view', 'professionals.create', 'professionals.update', 'professionals.toggle', 'professionals.services', 'professionals.display',
             'checkout.operate', 'finance.view', 'reports.view',
             'marketing.manage',
         ],
 
-        // Recepcao: agenda, clientes e caixa do dia.
+        // Recepcao: agenda, clientes e caixa do dia. Catalogo e equipe so
+        // para consulta (precisa saber preco, duracao e quem faz o que).
         'reception' => [
             'panel.access',
             'customers.view', 'customers.create', 'customers.update',
             'appointments.view_all', 'appointments.manage', 'appointments.cancel',
-            'team.view',
+            'services.view', 'professionals.view',
             'checkout.operate',
         ],
 

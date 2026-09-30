@@ -103,9 +103,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 3 — Identidade, acesso e auditoria ✅ (aguardando aprovação)
+## Fase 3 — Identidade, acesso e auditoria ✅
 
-> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 4.** Relatório:
+> **Concluída em 2026-09-30 e aprovada** (início da Fase 4 autorizado). Relatório:
 > [relatorio-fase-3.md](relatorio-fase-3.md).
 > Decisões do dono: equipe entra por **usuário ou e-mail** (D-10); cliente entra com **senha e link mágico**
 > (D-12); **CPF obrigatório** para o cliente; o sistema ainda não está em produção (não há dados reais a migrar).
@@ -137,7 +137,23 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 4 — Catálogo e equipe
+## Fase 4 — Catálogo e equipe ✅ (aguardando aprovação)
+
+> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 5.** Relatório:
+> [relatorio-fase-4.md](relatorio-fase-4.md). Branch `claude/fase-4-catalogo-equipe` (a partir da Fase 3).
+> Entregue: categorias e serviços (preço em centavos, duração em minutos com regra única, ativo/inativo,
+> ordem, visibilidade/destaque no site, imagem, exclusão só do que nunca foi usado); profissionais (conta de
+> acesso opcional e separada, apresentação pública, foto, ativo/agendável/público, ordem); vínculo
+> profissional × serviço; consultas únicas para a agenda (`ProfessionalDirectory`, `ServiceCatalog`); 12
+> permissões granulares (inclusive preço e exibição por campo); concorrência otimista; auditoria; CPF
+> obrigatório garantido no model para todo cliente novo
+> ([servicos.md](servicos.md), [precos.md](precos.md), [profissionais.md](profissionais.md),
+> [relacao-profissional-servico.md](relacao-profissional-servico.md)).
+> **Diferenças em relação ao plano abaixo (o briefing da fase restringiu o escopo):** combos, produtos/estoque,
+> expediente/pausas/folgas/bloqueios e configurações do estabelecimento **não** ganharam tela. O modelo de
+> todos existe desde a Fase 2. Expediente e configurações de agenda vão para a **Fase 5** (são
+> "disponibilidade de horários"); produtos/estoque para a **Fase 6** (caixa); combos dependem de decisão (ver
+> o relatório).
 
 - **Objetivo:** cadastros que alimentam a agenda.
 - **Escopo:** categorias, serviços (duração em minutos, preço em centavos), combos, produtos e

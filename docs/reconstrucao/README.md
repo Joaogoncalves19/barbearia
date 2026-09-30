@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0, 1 e 2 concluídas. **Fase 3 concluída, aguardando aprovação** para a Fase 4
-> ([relatorio-fase-3.md](relatorio-fase-3.md)).
+> **Status:** Fases 0 a 3 concluídas. **Fase 4 concluída, aguardando aprovação** para a Fase 5
+> ([relatorio-fase-4.md](relatorio-fase-4.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -44,7 +44,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
-| [regras-dados.md](regras-dados.md) | 35 regras de dados: onde são garantidas e qual teste as prova |
+| [regras-dados.md](regras-dados.md) | Regras de dados (35 da Fase 2 + 36–43 da Fase 4): onde são garantidas e qual teste as prova |
 | [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
 | [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
@@ -60,6 +60,16 @@ plano para reconstruí-lo do zero, por etapas.
 | [papeis-permissoes.md](papeis-permissoes.md) | Papéis, habilidades e a matriz papel × habilidade |
 | [seguranca-contas.md](seguranca-contas.md) | CSRF, cookies, expiração, rate limit, enumeração, segredos, riscos aceitos |
 | [relatorio-fase-3.md](relatorio-fase-3.md) | Relatório final da Fase 3 |
+
+### Fase 4
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [servicos.md](servicos.md) | Categorias e serviços: fonte única, campos, ativo × histórico, imagens, concorrência |
+| [precos.md](precos.md) | Preço atual × preço registrado; decisão sobre histórico de preços |
+| [profissionais.md](profissionais.md) | User × Professional × Customer, estados, histórico, ficha própria |
+| [relacao-profissional-servico.md](relacao-profissional-servico.md) | Quem executa o quê; a consulta única que a agenda vai usar |
+| [relatorio-fase-4.md](relatorio-fase-4.md) | Relatório final da Fase 4 |
 
 ## Legenda usada em todos os documentos
 

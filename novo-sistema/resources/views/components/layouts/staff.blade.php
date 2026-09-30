@@ -13,11 +13,17 @@
 
     $operacao = [$item('Início', 'house', 'panel.home', 'panel.home')];
     if ($user->professional !== null) {
-        $operacao[] = [
-            'label' => 'Minha ficha', 'icon' => 'user',
-            'href' => route('panel.professionals.show', $user->professional),
-            'current' => request()->routeIs('panel.professionals.*'),
-        ];
+        $minhaFicha = route('panel.professionals.show', $user->professional);
+        $operacao[] = ['label' => 'Minha ficha', 'icon' => 'user', 'href' => $minhaFicha, 'current' => request()->url() === $minhaFicha];
+    }
+
+    $cadastros = [];
+    if ($user->can('services.view')) {
+        $cadastros[] = $item('Serviços', 'scissors', 'panel.services.index', 'panel.services.*');
+        $cadastros[] = $item('Categorias', 'tag', 'panel.categories.index', 'panel.categories.*');
+    }
+    if ($user->can('professionals.view')) {
+        $cadastros[] = $item('Profissionais', 'users', 'panel.professionals.index', 'panel.professionals.*');
     }
 
     $admin = [];
@@ -29,6 +35,9 @@
     }
 
     $nav = [['group' => '', 'items' => $operacao]];
+    if ($cadastros !== []) {
+        $nav[] = ['group' => 'Cadastros', 'items' => $cadastros];
+    }
     if ($admin !== []) {
         $nav[] = ['group' => 'Administração', 'items' => $admin];
     }

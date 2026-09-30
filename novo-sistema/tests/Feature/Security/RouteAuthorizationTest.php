@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Security;
 
+use App\Modules\Catalog\Models\Service;
+use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
@@ -139,6 +141,8 @@ class RouteAuthorizationTest extends TestCase
             Customer::class,
             Professional::class,
             Appointment::class,
+            Service::class,
+            ServiceCategory::class,
         ];
 
         foreach ($models as $model) {

@@ -12,6 +12,12 @@ class ServiceCategoryFactory extends Factory
 {
     protected $model = ServiceCategory::class;
 
+    /** Recarrega do banco depois de criar (colunas com padrao do banco, ex.: lock_version). */
+    public function configure(): static
+    {
+        return $this->afterCreating(fn ($model) => $model->refresh());
+    }
+
     /**
      * @return array<string, mixed>
      */

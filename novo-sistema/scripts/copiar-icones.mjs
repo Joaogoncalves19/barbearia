@@ -15,6 +15,8 @@ const icones = [
     'sparkles', 'star', 'store', 'trash-2', 'triangle-alert', 'user', 'users', 'wallet', 'x',
     // Fase 3 (contas e acesso)
     'mail', 'key-round', 'shield-check', 'history',
+    // Fase 4 (catalogo e equipe)
+    'arrow-up', 'arrow-down', 'power', 'tag', 'eye-off', 'upload',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);

@@ -5,6 +5,7 @@ namespace App\Modules\LegacyImport\Support;
 use App\Modules\LegacyImport\Enums\IssueClassification;
 use App\Modules\LegacyImport\Enums\IssueSeverity;
 use App\Modules\LegacyImport\Source\LegacyDatabase;
+use App\Modules\Shared\Support\UniqueSlug;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -158,8 +159,16 @@ final class ImportContext
      */
     public function insert(string $table, array $values): int
     {
+        // Mesma regra de identificador estavel dos models (Fase 4).
+        if (isset(self::SLUG_SOURCE[$table]) && ! isset($values['slug'])) {
+            $values['slug'] = UniqueSlug::for($table, (string) ($values[self::SLUG_SOURCE[$table]] ?? ''));
+        }
+
         return (int) DB::table($table)->insertGetId($values);
     }
+
+    /** Tabelas com slug e a coluna de onde ele nasce. */
+    private const SLUG_SOURCE = ['service_categories' => 'name', 'services' => 'name', 'professionals' => 'display_name'];
 
     /**
      * @param  array<string, mixed>  $row

@@ -11,6 +11,7 @@ use App\Modules\Identity\Notifications\CustomerResetPassword;
 use App\Modules\Identity\Notifications\CustomerVerifyEmail;
 use App\Modules\Loyalty\Models\LoyaltyEntry;
 use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use App\Modules\Shared\Models\Concerns\Auditable;
 use App\Modules\Subscriptions\Models\Subscription;
 use App\Modules\Team\Models\Professional;
@@ -93,9 +94,22 @@ class Customer extends Authenticatable implements MustVerifyEmail
     protected static function booted(): void
     {
         static::creating(function (self $c): void {
+            // CPF obrigatorio para QUALQUER cliente novo (site, balcao, qualquer
+            // canal futuro). So o importador (query builder) grava sem CPF:
+            // excecao legada, tratada no primeiro acesso (customer.complete).
+            if ($c->cpf === null) {
+                throw DomainRuleViolation::rule('R-CPF', 'Cliente novo precisa de CPF valido.');
+            }
             $c->public_id ??= (string) Str::ulid();
             $c->status ??= CustomerStatus::Active;
             $c->marketing_email_consent ??= MarketingConsent::Unknown;
+        });
+
+        // Quem tem CPF nunca volta a ficar sem (so pode ser corrigido).
+        static::updating(function (self $c): void {
+            if ($c->isDirty('cpf') && $c->getAttribute('cpf') === null && $c->getRawOriginal('cpf') !== null) {
+                throw DomainRuleViolation::rule('R-CPF', 'O CPF do cliente nao pode ser removido.');
+            }
         });
     }
 

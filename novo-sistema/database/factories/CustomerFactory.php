@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Modules\Customers\Models\Customer;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Cliente FICTICIO: e-mail de dominio reservado, CPF gerado com digitos
@@ -41,10 +42,17 @@ class CustomerFactory extends Factory
         ];
     }
 
-    /** Sem CPF (ex.: cliente vindo do importador): precisa completar o cadastro. */
+    /**
+     * Sem CPF, como um cliente vindo do importador (a unica origem permitida
+     * sem CPF). O model recusa criar cliente sem CPF, entao o CPF e retirado
+     * direto no banco, como o importador grava.
+     */
     public function withoutCpf(): static
     {
-        return $this->state(['cpf' => null]);
+        return $this->afterCreating(function (Customer $c): void {
+            DB::table('customers')->where('id', $c->id)->update(['cpf' => null]);
+            $c->refresh();
+        });
     }
 
     public function unverified(): static

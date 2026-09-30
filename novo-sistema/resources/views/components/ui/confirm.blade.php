@@ -2,7 +2,7 @@
     Confirmacao de acao destrutiva: o formulario so e enviado pelo botao de
     confirmar dentro do modal (POST + CSRF). Nunca uma acao por link GET.
 --}}
-@props(['id', 'title', 'action' => null, 'method' => 'POST', 'confirmLabel' => 'Confirmar', 'danger' => true])
+@props(['id', 'title', 'action' => null, 'method' => 'POST', 'confirmLabel' => 'Confirmar', 'danger' => true, 'fields' => []])
 <x-ui.modal :id="$id" :title="$title">
     {{ $slot }}
     <x-slot:footer>
@@ -11,6 +11,9 @@
             <form method="POST" action="{{ $action }}">
                 @csrf
                 @if (strtoupper($method) !== 'POST') @method($method) @endif
+                @foreach ($fields as $campo => $valor)
+                    <input type="hidden" name="{{ $campo }}" value="{{ $valor }}">
+                @endforeach
                 <button type="submit" class="btn {{ $danger ? 'btn--danger' : '' }}">{{ $confirmLabel }}</button>
             </form>
         @else

@@ -199,6 +199,16 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertSame(0, DB::table('loyalty_entries')->where('appointment_id', $ag->id)->count(), 'sem pontos');
     }
 
+    /** Fase 4: o importador gera o mesmo identificador estavel (slug) dos models. */
+    public function test_catalogo_e_equipe_importados_ganham_slug_unico(): void
+    {
+        foreach (['service_categories', 'services', 'professionals'] as $tabela) {
+            $slugs = DB::table($tabela)->pluck('slug');
+            $this->assertNotContains(null, $slugs->all(), $tabela);
+            $this->assertSame($slugs->count(), $slugs->unique()->count(), "{$tabela}: slug repetido");
+        }
+    }
+
     public function test_status_e_regras_de_tempo(): void
     {
         $velho = $this->appointment('AG-PAGVELHO');

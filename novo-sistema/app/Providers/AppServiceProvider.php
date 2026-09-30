@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Modules\Catalog\Models\Service;
+use App\Modules\Catalog\Models\ServiceCategory;
+use App\Modules\Catalog\Policies\ServiceCategoryPolicy;
+use App\Modules\Catalog\Policies\ServicePolicy;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Policies\CustomerPolicy;
 use App\Modules\Identity\Authorization\PermissionMatrix;
@@ -93,6 +97,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(Professional::class, ProfessionalPolicy::class);
         Gate::policy(Appointment::class, AppointmentPolicy::class);
+        Gate::policy(Service::class, ServicePolicy::class);
+        Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
     }
 
     /**

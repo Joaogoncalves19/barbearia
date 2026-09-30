@@ -36,7 +36,8 @@ Requisição ─► Rota: auth:<guard> ─► staff.active / customer.active ─
 |---|---|---|
 | `User` (equipe) | `Identity/Policies/UserPolicy` | Só `users.manage`. Ninguém muda o **próprio** papel/status nem define senha provisória para si |
 | `Customer` | `Customers/Policies/CustomerPolicy` | Cliente: só o próprio cadastro. Equipe: `customers.view` vê todos; profissional (`customers.view_own`) só quem tem agendamento com ele; CPF completo só com `customers.view_cpf` |
-| `Professional` | `Team/Policies/ProfessionalPolicy` | `team.view` vê qualquer ficha; o profissional vê só a própria |
+| `Professional` | `Team/Policies/ProfessionalPolicy` | `professionals.view` vê qualquer ficha; o profissional vê só a própria (e não a edita) |
+| `Service` / `ServiceCategory` (Fase 4) | `Catalog/Policies/ServicePolicy`, `ServiceCategoryPolicy` | Excluir só com `services.toggle` **e** se nunca teve uso/histórico; o resto é por habilidade (`services.*`) |
 | `Appointment` | `Scheduling/Policies/AppointmentPolicy` | Cliente: só os próprios (remarcar/cancelar negado até a política D-13, Fase 5). Equipe: `*_all` todos; profissional (`*_own`) só a própria agenda |
 
 Registro de outra pessoa responde **404** (`Response::denyAsNotFound()`): trocar o id na URL não confirma
