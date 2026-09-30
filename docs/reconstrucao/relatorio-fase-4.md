@@ -27,7 +27,7 @@
 | Auditoria funcionando | PASSOU | preço/duração antes→depois, ativação, vínculos (`professional.services_changed`) |
 | Design System oficial / desktop / celular / acessibilidade / sem rolagem lateral | PASSOU | Direção A; axe sem violação séria/crítica em 9 telas novas, nos dois tamanhos |
 | Testes passando / PHPStan sem erros | PASSOU | 310 PHPUnit; Larastan nível 6, 0 erros |
-| CI verde | ver §9 | |
+| CI verde | PASSOU | run nº 21, os dois jobs (§9) |
 | Nenhum secret no código | PASSOU | `ConfigurationTest`; senhas de E2E aleatórias por execução |
 | Documentação e roadmap | PASSOU | 4 documentos novos + roadmap, README, modelo, regras, permissões, autorização, decisões |
 
@@ -192,7 +192,15 @@ Reordenar não é auditado: só troca a posição de exibição, sem alterar o c
 
 ## 9. CI
 
-**PENDENTE** até o push desta branch. O resultado será registrado aqui.
+**PASSOU.** Run nº 21 (commit `fbf3287`,
+https://github.com/Joaogoncalves19/barbearia/actions/runs/36756497695), PHP 8.4, os dois jobs verdes em todos
+os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP, importador com banco fictício e Playwright + axe (com `storage:link` e GD).
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Pendências
 
