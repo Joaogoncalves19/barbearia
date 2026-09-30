@@ -31,7 +31,7 @@
 | Folga e bloqueio não apagam nem movem agendamentos | PASSOU | `test_folga_e_bloqueio_nao_mexem_...` |
 | Design System / celular / acessibilidade / sem rolagem lateral | PASSOU | axe sem violação séria/crítica nas telas novas, celular e desktop |
 | Testes passando / PHPStan sem erros | PASSOU | §7 |
-| CI verde | PENDENTE | §9 (preenchido após o push) |
+| CI verde | PASSOU | run nº 24, os dois jobs (§9) |
 | E-mail de confirmação e lembretes | NÃO EXECUTADO | Fase 10 (Comunicação), depende do provedor de e-mail (D-05) |
 | Teste com 5 pessoas (< 90 s para agendar) | NÃO EXECUTADO | exige pessoas reais e ambiente de homologação (D-01) |
 | Teste de carga | NÃO EXECUTADO | sem ambiente de homologação (D-01); a concorrência foi provada com processos reais |
@@ -149,7 +149,15 @@ Reutilizadas da Fase 3: `appointments.view_all`, `view_own`, `manage`, `manage_o
 
 ## 9. CI
 
-**PENDENTE** — preenchido após o push.
+**PASSOU.** Run nº 24 (commit `9b629bb`,
+https://github.com/Joaogoncalves19/barbearia/actions/runs/36786155213), PHP 8.4, os dois jobs verdes em todos
+os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive o de concorrência com processos reais), importador com banco fictício e Playwright + axe.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Pendências
 
