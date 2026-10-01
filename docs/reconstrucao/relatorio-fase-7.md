@@ -1,6 +1,6 @@
 # Relatório da Fase 7 — Comissão, gorjeta, vales e repasse
 
-> **Status: concluída em 2026-10-01, aguardando aprovação explícita do dono para iniciar a Fase 8.**
+> **Status: concluída e aprovada pelo dono em 2026-10-01** (D-38 a D-40 decididos; Fase 8 autorizada).
 > Branch `claude/fase-7-comissao-repasses`, criada a partir de `claude/fase-6-atendimento-caixa`. Só dados
 > fictícios; nenhum banco de produção acessado; nenhuma migração real executada; sistema antigo não alterado;
 > nenhum segredo no repositório.
@@ -112,14 +112,13 @@ a apontar o **atendimento** e o item (como `payments` na Fase 6); `commission_pa
 | T7-09 | Vales do sistema antigo = histórico (`is_legacy`) | Já abatidos lá; evita desconto em dobro |
 | T7-10 | Gerente só consulta comissões e repasses; regra de comissão só o proprietário | Menor privilégio (como D-30) |
 
-**PRECISA DE DECISÃO (não bloqueou; implementado na forma mais conservadora):**
+**Decididas pelo dono na aprovação (2026-10-01):**
 
-- **D-38 — quem configura regra de comissão:** hoje só o proprietário. O financeiro também deve configurar?
-- **D-39 — taxa da maquininha:** descontar da comissão ou da gorjeta paga no cartão? Hoje não (o sistema
-  antigo também não).
-- **D-40 — período de fechamento e recibo:** hoje o repasse fecha tudo o que está em aberto quando a equipe
-  quiser. Fixar semanal/quinzenal/mensal? O recibo impresso (o sistema antigo tinha) fica para a fase de
-  impressão; hoje o comprovante é a tela do repasse.
+| # | Decisão |
+|---|---|
+| D-38 | Só o proprietário cria ou altera regra de comissão; o financeiro consulta, paga, ajusta e estorna conforme as permissões. Configuração auditada. |
+| D-39 | Taxa da maquininha é custo da barbearia: nunca descontada da comissão nem da gorjeta. Se um dia for considerada, será regra explícita, configurável, com histórico e auditoria. |
+| D-40 | Repasse sem período fixo obrigatório. Comprovante: decidido primeiro "só a tela"; em seguida o dono pediu comprovantes **impressos e por e-mail** (atendimento, repasse, vale-presente e fechamento de caixa), que entram na Fase 8. |
 
 ## 5. Permissões
 
@@ -226,7 +225,7 @@ O commit seguinte só atualiza este relatório (documentação).
 
 ## 11. Pendências
 
-1. **D-38, D-39, D-40** (§4).
+1. ~~D-38, D-39, D-40~~ decididos (§4); comprovantes impressos e por e-mail na Fase 8.
 2. **Comissão de assinatura** (o sistema antigo tinha): Fase 9; as colunas `subscription_commission_*` do
    profissional viram regras lá.
 3. **Despesas, meta, DRE, relatórios, exportação, dashboard "Hoje", recibo impresso:** restante da Fase 7 do
@@ -264,5 +263,4 @@ Novos: [comissoes.md](comissoes.md), [repasses.md](repasses.md). Atualizados:
 
 ---
 
-**Aguardando aprovação explícita para iniciar a Fase 8.** O término da implementação não é autorização para
-avançar.
+**Fase 7 aprovada (2026-10-01). Fase 8 autorizada.**

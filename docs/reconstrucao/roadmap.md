@@ -239,9 +239,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 7 — Financeiro e relatórios (parte 1: comissão, gorjeta e repasse ✅, aguardando aprovação)
+## Fase 7 — Financeiro e relatórios (parte 1: comissão, gorjeta e repasse ✅)
 
-> **Parte 1 concluída em 2026-10-01, aguardando aprovação do dono para a Fase 8.** Relatório:
+> **Parte 1 concluída e aprovada em 2026-10-01** (D-38 a D-40 decididos). Relatório:
 > [relatorio-fase-7.md](relatorio-fase-7.md). Branch `claude/fase-7-comissao-repasses` (a partir da Fase 6).
 > O dono restringiu o escopo desta fase a: comissão, regras de comissão, gorjeta, vales, valores devidos aos
 > profissionais, repasse, histórico, auditoria e integração com o caixa. Entregue: regras de comissão
@@ -252,7 +252,8 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 > dinheiro pelo caixa, 10 permissões por ação, extrato do profissional, auditoria, 5 regras novas no
 > verificador e concorrência com processos reais ([comissoes.md](comissoes.md), [repasses.md](repasses.md)).
 > Também cumpre o critério "comissão gravada" da Fase 6. **Fica para depois (não iniciado, por decisão do
-> dono):** despesas, meta, DRE, relatórios gerais, exportação, dashboard "Hoje" e o recibo impresso.
+> dono):** despesas, meta, DRE, relatórios gerais, exportação e dashboard "Hoje". O recibo impresso e por
+> e-mail foi pedido pelo dono depois da aprovação e entra na Fase 8.
 
 - **Objetivo:** gestão financeira confiável.
 - **Escopo:** despesas (recorrência via agendador), vales, pagamento de comissões com recibo,

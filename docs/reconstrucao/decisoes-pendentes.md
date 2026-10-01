@@ -53,11 +53,14 @@
 > negativa); o resto reduz a comissão na mesma proporção. **D-36** comissão de produto com percentual próprio
 > por profissional (o legado "sim" vira o mesmo percentual dos serviços). **D-37** repasse em dinheiro sai do
 > caixa aberto; Pix/transferência só registrado.
-> **Pendentes da Fase 7 (não bloqueiam; implementadas na forma mais conservadora):** **D-38** quem configura
-> regra de comissão (hoje só o proprietário; o financeiro também?). **D-39** taxa da maquininha descontada da
-> comissão ou da gorjeta paga no cartão (hoje não; o sistema antigo também não). **D-40** período de
-> fechamento (hoje o repasse fecha tudo o que está em aberto até o momento, quando a equipe quiser; fixar
-> semanal/quinzenal/mensal?) e recibo impresso do repasse (o sistema antigo tinha; hoje é a tela). Ver
+> **Decididas na aprovação da Fase 7:** **D-38** só o proprietário cria ou altera regra de comissão (operação de
+> alta responsabilidade, auditada); o financeiro consulta, paga repasses, faz ajustes e estorna conforme as
+> permissões. **D-39** a taxa da maquininha é custo da barbearia: **nunca** é descontada da comissão nem da
+> gorjeta (a gorjeta é integralmente do profissional); se um dia for considerada, será regra explícita,
+> configurável, com histórico e auditoria. **D-40** repasse sem período fixo obrigatório: a equipe escolhe
+> quando fechar. Comprovante: o dono primeiro decidiu "só a tela" e, em seguida, **mudou de ideia**:
+> comprovantes **impressos e com envio por e-mail** para atendimento do cliente, repasse ao profissional,
+> vale-presente e fechamento de caixa, implementados na Fase 8. Ver
 > [relatorio-fase-7.md](relatorio-fase-7.md#4-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
