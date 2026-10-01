@@ -171,7 +171,7 @@ as escritas; a contraprova que faz sentido é no MySQL (D-02). **NÃO EXECUTADO.
 | Pint | **PASSOU** |
 | Build (Vite) | **PASSOU** |
 | Migration (subir, descer e subir; dados de comissão vão para regras e voltam) | **PASSOU** (banco temporário) |
-| Playwright + axe | E2E_RESULTADO |
+| Playwright + axe | **PASSOU** — 91 passando (eram 87; +4 da Fase 7, celular e desktop), 3 ignorados de propósito (os mesmos das fases anteriores), em **duas execuções seguidas** num banco SQLite novo, como no CI; o teste novo também passou repetido no mesmo banco (as contas de teste encerram as regras e quitam o saldo antes de cada execução) |
 | — novos na Fase 7 | `comissao.spec.js` (celular e desktop): regra com erro de validação, ajuste, vale, repasse, estorno do repasse e novo repasse (saldo termina zerado); profissional vê só o próprio extrato, sem ações de gestão, e recebe 403 nas telas de gestão. Axe e rolagem lateral em 5 telas |
 
 Cobertura dos testes pedidos pelo dono:
@@ -195,7 +195,15 @@ Cobertura dos testes pedidos pelo dono:
 
 ## 9. CI
 
-CI_RESULTADO
+**PASSOU.** Run nº 31 (commit `908e664`, https://github.com/Joaogoncalves19/barbearia/actions/runs/36896640959),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais), importador com banco fictício (simulação,
+  importação e reexecução, já criando as regras de comissão e os vales como histórico) e Playwright + axe.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Problemas encontrados
 
