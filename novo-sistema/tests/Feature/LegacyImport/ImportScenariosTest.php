@@ -6,6 +6,7 @@ use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\LegacyImport\Testing\FictitiousLegacyDatabase;
 use App\Modules\Loyalty\Services\LoyaltyLedger;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -167,9 +168,19 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertSame([7390, 4500, 2890], [(int) $alto->subtotal_cents, (int) $alto->discount_cents, (int) $alto->total_cents]);
         $this->assertSame(10000, DB::table('appointment_adjustments')->where('appointment_id', $alto->id)->value('amount_cents'), 'desconto original preservado');
 
-        $cheque = DB::table('payments')->where('appointment_id', $this->appointment('AG-CHEQUE')->id)->first();
+        $cheque = $this->paymentsOf($this->appointment('AG-CHEQUE')->id)->first();
         $this->assertSame(['unknown', 250, 4500], [$cheque->method, (int) $cheque->tip_cents, (int) $cheque->amount_cents]);
         $this->assertSame('legacy_estimated', $cheque->amount_source);
+
+        // Concluido no sistema antigo = atendimento concluido (Fase 6), com os
+        // mesmos valores e a gorjeta; o pagamento aponta o atendimento.
+        $at = DB::table('attendances')->where('appointment_id', $this->appointment('AG-CHEQUE')->id)->first();
+        $this->assertSame(['legacy', 'completed', 4500, 250], [$at->source, $at->status, (int) $at->total_cents, (int) $at->tip_cents]);
+        $this->assertSame((int) $at->id, (int) $cheque->attendance_id);
+        $this->assertSame(
+            DB::table('appointment_items')->where('appointment_id', $at->appointment_id)->count(),
+            DB::table('attendance_items')->where('attendance_id', $at->id)->count(),
+        );
     }
 
     public function test_item_sem_catalogo_fica_com_valor_desconhecido_e_sem_pagamento(): void
@@ -179,7 +190,7 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertSame(['legacy_catalog_estimate', 'legacy_unknown'], $itens->pluck('price_source')->all());
         $this->assertNull($itens[1]->unit_price_cents);
         $this->assertNull($ag->total_cents);
-        $this->assertSame(0, DB::table('payments')->where('appointment_id', $ag->id)->count());
+        $this->assertSame(0, $this->paymentsOf($ag->id)->count());
         $this->assertCount(1, $this->issues($this->r, 'payment_amount_unknown', 'AG-ITEMSUMIU'));
     }
 
@@ -194,7 +205,8 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertNotNull($ag, 'preservado como historico');
         $this->assertNotSame('completed', $ag->status);
         $this->assertNull($ag->completed_at);
-        $this->assertSame(0, DB::table('payments')->where('appointment_id', $ag->id)->count(), 'sem receita');
+        $this->assertSame(0, DB::table('attendances')->where('appointment_id', $ag->id)->count(), 'não vira atendimento');
+        $this->assertSame(0, $this->paymentsOf($ag->id)->count(), 'sem receita');
         $this->assertSame(0, DB::table('commission_entries')->where('appointment_id', $ag->id)->count(), 'sem comissao');
         $this->assertSame(0, DB::table('loyalty_entries')->where('appointment_id', $ag->id)->count(), 'sem pontos');
     }
@@ -263,5 +275,11 @@ class ImportScenariosTest extends ImporterTestCase
         }
         $this->assertCount(1, $this->issues($this->r, 'unknown_table'));
         $this->assertSame('tabela_misteriosa', $this->issues($this->r, 'unknown_table')[0]['source_table']);
+    }
+
+    /** Pagamentos do atendimento nascido deste agendamento (Fase 6). */
+    private function paymentsOf(int $appointmentId): Builder
+    {
+        return DB::table('payments')->whereIn('attendance_id', DB::table('attendances')->where('appointment_id', $appointmentId)->select('id'));
     }
 }

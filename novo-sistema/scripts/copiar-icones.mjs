@@ -17,6 +17,8 @@ const icones = [
     'mail', 'key-round', 'shield-check', 'history',
     // Fase 4 (catalogo e equipe)
     'arrow-up', 'arrow-down', 'power', 'tag', 'eye-off', 'upload',
+    // Fase 6 (atendimento, caixa e estoque)
+    'play', 'undo-2', 'receipt', 'boxes', 'banknote',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);

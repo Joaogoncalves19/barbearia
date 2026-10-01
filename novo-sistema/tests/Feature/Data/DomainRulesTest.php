@@ -3,6 +3,7 @@
 namespace Tests\Feature\Data;
 
 use App\Modules\Catalog\Models\Service;
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Enums\AmountSource;
 use App\Modules\Finance\Enums\PaymentKind;
@@ -34,7 +35,7 @@ class DomainRulesTest extends TestCase
 
     private function payment(array $over = []): Payment
     {
-        return Payment::create([...['appointment_id' => Appointment::factory()->create()->id, 'kind' => PaymentKind::Payment, 'method' => PaymentMethod::Pix,
+        return Payment::create([...['attendance_id' => Attendance::factory()->create()->id, 'kind' => PaymentKind::Payment, 'method' => PaymentMethod::Pix,
             'amount_cents' => 4500, 'tip_cents' => 0, 'amount_source' => AmountSource::Recorded, 'paid_at' => now()], ...$over]);
     }
 
@@ -54,7 +55,7 @@ class DomainRulesTest extends TestCase
             $this->assertNotNull($p->fresh());
         }
 
-        $estorno = $this->payment(['appointment_id' => $p->appointment_id, 'kind' => PaymentKind::Refund, 'refunds_payment_id' => $p->id]);
+        $estorno = $this->payment(['attendance_id' => $p->attendance_id, 'kind' => PaymentKind::Refund, 'refunds_payment_id' => $p->id]);
         $this->assertSame(0, $p->fresh()->signedAmount()->add($estorno->signedAmount())->cents);
 
         $this->expectException(DomainRuleViolation::class);

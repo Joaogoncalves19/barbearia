@@ -6,6 +6,8 @@ use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Catalog\Policies\ServiceCategoryPolicy;
 use App\Modules\Catalog\Policies\ServicePolicy;
+use App\Modules\Checkout\Models\Attendance;
+use App\Modules\Checkout\Policies\AttendancePolicy;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Policies\CustomerPolicy;
 use App\Modules\Identity\Authorization\PermissionMatrix;
@@ -99,6 +101,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Appointment::class, AppointmentPolicy::class);
         Gate::policy(Service::class, ServicePolicy::class);
         Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
+        Gate::policy(Attendance::class, AttendancePolicy::class);
     }
 
     /**
@@ -136,6 +139,12 @@ class AppServiceProvider extends ServiceProvider
         // agenda. Por conta logada (equipe ou cliente) + IP.
         RateLimiter::for('booking', fn (Request $request) => Limit::perMinute(20)->by(
             'booking|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
+        ));
+
+        // Operacoes de dinheiro e estoque (Fase 6): concluir, estornar,
+        // movimentar caixa e estoque. Folga para o balcao, trava robo/abuso.
+        RateLimiter::for('money', fn (Request $request) => Limit::perMinute(60)->by(
+            'money|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
         ));
 
         // Troca/confirmacao de senha logado: segura quem tenta adivinhar a

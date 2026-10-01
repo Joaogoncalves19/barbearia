@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Services\ServiceCatalog;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Customers\Services\CustomerLookup;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
@@ -62,7 +63,7 @@ class AppointmentController extends Controller
             'date' => $data,
             'slots' => $servico !== null && $pro !== null ? $availability->slots($servico, $pro, $data, Channel::Staff) : [],
             'term' => $termo,
-            'customers' => $this->searchCustomers($user, $termo),
+            'customers' => app(CustomerLookup::class)->search($user, $termo),
             'selectedTime' => (string) $request->query('hora', ''),
         ]);
     }
@@ -121,7 +122,7 @@ class AppointmentController extends Controller
 
     public function show(Appointment $appointment): View
     {
-        $appointment->load(['items', 'events' => fn ($q) => $q->orderBy('id'), 'customer']);
+        $appointment->load(['items', 'events' => fn ($q) => $q->orderBy('id'), 'customer', 'attendance', 'professional']);
 
         return view('panel.agenda.show', ['appointment' => $appointment]);
     }
@@ -223,30 +224,6 @@ class AppointmentController extends Controller
     private function allowedProfessionals(User $user, Collection $professionals): Collection
     {
         return $professionals->filter(fn (Professional $p) => Gate::forUser($user)->allows('createFor', [Appointment::class, $p]))->values();
-    }
-
-    /**
-     * Busca de cliente para agendar (so para quem pode ver clientes).
-     *
-     * @return Collection<int, Customer>
-     */
-    private function searchCustomers(User $user, string $term): Collection
-    {
-        if (mb_strlen($term) < 2 || ! $user->can('customers.view')) {
-            return collect();
-        }
-
-        $digitos = preg_replace('/\D+/', '', $term);
-
-        return Customer::query()
-            ->where('status', 'active')->whereNull('merged_into_customer_id')->whereNull('anonymized_at')
-            ->where(function ($q) use ($term, $digitos) {
-                $q->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.mb_strtolower($term).'%');
-                if ($digitos !== null && strlen($digitos) >= 4) {
-                    $q->orWhere('phone', 'like', '%'.$digitos.'%');
-                }
-            })
-            ->orderBy('name')->limit(10)->get();
     }
 
     private function serviceOf(Appointment $appointment): ?Service

@@ -2,14 +2,20 @@
 
 namespace App\Modules\LegacyImport\Steps;
 
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\LegacyImport\Enums\IssueClassification as C;
 use App\Modules\LegacyImport\Enums\IssueSeverity as S;
 use App\Modules\LegacyImport\Support\LegacyValue as V;
+use App\Modules\Shared\Support\PublicCode;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 /**
  * agendamentos -> appointments + appointment_items + appointment_adjustments
- * + payments + appointment_reminders + appointment_events.
+ * + appointment_reminders + appointment_events; os CONCLUIDOS tambem viram
+ * atendimento (attendances + attendance_items + attendance_discounts) com o
+ * pagamento (payments) apontando o atendimento (Fase 6: o pagamento pertence
+ * ao atendimento, nao a reserva).
  *
  * O banco antigo NAO guarda o preco cobrado. O sistema antigo calcula
  * faturamento com o preco ATUAL do catalogo; o item importado recebe esse
@@ -267,8 +273,9 @@ final class AppointmentsStep extends Step
         ]);
         $this->ctx->remember('agendamentos', $sid, 'appointment', $id, $row);
 
-        foreach ($itens as $item) {
-            $this->ctx->insert('appointment_items', [
+        $itemIds = [];
+        foreach ($itens as $n => $item) {
+            $itemIds[$n] = $this->ctx->insert('appointment_items', [
                 'appointment_id' => $id, ...$item, 'quantity' => 1,
                 'total_cents' => $item['unit_price_cents'], ...$this->stamps(),
             ]);
@@ -284,7 +291,11 @@ final class AppointmentsStep extends Step
         }
 
         if ($status === 'completed') {
-            $this->payment($sid, $row, $id, $clienteId, $total, $itens);
+            $gorjeta = max(0, $this->money('agendamentos', $sid, 'gorjeta', $row['gorjeta'] ?? null) ?? 0);
+            $atendimento = $this->attendance($row, $id, $clienteId, $nome ?? '(sem nome)', $profId, $profNome, $inicio, $gorjeta, $itens, $itemIds,
+                ['subtotal' => $subtotal, 'discount' => $conhecido ? $descontoEfetivo : null, 'total' => $total],
+                $desconto > 0 ? ['kind' => self::DISCOUNT_MAP[(string) $tipoDesconto] ?? 'legacy_unknown', 'amount' => $desconto, 'applied' => $descontoEfetivo, 'base' => $servicos, 'type' => $tipoDesconto] : null);
+            $this->payment($sid, $row, $atendimento, $clienteId, $total, $gorjeta, $itens);
         }
         $this->reminders($row, $id);
         $this->events($sid, $id, $row);
@@ -307,9 +318,8 @@ final class AppointmentsStep extends Step
      * @param  array<string, ?string>  $row
      * @param  list<array<string, mixed>>  $itens
      */
-    private function payment(string $sid, array $row, int $appointmentId, ?int $clienteId, ?int $total, array $itens): void
+    private function payment(string $sid, array $row, int $attendanceId, ?int $clienteId, ?int $total, int $gorjeta, array $itens): void
     {
-        $gorjeta = max(0, $this->money('agendamentos', $sid, 'gorjeta', $row['gorjeta'] ?? null) ?? 0);
         if ($total === null) {
             $this->ctx->issue('agendamentos', $sid, C::Inconsistent, S::Warning, 'payment_amount_unknown',
                 'Atendimento concluido com item de valor desconhecido: pagamento NAO criado (valor nao pode ser afirmado).', ['gorjeta_centavos' => $gorjeta], true);
@@ -326,10 +336,60 @@ final class AppointmentsStep extends Step
         }
         $estimado = count(array_filter($itens, fn ($i) => $i['item_type'] !== 'product')) > 0;
         $this->ctx->insert('payments', [
-            'appointment_id' => $appointmentId, 'customer_id' => $clienteId, 'kind' => 'payment', 'method' => $metodo,
+            'attendance_id' => $attendanceId, 'customer_id' => $clienteId, 'kind' => 'payment', 'method' => $metodo,
             'amount_cents' => $total, 'tip_cents' => $gorjeta, 'amount_source' => $estimado ? 'legacy_estimated' : 'recorded',
             'paid_at' => $this->local($row['comanda_fechada_em'] ?? null), ...$this->stamps(),
         ]);
+    }
+
+    /**
+     * Atendimento concluido do sistema antigo: o que aconteceu, com os mesmos
+     * itens e valores do agendamento (o sistema antigo nao distinguia
+     * reserva de atendimento). Status concluido; source = legacy.
+     *
+     * @param  array<string, ?string>  $row
+     * @param  list<array<string, mixed>>  $itens
+     * @param  array<int, int>  $itemIds
+     * @param  array{subtotal: ?int, discount: ?int, total: ?int}  $totais
+     * @param  array{kind: string, amount: int, applied: int, base: int, type: ?string}|null  $desconto
+     */
+    private function attendance(array $row, int $appointmentId, ?int $clienteId, string $nome, ?int $profId, ?string $profNome, CarbonImmutable $inicio, int $gorjeta, array $itens, array $itemIds, array $totais, ?array $desconto): int
+    {
+        $id = $this->ctx->insert('attendances', [
+            'code' => PublicCode::generate('AT', Attendance::class),
+            'source' => 'legacy',
+            'appointment_id' => $appointmentId,
+            'active_appointment_id' => $appointmentId,
+            'customer_id' => $clienteId,
+            'customer_name' => $nome,
+            'customer_phone' => V::text($row['telefone'] ?? null),
+            'professional_id' => $profId,
+            'professional_name' => $profNome,
+            'status' => 'completed',
+            'opened_at' => $inicio,
+            'completed_at' => $this->local($row['comanda_fechada_em'] ?? null),
+            'subtotal_cents' => $totais['subtotal'],
+            'discount_cents' => $totais['discount'],
+            'total_cents' => $totais['total'],
+            'tip_cents' => $gorjeta,
+            ...$this->stamps(),
+        ]);
+        foreach ($itens as $n => $item) {
+            $this->ctx->insert('attendance_items', [
+                'attendance_id' => $id, 'appointment_item_id' => $itemIds[$n] ?? null, ...$item, 'quantity' => 1,
+                'total_cents' => $item['unit_price_cents'], ...$this->stamps(),
+            ]);
+        }
+        if ($desconto !== null) {
+            $this->ctx->insert('attendance_discounts', [
+                'attendance_id' => $id, 'kind' => $desconto['kind'], 'type' => 'fixed', 'fixed_cents' => $desconto['amount'],
+                'base_cents' => $desconto['base'], 'amount_cents' => $desconto['applied'],
+                'reason' => $desconto['type'] ? "Desconto do sistema antigo ({$desconto['type']})" : 'Desconto do sistema antigo (origem nao informada)',
+                ...$this->stamps(),
+            ]);
+        }
+
+        return $id;
     }
 
     /**

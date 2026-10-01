@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\ServiceCategory;
+use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
@@ -59,6 +61,16 @@ class DevelopmentSeeder extends Seeder
                 'category_id' => $cabelo->id, 'duration_minutes' => $min, 'price_cents' => $preco, 'is_active' => true, 'sort_order' => ($i + 1) * 10,
             ]);
             $profissional?->services()->syncWithoutDetaching([$s->id]);
+        }
+
+        // Produtos de exemplo (Fase 6): dois a venda e um insumo. O estoque
+        // inicial entra pelo razao (StockLedger), nunca por um saldo editado.
+        $gerente = User::query()->where('username', 'manager')->firstOrFail();
+        foreach ([['Pomada modeladora', 3500, 1500, 5], ['Óleo para barba', 4290, 1800, 3], ['Lâmina descartável', null, 80, 50]] as [$nome, $preco, $custo, $minimo]) {
+            $p = Product::query()->firstOrCreate(['name' => $nome], ['price_cents' => $preco, 'cost_cents' => $custo, 'min_stock' => $minimo, 'unit' => 'un', 'is_active' => true]);
+            if (app(StockLedger::class)->balance($p) === 0) {
+                app(StockLedger::class)->receive($p->refresh(), $minimo * 4, $custo, 'Estoque inicial (dados de exemplo)', $gerente);
+            }
         }
 
         $cliente = Customer::query()->firstOrNew(['email' => 'cliente@barbearia.test']);

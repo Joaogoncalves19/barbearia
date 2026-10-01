@@ -15,6 +15,12 @@
     if ($user->can('agenda.view')) {
         $operacao[] = $item('Agenda', 'calendar-days', 'panel.agenda', 'panel.agenda');
     }
+    if ($user->can('viewAny', \App\Modules\Checkout\Models\Attendance::class)) {
+        $operacao[] = $item('Atendimentos', 'receipt', 'panel.attendances.index', 'panel.attendances.*');
+    }
+    if ($user->can('cash.view')) {
+        $operacao[] = $item('Caixa', 'wallet', 'panel.cash.index', 'panel.cash.*');
+    }
     if ($user->professional !== null) {
         $minhaFicha = route('panel.professionals.show', $user->professional);
         $operacao[] = ['label' => 'Minha ficha', 'icon' => 'user', 'href' => $minhaFicha, 'current' => request()->url() === $minhaFicha];
@@ -27,6 +33,9 @@
     }
     if ($user->can('professionals.view')) {
         $cadastros[] = $item('Profissionais', 'users', 'panel.professionals.index', 'panel.professionals.*');
+    }
+    if ($user->can('products.view')) {
+        $cadastros[] = $item('Produtos e estoque', 'package', 'panel.products.index', 'panel.products.*');
     }
 
     $configAgenda = [];

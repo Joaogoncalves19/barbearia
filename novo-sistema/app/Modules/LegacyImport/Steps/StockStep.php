@@ -40,15 +40,18 @@ final class StockStep extends Step
                 continue;
             }
             $motivo = $this->text('estoque_logs', $row['motivo'] ?? null);
-            $ag = null;
+            // Venda antiga ligada a um agendamento CONCLUIDO aponta o atendimento
+            // dele (Fase 6); sem atendimento, fica como ajuste com o motivo original.
+            $atendimento = null;
             if ($motivo && preg_match('/Agendamento\s+(\S+)/', $motivo, $m)) {
                 $ag = $this->ctx->ref('agendamentos', $m[1]);
+                $atendimento = $ag !== null ? DB::table('attendances')->where('appointment_id', $ag)->value('id') : null;
             }
             $id = $this->ctx->insert('stock_movements', [
                 'product_id' => $produto,
                 'quantity' => $tipo === 'entrada' ? abs($qtd) : -abs($qtd),
-                'kind' => $tipo === 'entrada' ? 'purchase' : ($ag ? 'sale' : 'adjustment'),
-                'reason' => $motivo, 'appointment_id' => $ag, 'actor_label' => V::text($row['usuario'] ?? null),
+                'kind' => $tipo === 'entrada' ? 'purchase' : ($atendimento ? 'sale' : 'adjustment'),
+                'reason' => $motivo, 'attendance_id' => $atendimento, 'actor_label' => V::text($row['usuario'] ?? null),
                 'occurred_at' => $this->local($row['data_hora'] ?? null), 'created_at' => $this->ctx->now,
             ]);
             $this->ctx->remember('estoque_logs', $sid, 'stock_movement', $id, $row);

@@ -21,7 +21,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `servicos` | migra | `services` | CatalogStep |
 | `combos` | transforma | `packages` + `package_items` | CatalogStep |
 | `produtos` | transforma | `products` (sem saldo) + movimento `legacy_opening` em `stock_movements` | CatalogStep / StockStep |
-| `estoque_logs` | migra | `stock_movements` | StockStep |
+| `estoque_logs` | migra | `stock_movements` (venda de agendamento concluído aponta o atendimento dele; sem atendimento, vira ajuste com o motivo original) | StockStep |
 | `clientes` | transforma | `customers` + `customer_notes` (notas do barbeiro) + `customer_merge_candidates` (duplicidades) | CustomersStep |
 | `anotacoes_clientes` | transforma | `customer_notes` (visibilidade equipe) | CustomersStep |
 | `barbeiros_favoritos` | migra | `customer_favorite_professionals` | CustomersStep |
@@ -33,7 +33,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `webhook_eventos_processados` | migra | `gateway_events` | SubscriptionsStep |
 | `cupoes` | migra | `coupons` | PromotionsStep |
 | `vouchers` | migra | `gift_cards` | PromotionsStep |
-| `agendamentos` | transforma | `appointments` + `appointment_items` + `appointment_adjustments` + `payments` + `appointment_reminders` + `appointment_events` | AppointmentsStep |
+| `agendamentos` | transforma | `appointments` + `appointment_items` + `appointment_adjustments` + `appointment_reminders` + `appointment_events`; concluídos: também `attendances` + `attendance_items` + `attendance_discounts` + `payments` (Fase 6) | AppointmentsStep |
 | `agenda_historico` | migra | `appointment_events` (`legacy.<acao>`) | AppointmentsStep |
 | `agenda_operacao` | transforma | `appointments.confirmation_requested_at` | AppointmentsStep |
 | `avaliacoes` | migra | `reviews` | ReviewsStep |
@@ -92,7 +92,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `nome`, `email`, `telefone` | `customer_name/email/phone` | snapshot como estava |
 | `cliente_id` | `customer_id` | órfão → nulo (agendamento sem conta) |
 | `barbeiro_id` | `professional_id` + `professional_name` | órfão → profissional inativo "Profissional removido (id)" |
-| `forma_pagamento`, `gorjeta`, `comanda_fechada_em` | `payments` | só para concluídos com valor conhecido; forma desconhecida → `unknown` |
+| `forma_pagamento`, `gorjeta`, `comanda_fechada_em` | `attendances` (`completed_at`, `tip_cents`) + `payments` (apontando o atendimento) | só para concluídos; pagamento só com valor conhecido; forma desconhecida → `unknown` |
 | `presenca_confirmada` | `confirmed_at` | |
 | `lembrete_data` / `lembrete_hora_em` | `appointment_reminders` | véspera sem horário (nulo); "horas antes" com horário |
 | `payment_gateway`, `gateway_reference` | `payment_gateway`, `payment_gateway_reference` | preservados |

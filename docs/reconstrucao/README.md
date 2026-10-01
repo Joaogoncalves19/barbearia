@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 4 concluídas. **Fase 5 concluída, aguardando aprovação** para a Fase 6
-> ([relatorio-fase-5.md](relatorio-fase-5.md)).
+> **Status:** Fases 0 a 5 concluídas. **Fase 6 concluída, aguardando aprovação** para a Fase 7
+> ([relatorio-fase-6.md](relatorio-fase-6.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -44,7 +44,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
-| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5): onde são garantidas e qual teste as prova |
+| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5, 52–63 da Fase 6): onde são garantidas e qual teste as prova |
 | [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
 | [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
@@ -82,6 +82,17 @@ plano para reconstruí-lo do zero, por etapas.
 | [regras-cancelamento.md](regras-cancelamento.md) | Quem, quando e o que acontece ao cancelar |
 | [regras-reagendamento.md](regras-reagendamento.md) | Os passos da remarcação e o que não muda |
 | [relatorio-fase-5.md](relatorio-fase-5.md) | Relatório final da Fase 5 |
+
+### Fase 6
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [atendimento.md](atendimento.md) | Atendimento × agendamento, snapshots, estados, conclusão transacional, idempotência, concorrência, telas |
+| [pagamentos.md](pagamentos.md) | Formas de pagamento, pagamento dividido, gorjeta, descontos, arredondamento, estorno |
+| [caixa.md](caixa.md) | Abertura, movimentações, fechamento, diferença, um caixa por barbearia |
+| [produtos.md](produtos.md) | Cadastro de produtos (venda e insumo), ativação, exclusão |
+| [estoque.md](estoque.md) | Estoque como razão: entrada, saída, venda, consumo, ajuste, estorno, mínimo |
+| [relatorio-fase-6.md](relatorio-fase-6.md) | Relatório final da Fase 6 |
 
 ## Legenda usada em todos os documentos
 

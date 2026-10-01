@@ -2,14 +2,15 @@
 
 namespace App\Modules\Scheduling\Models;
 
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
-use App\Modules\Finance\Models\Payment;
 use App\Modules\Reviews\Models\Review;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Enums\CancelledBy;
 use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use App\Modules\Shared\Models\Concerns\Auditable;
+use App\Modules\Shared\Support\PublicCode;
 use App\Modules\Team\Models\Professional;
 use Database\Factories\AppointmentFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
@@ -52,9 +53,6 @@ class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
     use Auditable, HasFactory;
-
-    /** Sem 0/O e 1/I/L para leitura por telefone. */
-    private const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
     protected $table = 'appointments';
 
@@ -115,14 +113,7 @@ class Appointment extends Model
 
     public static function generateCode(): string
     {
-        do {
-            $code = 'AG-';
-            for ($i = 0; $i < 6; $i++) {
-                $code .= self::CODE_ALPHABET[random_int(0, strlen(self::CODE_ALPHABET) - 1)];
-            }
-        } while (static::where('code', $code)->exists());
-
-        return $code;
+        return PublicCode::generate('AG', self::class);
     }
 
     /**
@@ -174,11 +165,24 @@ class Appointment extends Model
     }
 
     /**
-     * @return HasMany<Payment, $this>
+     * Atendimentos nascidos deste agendamento (no maximo um nao cancelado).
+     * O pagamento pertence ao atendimento, nao ao agendamento.
+     *
+     * @return HasMany<Attendance, $this>
      */
-    public function payments(): HasMany
+    public function attendances(): HasMany
     {
-        return $this->hasMany(Payment::class);
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * O atendimento em vigor (nao cancelado), se houver.
+     *
+     * @return HasOne<Attendance, $this>
+     */
+    public function attendance(): HasOne
+    {
+        return $this->hasOne(Attendance::class)->where('status', '<>', 'cancelled');
     }
 
     /**

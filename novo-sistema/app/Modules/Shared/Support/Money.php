@@ -65,6 +65,20 @@ final class Money implements JsonSerializable, Stringable
         return new self($negativo ? -$cents : $cents);
     }
 
+    /** Como parse(), mas devolve null para texto que nao e um valor (entrada de formulario). */
+    public static function tryParse(?string $valor): ?self
+    {
+        if ($valor === null || trim($valor) === '') {
+            return null;
+        }
+
+        try {
+            return self::parse($valor);
+        } catch (InvalidArgumentException) {
+            return null;
+        }
+    }
+
     public function add(self $outro): self
     {
         return new self($this->cents + $outro->cents);

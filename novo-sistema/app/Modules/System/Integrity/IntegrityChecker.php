@@ -68,6 +68,27 @@ class IntegrityChecker
             'R22_servico' => ['Servico com duracao positiva e preco nao negativo', fn () => DB::table('services')->where(fn ($q) => $q->where('duration_minutes', '<=', 0)->orWhere('price_cents', '<', 0))->count()],
             'R23_segredo' => ['Nenhuma configuracao com segredo', fn () => DB::table('settings')->get(['key', 'value'])->filter(fn ($s) => Setting::secretPaths([$s->key => json_decode((string) $s->value, true)]) !== [])->count()],
             'R24_mesclagem' => ['Par de duplicidade com clientes distintos', fn () => DB::table('customer_merge_candidates')->whereColumn('customer_id', 'duplicate_customer_id')->count()],
+
+            // Fase 6: atendimento, caixa e estoque.
+            'R25_item_atendimento' => ['Item de atendimento: preco nulo so no legado; total = preco x quantidade', fn () => DB::table('attendance_items')->where(fn ($q) => $q->where('quantity', '<', 1)->orWhere('unit_price_cents', '<', 0)
+                ->orWhere(fn ($a) => $a->whereNull('unit_price_cents')->where('price_source', '<>', 'legacy_unknown'))
+                ->orWhere(fn ($b) => $b->whereNotNull('unit_price_cents')->where('price_source', 'legacy_unknown'))
+                ->orWhereRaw('COALESCE(total_cents, -1) <> COALESCE(unit_price_cents * quantity, -1)'))->count()],
+            'R26_atendimento_pago' => ['Atendimento concluido (novo) pago exatamente pelo total', fn () => DB::table('attendances')->where('status', 'completed')->where('source', '<>', 'legacy')
+                ->whereRaw("COALESCE(total_cents, -1) <> (SELECT COALESCE(SUM(amount_cents), 0) FROM payments WHERE payments.attendance_id = attendances.id AND payments.kind = 'payment')")->count()],
+            'R27_atendimento_sentinela' => ['Um atendimento em vigor por agendamento (sentinela coerente)', fn () => DB::table('attendances')->where(fn ($q) => $q->where(fn ($a) => $a->where('status', '<>', 'cancelled')->whereNotNull('appointment_id')->where(fn ($x) => $x->whereNull('active_appointment_id')->orWhereColumn('active_appointment_id', '<>', 'appointment_id')))
+                ->orWhere(fn ($b) => $b->where('status', 'cancelled')->whereNotNull('active_appointment_id')))->count()],
+            'R28_desconto' => ['Desconto nao negativo e nunca maior que a base', fn () => DB::table('attendance_discounts')->where(fn ($q) => $q->where('amount_cents', '<', 0)->orWhereColumn('amount_cents', '>', 'base_cents'))->count()],
+            'R29_caixa_aberto' => ['No maximo um caixa aberto', fn () => max(0, DB::table('cash_sessions')->where('status', 'open')->count() - 1)],
+            'R30_caixa_movimento' => ['Movimento de caixa: entrada positiva, saida negativa; pagamento/estorno com origem', fn () => DB::table('cash_movements')->where(fn ($q) => $q->where('amount_cents', 0)
+                ->orWhere(fn ($a) => $a->whereIn('type', ['payment', 'supply'])->where('amount_cents', '<', 0))
+                ->orWhere(fn ($b) => $b->whereIn('type', ['refund', 'withdrawal'])->where('amount_cents', '>', 0))
+                ->orWhere(fn ($c) => $c->whereIn('type', ['payment', 'refund'])->whereNull('payment_id')))->count()],
+            'R31_pagamento_no_caixa' => ['Pagamento novo entrou no caixa (uma movimentacao)', fn () => DB::table('payments')->whereNotNull('cash_session_id')
+                ->whereRaw('(SELECT COUNT(*) FROM cash_movements WHERE cash_movements.payment_id = payments.id) <> 1')->count()],
+            'R32_estoque_origem' => ['Venda e consumo apontam o atendimento; estorno aponta o movimento', fn () => DB::table('stock_movements')->where(fn ($q) => $q->where(fn ($a) => $a->whereIn('kind', ['sale', 'consumption'])->whereNull('attendance_id'))
+                ->orWhere(fn ($b) => $b->where('kind', 'reversal')->whereNull('reverses_movement_id'))
+                ->orWhere(fn ($c) => $c->where('kind', '<>', 'reversal')->whereNotNull('reverses_movement_id')))->count()],
         ];
     }
 }

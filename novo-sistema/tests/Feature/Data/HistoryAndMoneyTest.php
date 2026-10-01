@@ -3,10 +3,12 @@
 namespace Tests\Feature\Data;
 
 use App\Modules\Catalog\Enums\StockMovementKind;
+use App\Modules\Catalog\Exceptions\StockRuleViolation;
 use App\Modules\Catalog\Models\Product;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Enums\LoyaltyEntryKind;
 use App\Modules\Loyalty\Models\LoyaltyEntry;
 use App\Modules\Loyalty\Services\LoyaltyLedger;
@@ -116,11 +118,12 @@ class HistoryAndMoneyTest extends TestCase
     {
         $ledger = app(StockLedger::class);
         $p = Product::factory()->create();
-        $ledger->record($p, 10, StockMovementKind::Purchase);
-        $ledger->record($p, -3, StockMovementKind::Sale);
+        $quem = User::factory()->create();
+        $ledger->receive($p, 10, null, 'Compra', $quem);
+        $ledger->issue($p, 3, StockMovementKind::Usage, 'Uso interno', $quem);
         $this->assertSame(7, $ledger->balance($p));
 
-        $this->expectException(DomainRuleViolation::class);
-        $ledger->record($p, -8, StockMovementKind::Sale);
+        $this->expectException(StockRuleViolation::class);
+        $ledger->issue($p, 8, StockMovementKind::Usage, 'Uso interno', $quem);
     }
 }

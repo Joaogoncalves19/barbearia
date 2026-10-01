@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Service;
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
 use App\Modules\Scheduling\Exceptions\SlotUnavailable;
@@ -28,12 +29,18 @@ class AppointmentController extends Controller
 {
     public function show(Appointment $appointment): View
     {
-        $appointment->load('items');
+        $appointment->load(['items', 'attendance']);
 
         return view('account.appointment', [
             'appointment' => $appointment,
             'policy' => BookingPolicy::current(),
         ]);
+    }
+
+    /** Comprovante do atendimento concluido (o que foi feito, cobrado e pago). */
+    public function receipt(Attendance $attendance): View
+    {
+        return view('account.receipt', ['attendance' => $attendance->load(['items', 'discounts', 'payments'])]);
     }
 
     public function cancel(Request $request, Appointment $appointment, BookingService $booking): RedirectResponse

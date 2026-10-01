@@ -25,7 +25,11 @@ use App\Http\Controllers\Panel\Agenda\TimeOffController;
 use App\Http\Controllers\Panel\Agenda\WorkingHoursController;
 use App\Http\Controllers\Panel\AuditLogController;
 use App\Http\Controllers\Panel\Catalog\CategoryController;
+use App\Http\Controllers\Panel\Catalog\ProductController;
 use App\Http\Controllers\Panel\Catalog\ServiceController;
+use App\Http\Controllers\Panel\Catalog\StockController;
+use App\Http\Controllers\Panel\Checkout\AttendanceController;
+use App\Http\Controllers\Panel\Checkout\CashController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
@@ -33,6 +37,7 @@ use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
 use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Http\Controllers\Site\HomeController;
+use App\Modules\Checkout\Models\Attendance;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -128,6 +133,10 @@ Route::prefix('minha-conta')
                 ->middleware('can:reschedule,appointment')->name('appointments.reschedule');
             Route::put('/agendamentos/{appointment:code}/remarcar', [AccountAppointmentController::class, 'reschedule'])
                 ->middleware(['can:reschedule,appointment', 'throttle:booking'])->name('appointments.reschedule.update');
+
+            // Comprovante do atendimento concluido (Fase 6): so o proprio; alheio = 404.
+            Route::get('/atendimentos/{attendance}', [AccountAppointmentController::class, 'receipt'])
+                ->middleware('can:view,attendance')->name('attendances.show');
         });
     });
 
@@ -242,6 +251,53 @@ Route::prefix('painel')
         Route::post('/profissionais/{professional}/ordem', [ProfessionalController::class, 'move'])->middleware('can:professionals.display')->name('professionals.move');
         Route::get('/profissionais/{professional}/servicos', [ProfessionalController::class, 'editServices'])->middleware('can:professionals.services')->name('professionals.services.edit');
         Route::put('/profissionais/{professional}/servicos', [ProfessionalController::class, 'updateServices'])->middleware('can:professionals.services')->name('professionals.services.update');
+
+        // --- Atendimento (Fase 6) ---
+        // Lista e encaixe: attendances.* (o profissional so os proprios). Cada
+        // acao num atendimento passa pela AttendancePolicy do registro;
+        // alheio = 404. Operacoes de dinheiro/estoque com throttle:money.
+        Route::get('/atendimentos', [AttendanceController::class, 'index'])->middleware('can:viewAny,'.Attendance::class)->name('attendances.index');
+        Route::get('/atendimentos/novo', [AttendanceController::class, 'create'])->middleware('can:create,'.Attendance::class)->name('attendances.create');
+        Route::post('/atendimentos', [AttendanceController::class, 'store'])->middleware('can:create,'.Attendance::class)->name('attendances.store');
+        Route::post('/agendamentos/{appointment:code}/atendimento', [AttendanceController::class, 'openFromAppointment'])->middleware('can:view,appointment')->name('attendances.open');
+        Route::get('/atendimentos/{attendance}', [AttendanceController::class, 'show'])->middleware('can:view,attendance')->name('attendances.show');
+        Route::post('/atendimentos/{attendance}/iniciar', [AttendanceController::class, 'start'])->middleware('can:update,attendance')->name('attendances.start');
+        Route::post('/atendimentos/{attendance}/servicos', [AttendanceController::class, 'addService'])->middleware('can:update,attendance')->name('attendances.services.store');
+        Route::post('/atendimentos/{attendance}/produtos', [AttendanceController::class, 'addProduct'])->middleware('can:update,attendance')->name('attendances.products.store');
+        Route::delete('/atendimentos/{attendance}/itens/{item}', [AttendanceController::class, 'removeItem'])->middleware('can:update,attendance')->name('attendances.items.destroy');
+        Route::post('/atendimentos/{attendance}/consumos', [AttendanceController::class, 'addConsumption'])->middleware('can:update,attendance')->name('attendances.consumptions.store');
+        Route::delete('/atendimentos/{attendance}/consumos/{consumption}', [AttendanceController::class, 'removeConsumption'])->middleware('can:update,attendance')->name('attendances.consumptions.destroy');
+        Route::post('/atendimentos/{attendance}/desconto', [AttendanceController::class, 'applyDiscount'])->middleware('can:discount,attendance')->name('attendances.discount.store');
+        Route::delete('/atendimentos/{attendance}/desconto/{discount}', [AttendanceController::class, 'removeDiscount'])->middleware('can:discount,attendance')->name('attendances.discount.destroy');
+        Route::put('/atendimentos/{attendance}/profissional', [AttendanceController::class, 'changeProfessional'])->middleware('can:update,attendance')->name('attendances.professional');
+        Route::put('/atendimentos/{attendance}/observacoes', [AttendanceController::class, 'updateNotes'])->middleware('can:update,attendance')->name('attendances.notes');
+        Route::post('/atendimentos/{attendance}/concluir', [AttendanceController::class, 'complete'])->middleware(['can:complete,attendance', 'throttle:money'])->name('attendances.complete');
+        Route::post('/atendimentos/{attendance}/cancelar', [AttendanceController::class, 'cancel'])->middleware('can:cancel,attendance')->name('attendances.cancel');
+        Route::post('/atendimentos/{attendance}/pagamentos/{payment}/estorno', [AttendanceController::class, 'refund'])->middleware(['can:view,attendance', 'can:payments.refund', 'throttle:money'])->name('attendances.refund');
+        Route::post('/atendimentos/{attendance}/estoque/{movement}/devolver', [AttendanceController::class, 'returnToStock'])->middleware(['can:view,attendance', 'can:stock.adjust', 'throttle:money'])->name('attendances.return-stock');
+
+        // --- Caixa (Fase 6) ---
+        Route::get('/caixa', [CashController::class, 'index'])->middleware('can:cash.view')->name('cash.index');
+        Route::post('/caixa', [CashController::class, 'open'])->middleware(['can:cash.open', 'throttle:money'])->name('cash.open');
+        Route::post('/caixa/movimentos', [CashController::class, 'move'])->middleware(['can:cash.move', 'throttle:money'])->name('cash.move');
+        Route::get('/caixa/{session}', [CashController::class, 'show'])->middleware('can:cash.view')->name('cash.show');
+        Route::post('/caixa/{session}/fechar', [CashController::class, 'close'])->middleware(['can:cash.close', 'throttle:money'])->name('cash.close');
+
+        // --- Produtos e estoque (Fase 6) ---
+        // O saldo nunca e editado: so muda por movimentacao (entrada, saida,
+        // ajuste de inventario, estorno), cada uma com a sua habilidade.
+        Route::get('/produtos', [ProductController::class, 'index'])->middleware('can:products.view')->name('products.index');
+        Route::get('/produtos/novo', [ProductController::class, 'create'])->middleware('can:products.create')->name('products.create');
+        Route::post('/produtos', [ProductController::class, 'store'])->middleware('can:products.create')->name('products.store');
+        Route::get('/produtos/{product}/editar', [ProductController::class, 'edit'])->middleware('can:products.update')->name('products.edit');
+        Route::put('/produtos/{product}', [ProductController::class, 'update'])->middleware('can:products.update')->name('products.update');
+        Route::post('/produtos/{product}/situacao', [ProductController::class, 'setStatus'])->middleware('can:products.toggle')->name('products.status');
+        Route::delete('/produtos/{product}', [ProductController::class, 'destroy'])->middleware('can:products.toggle')->name('products.destroy');
+        Route::get('/produtos/{product}/estoque', [StockController::class, 'show'])->middleware('can:stock.view')->name('stock.show');
+        Route::post('/produtos/{product}/estoque/entrada', [StockController::class, 'receive'])->middleware(['can:stock.receive', 'throttle:money'])->name('stock.receive');
+        Route::post('/produtos/{product}/estoque/saida', [StockController::class, 'issue'])->middleware(['can:stock.issue', 'throttle:money'])->name('stock.issue');
+        Route::post('/produtos/{product}/estoque/ajuste', [StockController::class, 'adjust'])->middleware(['can:stock.adjust', 'throttle:money'])->name('stock.adjust');
+        Route::post('/produtos/{product}/estoque/{movement}/estorno', [StockController::class, 'reverse'])->middleware(['can:stock.adjust', 'throttle:money'])->name('stock.reverse');
 
         Route::get('/auditoria', [AuditLogController::class, 'index'])
             ->middleware('can:audit.view')->name('audit.index');

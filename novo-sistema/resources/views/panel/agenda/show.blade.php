@@ -31,6 +31,16 @@
 
         <x-ui.card title="Ações">
             <div class="stack">
+                @if ($a->attendance !== null)
+                    @can('view', $a->attendance)
+                        <x-ui.button :href="route('panel.attendances.show', $a->attendance)" icon="receipt">Atendimento {{ $a->attendance->code }} · {{ $a->attendance->status->label() }}</x-ui.button>
+                    @endcan
+                @elseif (in_array($a->status->value, ['pending', 'confirmed'], true) && BusinessTime::dateOf($a->starts_at) === BusinessTime::today() && $a->professional && $u->can('openFor', [\App\Modules\Checkout\Models\Attendance::class, $a->professional]))
+                    <form method="POST" action="{{ route('panel.attendances.open', $a) }}">
+                        @csrf
+                        <x-ui.button type="submit" icon="play">Cliente chegou: abrir atendimento</x-ui.button>
+                    </form>
+                @endif
                 <div class="cluster">
                     @if ($a->status->value === 'pending')
                         @can('update', $a)

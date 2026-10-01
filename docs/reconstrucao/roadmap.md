@@ -170,9 +170,9 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 5 — Motor de agenda e agendamento ✅ (aguardando aprovação)
+## Fase 5 — Motor de agenda e agendamento ✅
 
-> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 6.** Relatório:
+> **Concluída em 2026-09-30 e aprovada** (início da Fase 6 autorizado). Relatório:
 > [relatorio-fase-5.md](relatorio-fase-5.md). Branch `claude/fase-5-agenda` (a partir da Fase 4).
 > Entregue: horário de funcionamento (vários períodos por dia), expediente e pausas por profissional, folgas,
 > bloqueios (do profissional ou da barbearia), regras configuráveis (antecedência, alcance, grade, prazos de
@@ -206,7 +206,22 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 6 — Atendimento e caixa
+## Fase 6 — Atendimento e caixa ✅ (aguardando aprovação)
+
+> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 7.** Relatório:
+> [relatorio-fase-6.md](relatorio-fase-6.md). Branch `claude/fase-6-atendimento-caixa` (a partir da Fase 5).
+> Entregue: atendimento separado do agendamento (abrir do agendamento ou encaixe), estados
+> aberto/em atendimento/concluído/cancelado, preço e nomes fotografados, **uma** regra de desconto e de
+> arredondamento (`Discount`/`PriceBreakdown`, também usada pelo agendamento), conclusão transacional
+> (pagamento dividido, gorjeta, caixa, estoque, agendamento, tudo ou nada), idempotência por chave,
+> estorno sem apagar, caixa (um por barbearia: abertura, suprimento, sangria, fechamento com diferença e
+> justificativa), produtos (venda e insumo) e estoque como razão (entrada, saída, perda, venda, consumo,
+> ajuste, estorno, mínimo), teste de concorrência com processos reais, 20 permissões novas, comprovante do
+> cliente, auditoria ([atendimento.md](atendimento.md), [pagamentos.md](pagamentos.md),
+> [caixa.md](caixa.md), [produtos.md](produtos.md), [estoque.md](estoque.md)).
+> **Diferenças em relação ao plano abaixo:** comissão **não** foi calculada nem gravada (o briefing da Fase 6
+> excluiu; vai para a Fase 7 com o financeiro); o comprovante é a tela do cliente (sem impressão); "simulação de
+> um dia inteiro" em homologação não foi executada (não há ambiente, D-01).
 
 - **Objetivo:** fechar o atendimento com valores corretos e históricos.
 - **Escopo:** comanda (itens, produtos, ajuste, forma de pagamento, pagamento dividido, gorjeta);

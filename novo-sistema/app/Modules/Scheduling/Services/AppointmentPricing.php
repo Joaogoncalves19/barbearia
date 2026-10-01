@@ -4,13 +4,15 @@ namespace App\Modules\Scheduling\Services;
 
 use App\Modules\Scheduling\Enums\ItemType;
 use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Shared\Pricing\Discount;
+use App\Modules\Shared\Pricing\PriceBreakdown;
 use App\Modules\Shared\Support\Money;
 
 /**
- * Totais do atendimento a partir dos itens (precos fotografados) e dos
- * descontos. Regra herdada do sistema atual: o desconto incide so sobre
- * servicos e combos (nunca sobre produtos) e fica limitado ao valor deles,
- * entao nunca deixa o total negativo.
+ * Totais do agendamento (o orcamento) a partir dos itens (precos
+ * fotografados) e dos descontos. O calculo e o do PriceBreakdown, o mesmo do
+ * atendimento: o desconto incide so sobre servicos e combos (nunca sobre
+ * produtos) e nunca deixa o total negativo.
  *
  * Se algum item tem preco desconhecido (legado), os totais ficam nulos:
  * nao se apresenta como exato um valor que nao e.
@@ -22,20 +24,18 @@ class AppointmentPricing
      */
     public function totals(Appointment $appointment): array
     {
-        $itens = $appointment->items()->get(['item_type', 'total_cents']);
-        if ($itens->contains(fn ($i) => $i->total_cents === null)) {
-            return ['subtotal' => null, 'discount' => null, 'total' => null];
-        }
+        $linhas = $appointment->items()->get(['item_type', 'total_cents'])
+            ->map(fn ($i) => ['total' => $i->total_cents, 'discountable' => $i->item_type !== ItemType::Product]);
+        $descontos = $appointment->adjustments()->orderBy('id')->pluck('amount_cents')
+            ->filter(fn ($c) => (int) $c > 0)
+            ->map(fn ($c) => Discount::fixed((int) $c))->values()->all();
 
-        $subtotal = Money::fromCents((int) $itens->sum('total_cents'));
-        $baseDesconto = Money::fromCents((int) $itens->reject(fn ($i) => $i->item_type === ItemType::Product)->sum('total_cents'));
-        $descontoBruto = Money::fromCents((int) $appointment->adjustments()->sum('amount_cents'));
-        $desconto = $descontoBruto->greaterThan($baseDesconto) ? $baseDesconto : $descontoBruto;
+        $b = PriceBreakdown::calculate($linhas, $descontos);
 
-        return ['subtotal' => $subtotal, 'discount' => $desconto, 'total' => $subtotal->subtract($desconto)];
+        return ['subtotal' => $b->subtotal, 'discount' => $b->discount, 'total' => $b->total];
     }
 
-    /** Grava os totais no agendamento (fotografia para relatorios). */
+    /** Grava os totais no agendamento (fotografia do orcamento). */
     public function refresh(Appointment $appointment): Appointment
     {
         $t = $this->totals($appointment);

@@ -29,6 +29,15 @@
 > agendamentos do site. **D-13:** implementada com os valores recomendados como padrão configurável: o cliente
 > cancela/remarca até 2 h antes, no máximo 2 remarcações; depois disso, só pela barbearia. O dono pode ajustar
 > em "Funcionamento e regras". Ver [relatorio-fase-5.md](relatorio-fase-5.md).
+>
+> **Fase 6 (decisões do dono):** **D-25** um caixa aberto por vez na barbearia. **D-26** encaixe (atendimento
+> sem agendamento) permitido, com cliente cadastrado ou só nome e telefone. **D-27** produtos no atendimento:
+> venda (cobrada) e consumo (material, não cobrado), ambos baixando o estoque. **D-28** não existe "pagar
+> depois": só se conclui pago. **Pendentes (não bloqueiam; implementadas na forma mais conservadora):**
+> D-29 desconto manual pela recepção (hoje só proprietário e gerente) e limite de desconto por papel (hoje sem
+> limite além do valor dos serviços, com motivo obrigatório); D-30 estorno pelo gerente (hoje proprietário e
+> financeiro); D-31 repasse da gorjeta ao profissional (registrada por pagamento; repasse na Fase 7). Ver
+> [relatorio-fase-6.md](relatorio-fase-6.md#4-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

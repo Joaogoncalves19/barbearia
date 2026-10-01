@@ -5,6 +5,8 @@
  *   <dialog id="id-do-dialog">... <button data-dialog-close>Fechar</button></dialog>
  *
  * Ao fechar, o foco volta para o botao que abriu. Clicar no fundo fecha.
+ * <dialog data-dialog-autoopen>: abre ao carregar a pagina (o envio do
+ * formulario do modal voltou com erro de validacao).
  */
 export function initDialogs() {
     let origem = null;
@@ -42,4 +44,11 @@ export function initDialogs() {
         },
         true,
     );
+
+    document.querySelectorAll('dialog[data-dialog-autoopen]').forEach((dialog) => {
+        if (typeof dialog.showModal === 'function' && !dialog.open) {
+            origem = document.querySelector(`[data-dialog-open="${dialog.id}"]`);
+            dialog.showModal();
+        }
+    });
 }

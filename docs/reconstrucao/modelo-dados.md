@@ -1,9 +1,10 @@
-# Modelo de dados do novo sistema (Fases 2 a 5)
+# Modelo de dados do novo sistema (Fases 2 a 6)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
 > (seção 2.1); a Fase 4, `2026_09_30_000100_add_catalog_and_team_admin_columns` (seções 2.3 e 2.4);
-> a Fase 5, `2026_10_01_000100_create_agenda_tables` (seções 2.3 e 2.5).
+> a Fase 5, `2026_10_01_000100_create_agenda_tables` (seções 2.3 e 2.5); a Fase 6,
+> `2026_10_02_000100_create_checkout_tables` (seções 2.4, 2.5a e 2.6).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -28,8 +29,9 @@ depois de acontecer, e como ela nasce a partir do sistema atual.
 | **Customers** | `customers`, `customer_notes`, `customer_favorite_professionals`, `customer_merge_candidates`, `consent_records`, `email_suppressions`, `customer_notifications` | Cliente final, anotações da equipe, favoritos, suspeitas de duplicidade, consentimentos (LGPD), lista de supressão de e-mail e avisos no app |
 | **Team** | `professionals`, `professional_service`, `working_hours`, `schedule_breaks`, `time_off`, `blocked_slots` | Profissional que atende (pode ou não ter login), o que ele faz, expediente, pausas, ausências e bloqueios pontuais |
 | **Catalog** | `service_categories`, `services`, `packages`, `package_items`, `products`, `stock_movements` | O que a barbearia vende: serviços, combos, produtos e o razão de estoque |
-| **Scheduling** | `appointments`, `appointment_items`, `appointment_adjustments`, `appointment_events`, `appointment_reminders` | O atendimento: quando, com quem, o que foi feito (com preço congelado), descontos, linha do tempo e lembretes |
-| **Finance** | `payments`, `commission_entries`, `commission_payouts`, `advances`, `expenses`, `financial_goals` | Dinheiro que entrou, comissões calculadas e pagas, vales, despesas e metas |
+| **Checkout** (Fase 6) | `attendances`, `attendance_items`, `attendance_consumptions`, `attendance_discounts`, `attendance_events` | O atendimento: o que aconteceu quando o cliente chegou (itens vendidos, material usado, descontos, linha do tempo) |
+| **Scheduling** | `appointments`, `appointment_items`, `appointment_adjustments`, `appointment_events`, `appointment_reminders` | A reserva: quando, com quem, o que foi combinado (com preço congelado), descontos, linha do tempo e lembretes |
+| **Finance** | `payments`, `cash_sessions`, `cash_movements`, `commission_entries`, `commission_payouts`, `advances`, `expenses`, `financial_goals` | Dinheiro que entrou (pagamentos do atendimento), caixa, comissões calculadas e pagas, vales, despesas e metas |
 | **Loyalty** | `loyalty_entries`, `coupons`, `coupon_redemptions`, `gift_cards` | Pontos (razão), cupons e seus usos, vales-presente |
 | **Subscriptions** | `plans`, `plan_services`, `subscriptions`, `subscription_payments`, `gateway_events` | Planos mensais, assinaturas (com histórico), pagamentos e idempotência de webhooks |
 | **Reviews** | `reviews`, `review_replies` | Avaliação do atendimento e resposta da barbearia |
@@ -48,8 +50,12 @@ users 1───0..1 professionals ─┬─< professional_service >── servi
 customers ─┬─< appointments ─┬─< appointment_items ──> services | packages | products (referência opcional)
            │                 ├─< appointment_adjustments ──> coupons | gift_cards | subscriptions (origem)
            │                 ├─< appointment_events / appointment_reminders
-           │                 ├─< payments
+           │                 ├─< attendances (0..1 em vigor; Fase 6) ─┬─< attendance_items / attendance_consumptions
+           │                 │                                        ├─< attendance_discounts / attendance_events
+           │                 │                                        ├─< payments ──> cash_sessions ──< cash_movements
+           │                 │                                        └─< stock_movements (venda e consumo)
            │                 └── 0..1 reviews ──< review_replies
+           ├─< attendances sem agendamento (encaixe)
            ├─< subscriptions ──> plans ──< plan_services >── services
            │        └─< subscription_payments
            ├─< loyalty_entries (saldo = soma)
@@ -59,7 +65,7 @@ customers ─┬─< appointments ─┬─< appointment_items ──> services 
            ├── referred_by ──> customers (indicação)
            └─< customer_merge_candidates (pares suspeitos)
 
-products ──< stock_movements (saldo = soma)       packages ──< package_items >── services
+products ──< stock_movements (saldo = soma; estorno aponta o movimento)       packages ──< package_items >── services
 plans / services / products / professionals: nunca apagados fisicamente (soft delete / inativo)
 legacy_references: (tabela antiga, id antigo) ──> (entidade nova, id novo)
 ```
@@ -203,10 +209,13 @@ R$ 1,00 e R$ 10.000,00 (regras no model, valem sempre que o valor muda). Ver [se
 **package_items** — `package_id` (FK cascade), `service_id` (FK restrict), `quantity`. U(`package_id`,`service_id`).
 Duração do combo = soma das durações dos serviços (regra do sistema atual).
 **products** — `category_id` (N), `name`, `price_cents`, `cost_cents` (N), `min_stock` (N), `is_active`, SD.
-**Sem coluna de saldo.**
+**Sem coluna de saldo.** **Fase 6:** `price_cents` anulável (insumo, não vendido), `sku` (N, U), `description` (N),
+`unit`, `lock_version`, `stock_version` (linha de trava do estoque). Ver [produtos.md](produtos.md).
 **stock_movements** (só inclusão) — `product_id` (FK restrict), `quantity` (com sinal), `kind`
-(`purchase`|`sale`|`adjustment`|`loss`|`legacy_opening`), `reason` (N), `appointment_id` (N),
-`actor_label` (N), `occurred_at` (N), `created_at`.
+(`purchase`|`sale`|`consumption`|`usage`|`loss`|`adjustment`|`reversal`|`legacy_opening`), `reason` (N),
+`actor_label` (N), `occurred_at` (N), `created_at`. **Fase 6:** `appointment_id` trocado por `attendance_id`
+(FK restrict, N; obrigatório em venda e consumo), `reverses_movement_id` (FK, N, U: estorno uma vez),
+`balance_after` (N), `unit_cost_cents` (N), `created_by_user_id` (N), `request_key` (N, U). Ver [estoque.md](estoque.md).
 
 ### 2.5 Scheduling
 
@@ -241,12 +250,45 @@ catálogo sumir), `name` (snapshot), `quantity`, `unit_price_cents` (N), `total_
 **appointment_reminders** — `appointment_id` (FK cascade), `kind` (`day_before`|`hours_before`),
 `status` (`sent`|`failed`), `sent_at` (N). U(`appointment_id`,`kind`).
 
+### 2.5a Checkout (Fase 6)
+
+**attendances** — `code` (U, ex.: `AT-9MX4RB`), `source` (`appointment`|`walk_in`|`legacy`), `appointment_id` (FK
+restrict, N), `active_appointment_id` (N, U: sentinela "um atendimento em vigor por agendamento"),
+`customer_id` (FK null on delete, N), `customer_name`, `customer_phone` (N) (snapshots), `professional_id` (FK
+restrict; N só no legado), `professional_name` (snapshot), `status` (`open`|`in_progress`|`completed`|`cancelled`),
+`opened_at`, `started_at`/`completed_at`/`cancelled_at` (N), `cancellation_reason` (N), `subtotal_cents`/
+`discount_cents`/`total_cents`/`tip_cents` (N; gravados na conclusão), `notes` (N), `opened_by_user_id`/
+`completed_by_user_id`/`cancelled_by_user_id` (N), `completion_key` (N, U: idempotência), `version` (linha de trava),
+timestamps. I(`status`,`opened_at`), I(`professional_id`,`opened_at`), I(`completed_at`).
+
+**attendance_items** — `attendance_id` (FK cascade), `item_type` (`service`|`package`|`product`), `service_id`/
+`package_id` (null on delete, N), `product_id` (restrict, N), `appointment_item_id` (N, origem), `name`, `quantity`,
+`unit_price_cents`/`total_cents` (N só no legado desconhecido), `duration_minutes` (N), `price_source`
+(`catalog_at_booking`|`catalog_at_attendance`|legado), `cost_cents` (N), `added_by_user_id` (N), timestamps.
+**attendance_consumptions** — `attendance_id`, `product_id` (restrict), `product_name`, `quantity`, `unit_cost_cents` (N),
+`added_by_user_id` (N), timestamps.
+**attendance_discounts** — `attendance_id`, `kind` (`AdjustmentKind`), `type` (`percent`|`fixed`), `percent_bp`/`fixed_cents`
+(um dos dois), `base_cents` (valor antes), `amount_cents` (valor descontado ≤ base), `reason` (N), `applied_by_user_id` (N).
+**attendance_events** (só inclusão) — `attendance_id`, `type`, `description`, `actor_label` (N), `data` (json, N), `occurred_at`.
+
+Itens, consumo e descontos mudam só enquanto o atendimento está aberto ou em andamento; depois são histórico.
+Ver [atendimento.md](atendimento.md) e [pagamentos.md](pagamentos.md).
+
 ### 2.6 Finance
 
-**payments** (só inclusão) — `appointment_id` (FK restrict, N), `customer_id` (N), `kind` (`payment`|`refund`),
+**payments** (só inclusão) — `customer_id` (N), `kind` (`payment`|`refund`),
 `refunds_payment_id` (FK payments, N), `method` (`cash`|`pix`|`debit_card`|`credit_card`|`other`|`unknown`),
 `amount_cents` (>0), `tip_cents` (≥0), `amount_source` (`recorded`|`legacy_estimated`), `paid_at` (N),
-`received_by_label` (N), `created_at`.
+`received_by_label` (N), `created_at`. **Fase 6:** `appointment_id` trocado por `attendance_id` (FK restrict, N: o
+pagamento pertence ao atendimento, não à reserva), `cash_session_id` (FK restrict, N; nulo só no legado),
+`received_by_user_id` (N), `reason` (N, motivo do estorno), `request_key` (N, U).
+
+**cash_sessions** — `open_marker` (N, U: 1 enquanto aberto = um caixa por barbearia), `status` (`open`|`closed`),
+`opened_by_user_id`, `opened_at`, `opening_float_cents`, `opening_notes` (N), `closed_by_user_id`/`closed_at` (N),
+`expected_cash_cents`/`counted_cash_cents`/`difference_cents` (N; no fechamento), `closing_notes` (N), `version`.
+**cash_movements** (só inclusão) — `cash_session_id` (restrict), `type` (`payment`|`refund`|`supply`|`withdrawal`),
+`method`, `amount_cents` (com sinal), `payment_id` (FK restrict, N, U), `description`, `request_key` (N, U),
+`created_by_user_id` (N), `occurred_at`. Ver [caixa.md](caixa.md).
 
 **commission_entries** (só inclusão) — `professional_id` (restrict), `appointment_id` (restrict, N),
 `base_cents`, `rate_bp` (N), `amount_cents` (com sinal: estorno negativo), `rule` (snapshot da regra),
@@ -332,7 +374,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (51 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (58 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 
 ### `advances`
 
@@ -449,6 +491,108 @@ Unicos: (code)
 
 Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
 
+### `attendance_consumptions`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `attendance_id` | integer | nao | | attendances.id (cascade) |
+| `product_id` | integer | nao | | products.id (restrict) |
+| `product_name` | varchar | nao | | |
+| `quantity` | integer | nao | | |
+| `unit_cost_cents` | integer | sim | | |
+| `added_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `attendance_discounts`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `attendance_id` | integer | nao | | attendances.id (cascade) |
+| `kind` | varchar | nao | | |
+| `type` | varchar | nao | | |
+| `percent_bp` | integer | sim | | |
+| `fixed_cents` | integer | sim | | |
+| `base_cents` | integer | nao | | |
+| `amount_cents` | integer | nao | | |
+| `reason` | varchar | sim | | |
+| `applied_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `attendance_events`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `attendance_id` | integer | nao | | attendances.id (cascade) |
+| `type` | varchar | nao | | |
+| `description` | varchar | nao | | |
+| `actor_label` | varchar | sim | | |
+| `data` | text | sim | | |
+| `occurred_at` | datetime | nao | | |
+
+### `attendance_items`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `attendance_id` | integer | nao | | attendances.id (cascade) |
+| `item_type` | varchar | nao | | |
+| `service_id` | integer | sim | | services.id (set null) |
+| `package_id` | integer | sim | | packages.id (set null) |
+| `product_id` | integer | sim | | products.id (restrict) |
+| `appointment_item_id` | integer | sim | | appointment_items.id (set null) |
+| `name` | varchar | nao | | |
+| `quantity` | integer | nao | `1` | |
+| `unit_price_cents` | integer | sim | | |
+| `total_cents` | integer | sim | | |
+| `duration_minutes` | integer | sim | | |
+| `price_source` | varchar | nao | | |
+| `cost_cents` | integer | sim | | |
+| `added_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+### `attendances`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `code` | varchar | nao | | |
+| `source` | varchar | nao | | |
+| `appointment_id` | integer | sim | | appointments.id (restrict) |
+| `active_appointment_id` | integer | sim | | |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `customer_name` | varchar | nao | | |
+| `customer_phone` | varchar | sim | | |
+| `professional_id` | integer | sim | | professionals.id (restrict) |
+| `professional_name` | varchar | sim | | |
+| `status` | varchar | nao | | |
+| `opened_at` | datetime | nao | | |
+| `started_at` | datetime | sim | | |
+| `completed_at` | datetime | sim | | |
+| `cancelled_at` | datetime | sim | | |
+| `cancellation_reason` | varchar | sim | | |
+| `subtotal_cents` | integer | sim | | |
+| `discount_cents` | integer | sim | | |
+| `total_cents` | integer | sim | | |
+| `tip_cents` | integer | sim | | |
+| `notes` | text | sim | | |
+| `opened_by_user_id` | integer | sim | | users.id (set null) |
+| `completed_by_user_id` | integer | sim | | users.id (set null) |
+| `cancelled_by_user_id` | integer | sim | | users.id (set null) |
+| `completion_key` | varchar | sim | | |
+| `version` | integer | nao | `0` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Unicos: (active_appointment_id) · (code) · (completion_key)
+
+Indices: (completed_at) · (professional_id, opened_at) · (status, opened_at)
+
 ### `audit_logs`
 
 | Coluna | Tipo | Nulo | Padrao | FK |
@@ -516,6 +660,51 @@ Unicos: (weekday, starts_at)
 | `completed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+
+### `cash_movements`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `cash_session_id` | integer | nao | | cash_sessions.id (restrict) |
+| `type` | varchar | nao | | |
+| `method` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `payment_id` | integer | sim | | payments.id (restrict) |
+| `description` | varchar | nao | | |
+| `request_key` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `occurred_at` | datetime | nao | | |
+| `created_at` | datetime | sim | | |
+
+Unicos: (payment_id) · (request_key)
+
+Indices: (cash_session_id, method)
+
+### `cash_sessions`
+
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `open_marker` | integer | sim | | |
+| `status` | varchar | nao | | |
+| `opened_by_user_id` | integer | sim | | users.id (set null) |
+| `opened_at` | datetime | nao | | |
+| `opening_float_cents` | integer | nao | | |
+| `opening_notes` | varchar | sim | | |
+| `closed_by_user_id` | integer | sim | | users.id (set null) |
+| `closed_at` | datetime | sim | | |
+| `expected_cash_cents` | integer | sim | | |
+| `counted_cash_cents` | integer | sim | | |
+| `difference_cents` | integer | sim | | |
+| `closing_notes` | varchar | sim | | |
+| `version` | integer | nao | `0` | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+
+Unicos: (open_marker)
+
+Indices: (opened_at)
 
 ### `commission_entries`
 
@@ -875,7 +1064,6 @@ Unicos: (package_id, service_id)
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
-| `appointment_id` | integer | sim | | appointments.id (restrict) |
 | `customer_id` | integer | sim | | customers.id (set null) |
 | `kind` | varchar | nao | `payment` | |
 | `refunds_payment_id` | integer | sim | | payments.id (restrict) |
@@ -887,8 +1075,15 @@ Unicos: (package_id, service_id)
 | `received_by_label` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `attendance_id` | integer | sim | | attendances.id (restrict) |
+| `cash_session_id` | integer | sim | | cash_sessions.id (restrict) |
+| `received_by_user_id` | integer | sim | | users.id (set null) |
+| `reason` | varchar | sim | | |
+| `request_key` | varchar | sim | | |
 
-Indices: (paid_at)
+Unicos: (request_key)
+
+Indices: (attendance_id) · (paid_at)
 
 ### `plan_services`
 
@@ -917,13 +1112,20 @@ Indices: (paid_at)
 | `id` | integer | nao | | |
 | `category_id` | integer | sim | | service_categories.id (set null) |
 | `name` | varchar | nao | | |
-| `price_cents` | integer | nao | | |
+| `price_cents` | integer | sim | | |
 | `cost_cents` | integer | sim | | |
 | `min_stock` | integer | sim | | |
 | `is_active` | tinyint | nao | `1` | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `sku` | varchar | sim | | |
+| `description` | text | sim | | |
+| `unit` | varchar | nao | `un` | |
+| `lock_version` | integer | nao | `0` | |
+| `stock_version` | integer | nao | `0` | |
+
+Unicos: (sku)
 
 ### `professional_package`
 
@@ -1078,12 +1280,19 @@ Unicos: (key)
 | `quantity` | integer | nao | | |
 | `kind` | varchar | nao | | |
 | `reason` | varchar | sim | | |
-| `appointment_id` | integer | sim | | appointments.id (set null) |
 | `actor_label` | varchar | sim | | |
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
+| `attendance_id` | integer | sim | | attendances.id (restrict) |
+| `reverses_movement_id` | integer | sim | | stock_movements.id (restrict) |
+| `balance_after` | integer | sim | | |
+| `unit_cost_cents` | integer | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
 
-Indices: (product_id, occurred_at)
+Unicos: (request_key) · (reverses_movement_id)
+
+Indices: (attendance_id) · (product_id, occurred_at)
 
 ### `subscription_payments`
 

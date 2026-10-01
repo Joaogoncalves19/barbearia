@@ -270,6 +270,18 @@ final class BookingService
         });
     }
 
+    /**
+     * Confirmado -> concluido. Chamado SO pela conclusao do atendimento
+     * (AttendanceService::complete), dentro da mesma transacao: o
+     * agendamento so e concluido se o atendimento foi.
+     */
+    public function complete(Appointment $appointment, User $actor, string $attendanceCode): Appointment
+    {
+        return $this->transition($appointment, AppointmentStatus::Completed, $actor, 'completed', 'Atendimento '.$attendanceCode.' concluído.', function (Appointment $a): void {
+            $a->forceFill(['completed_at' => BusinessTime::now()]);
+        });
+    }
+
     public function updateNotes(Appointment $appointment, ?string $notes, User $actor): Appointment
     {
         $appointment->notes = $notes;

@@ -17,6 +17,18 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        return ['name' => 'Pomada '.fake()->unique()->word(), 'price_cents' => 3500, 'cost_cents' => 1500];
+        return ['name' => 'Pomada '.fake()->unique()->word(), 'price_cents' => 3500, 'cost_cents' => 1500, 'unit' => 'un'];
+    }
+
+    /** Insumo: usado no servico, nao vendido. */
+    public function supply(): static
+    {
+        return $this->state(['name' => 'Lâmina '.fake()->unique()->word(), 'price_cents' => null, 'cost_cents' => 80]);
+    }
+
+    public function configure(): static
+    {
+        // Recarrega para trazer os padroes do banco (lock_version, stock_version).
+        return $this->afterCreating(fn (Product $p) => $p->refresh());
     }
 }

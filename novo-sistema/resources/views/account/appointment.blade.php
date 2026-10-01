@@ -22,6 +22,10 @@
         </dl>
     </x-ui.card>
 
+    @if ($appointment->attendance !== null && auth('customer')->user()->can('view', $appointment->attendance))
+        <x-ui.button :href="route('account.attendances.show', $appointment->attendance)" variant="secondary" icon="receipt">Ver comprovante do atendimento</x-ui.button>
+    @endif
+
     @if ($podeRemarcar || $podeCancelar)
         <div class="cluster">
             @if ($podeRemarcar)

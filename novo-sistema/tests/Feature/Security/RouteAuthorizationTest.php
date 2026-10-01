@@ -4,6 +4,7 @@ namespace Tests\Feature\Security;
 
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\ServiceCategory;
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
@@ -129,6 +130,9 @@ class RouteAuthorizationTest extends TestCase
                 $partes = explode(',', substr($m, 4));
                 if (count($partes) === 1) {
                     $this->assertTrue(Gate::has($partes[0]), "{$rota->uri()}: habilidade '{$partes[0]}' nao declarada em config/permissions.php");
+                } elseif (class_exists($partes[1])) {
+                    // can:metodo,Classe (lista/criacao) -> a Classe precisa ter Policy.
+                    $this->assertNotNull(Gate::getPolicyFor($partes[1]), "{$rota->uri()}: {$partes[1]} sem Policy");
                 } else {
                     // can:metodo,parametro -> o parametro precisa estar na URI e o
                     // model dele precisa ter Policy registrada (verificado abaixo).
@@ -147,6 +151,7 @@ class RouteAuthorizationTest extends TestCase
             Appointment::class,
             Service::class,
             ServiceCategory::class,
+            Attendance::class,
         ];
 
         foreach ($models as $model) {
@@ -203,6 +208,17 @@ class RouteAuthorizationTest extends TestCase
             'account.appointments.reschedule.update' => 'throttle:booking',
             'panel.appointments.store' => 'throttle:booking',
             'panel.appointments.reschedule.update' => 'throttle:booking',
+            // Dinheiro e estoque (Fase 6).
+            'panel.attendances.complete' => 'throttle:money',
+            'panel.attendances.refund' => 'throttle:money',
+            'panel.attendances.return-stock' => 'throttle:money',
+            'panel.cash.open' => 'throttle:money',
+            'panel.cash.move' => 'throttle:money',
+            'panel.cash.close' => 'throttle:money',
+            'panel.stock.receive' => 'throttle:money',
+            'panel.stock.issue' => 'throttle:money',
+            'panel.stock.adjust' => 'throttle:money',
+            'panel.stock.reverse' => 'throttle:money',
         ];
 
         foreach ($limites as $nome => $throttle) {

@@ -1,4 +1,4 @@
-# Papéis e permissões (Fases 3 a 5)
+# Papéis e permissões (Fases 3 a 6)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -59,7 +59,15 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `professionals.toggle` | Ativar/desativar profissionais | **Fase 4** |
 | `professionals.services` | Definir quais serviços cada profissional executa | **Fase 4** |
 | `professionals.display` | Ordem, destaque, visibilidade no site, foto e apresentação dos profissionais | **Fase 4** |
-| `checkout.operate` | Fechar atendimento e lançar pagamento | Fase 6 |
+| `attendances.view` / `attendances.view_own` | Ver todos os atendimentos / só os próprios | **Fase 6** |
+| `attendances.manage` / `attendances.manage_own` | Abrir, iniciar, editar e concluir qualquer atendimento / só os próprios | **Fase 6** |
+| `attendances.discount` | Aplicar e retirar desconto no atendimento | **Fase 6** |
+| `attendances.cancel` | Cancelar qualquer atendimento não concluído | **Fase 6** |
+| `payments.receive` | Registrar pagamento ao concluir (entra no caixa aberto; não dá acesso ao caixa) | **Fase 6** |
+| `payments.refund` | Estornar pagamento | **Fase 6** |
+| `cash.view` / `cash.open` / `cash.move` / `cash.close` | Ver o caixa / abrir / suprimento e sangria / fechar | **Fase 6** |
+| `products.view` / `products.create` / `products.update` / `products.toggle` | Ver / cadastrar / editar / ativar, desativar e excluir (sem histórico) produtos | **Fase 6** |
+| `stock.view` / `stock.receive` / `stock.issue` / `stock.adjust` | Ver estoque / entrada / saída e perda / ajuste de inventário e estorno | **Fase 6** |
 | `finance.view` / `finance.manage` | Ver o financeiro / lançar despesas, vales e pagar comissões | Fase 7 |
 | `reports.view` | Relatórios | Fase 7 |
 | `marketing.manage` | Cupons, campanhas e fidelidade | Fases 8 e 10 |
@@ -104,7 +112,21 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `professionals.toggle` | ✔ | ✔ | | | |
 | `professionals.services` | ✔ | ✔ | | | |
 | `professionals.display` | ✔ | ✔ | | | |
-| `checkout.operate` | ✔ | ✔ | ✔ | | |
+| `attendances.view` | ✔ | ✔ | ✔ | ✔ | |
+| `attendances.view_own` | | | | | ✔ |
+| `attendances.manage` | ✔ | ✔ | ✔ | | |
+| `attendances.manage_own` | | | | | ✔ |
+| `attendances.discount` | ✔ | ✔ | | | |
+| `attendances.cancel` | ✔ | ✔ | ✔ | | |
+| `payments.receive` | ✔ | ✔ | ✔ | | ✔ |
+| `payments.refund` | ✔ | | | ✔ | |
+| `cash.view` | ✔ | ✔ | ✔ | ✔ | |
+| `cash.open` / `cash.move` / `cash.close` | ✔ | ✔ | ✔ | | |
+| `products.view` | ✔ | ✔ | ✔ | ✔ | |
+| `products.create` / `update` / `toggle` | ✔ | ✔ | | | |
+| `stock.view` | ✔ | ✔ | ✔ | ✔ | |
+| `stock.receive` / `stock.issue` | ✔ | ✔ | ✔ | | |
+| `stock.adjust` | ✔ | ✔ | | | |
 | `finance.view` | ✔ | ✔ | | ✔ | |
 | `finance.manage` | ✔ | | | ✔ | |
 | `reports.view` | ✔ | ✔ | | ✔ | |
@@ -139,6 +161,15 @@ diferente recebe 403, sem gravar nada (`CatalogAuthorizationTest`).
 consulta **só a própria** agenda (filtro na URL é ignorado), cria e remarca só nela (`createFor`) e não
 configura nada. A recepção lança folgas e bloqueios, mas não mexe no funcionamento, nas regras nem no
 expediente. Criar agendamento em nome de um profissional passa por `AppointmentPolicy@createFor`.
+
+**Fase 6 — atendimento, caixa e estoque:** `checkout.operate` (declarada na Fase 3, sem tela) foi substituída
+pelas habilidades granulares acima. `AttendancePolicy`: o profissional vê, abre, edita e conclui **só os
+próprios** atendimentos (alheio = 404) e abre encaixe só como ele mesmo (`openFor`); concluir exige também
+`payments.receive`, e desconto exige `attendances.discount`. A recepção opera atendimento e caixa do dia,
+mas não dá desconto manual, não estorna e não ajusta inventário. O gerente não estorna (lançamento
+financeiro, como na Fase 3). O financeiro consulta atendimentos, caixa e estoque e estorna. O cliente vê só o
+**comprovante** dos próprios atendimentos concluídos. Pontos em aberto com o dono: desconto pela recepção,
+estorno pelo gerente (ver [decisoes-pendentes.md](decisoes-pendentes.md)).
 
 Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz:
 `HorizontalAccessTest::test_matriz_das_policies_de_cliente_e_agendamento_por_papel`.
