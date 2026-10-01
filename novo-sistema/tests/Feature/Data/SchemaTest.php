@@ -95,7 +95,9 @@ class SchemaTest extends TestCase
             'subscription_payments' => ['gateway_payment_id'],
             'gateway_events' => ['gateway,event_id'],
             'reviews' => ['appointment_id'],
-            'coupon_redemptions' => ['coupon_id,customer_id'],
+            // Fase 8: 1 uso por cliente via sentinela (reservado ou usado; liberado nao conta).
+            'coupon_redemptions' => ['active_key'],
+            'loyalty_redemptions' => ['active_key'],
             'legacy_references' => ['source_table,source_id'],
             'appointment_reminders' => ['appointment_id,kind'],
             'email_suppressions' => ['email'],

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Scheduling\Services;
 
+use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Scheduling\Enums\ItemType;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Shared\Pricing\Discount;
@@ -26,9 +27,13 @@ class AppointmentPricing
     {
         $linhas = $appointment->items()->get(['item_type', 'total_cents'])
             ->map(fn ($i) => ['total' => $i->total_cents, 'discountable' => $i->item_type !== ItemType::Product]);
-        $descontos = $appointment->adjustments()->orderBy('id')->pluck('amount_cents')
-            ->filter(fn ($c) => (int) $c > 0)
-            ->map(fn ($c) => Discount::fixed((int) $c))->values()->all();
+        // A regra do desconto (Fase 8: percentual ou valor, a mesma que o
+        // motor de promocoes calculou); legado sem regra = o valor gravado.
+        $descontos = $appointment->adjustments()->orderBy('id')->get()
+            ->filter(fn ($a) => (int) $a->amount_cents > 0)
+            ->map(fn ($a) => $a->discount_type !== null
+                ? Discount::of($a->discount_type, (int) ($a->discount_type === DiscountType::Percent ? $a->percent_bp : $a->fixed_cents))
+                : Discount::fixed((int) $a->amount_cents))->values()->all();
 
         $b = PriceBreakdown::calculate($linhas, $descontos);
 

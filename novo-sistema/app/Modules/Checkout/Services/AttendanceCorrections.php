@@ -8,6 +8,7 @@ use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Finance\Enums\AmountSource;
 use App\Modules\Finance\Enums\PaymentKind;
+use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
@@ -80,6 +81,9 @@ final class AttendanceCorrections
         }
         if ($payment->kind !== PaymentKind::Payment || $payment->attendance_id === null) {
             throw new CashRuleViolation('not_refundable');
+        }
+        if ($payment->method === PaymentMethod::GiftCard) {
+            throw new CashRuleViolation('gift_card_not_refundable');
         }
 
         return DB::transaction(function () use ($payment, $amountCents, $tipCents, $motivo, $actor, $key): Payment {

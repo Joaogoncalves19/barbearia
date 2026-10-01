@@ -55,6 +55,21 @@
         $financeiro[] = $item('Histórico financeiro', 'history', 'panel.commissions.history', 'panel.commissions.history');
     }
 
+    // Promocoes, fidelidade e vale-presente (Fase 8).
+    $promocoes = [];
+    if ($user->can('coupons.view')) {
+        $promocoes[] = $item('Cupons', 'tag', 'panel.coupons.index', 'panel.coupons.*');
+    }
+    if ($user->can('gift_cards.view')) {
+        $promocoes[] = $item('Vales-presente', 'receipt', 'panel.gift-cards.index', 'panel.gift-cards.*');
+    }
+    if ($user->can('loyalty.view')) {
+        $promocoes[] = $item('Pontos de clientes', 'star', 'panel.loyalty.customers', 'panel.loyalty.*');
+    }
+    if ($user->can('promotions.configure')) {
+        $promocoes[] = $item('Fidelidade e aniversário', 'sparkles', 'panel.promotions.settings', 'panel.promotions.*');
+    }
+
     $configAgenda = [];
     if ($user->can('schedule.settings')) {
         $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
@@ -77,6 +92,9 @@
     $nav = [['group' => '', 'items' => $operacao]];
     if ($financeiro !== []) {
         $nav[] = ['group' => 'Financeiro', 'items' => $financeiro];
+    }
+    if ($promocoes !== []) {
+        $nav[] = ['group' => 'Promoções', 'items' => $promocoes];
     }
     if ($configAgenda !== []) {
         $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];

@@ -9,6 +9,9 @@
             <h1 class="page-head__title">Caixa de {{ BusinessTime::formatLocal($session->opened_at, 'd/m/Y') }}</h1>
             <p><x-ui.badge :variant="$session->isOpen() ? 'success' : 'neutral'">{{ $session->status->label() }}</x-ui.badge></p>
         </div>
+        @unless ($session->isOpen())
+            <x-ui.button :href="route('panel.receipts.cash', $session)" variant="secondary" icon="receipt">Comprovante (imprimir ou e-mail)</x-ui.button>
+        @endunless
     </header>
 
     <x-ui.card title="Resumo">

@@ -20,9 +20,14 @@
             <h1 class="page-head__title">{{ $a->customer_name }}</h1>
             <p><x-ui.badge :variant="$cor">{{ $a->status->label() }}</x-ui.badge> <span class="text-muted">{{ $a->code }} · {{ $a->source->label() }}</span></p>
         </div>
-        @if ($a->appointment !== null && $u->can('view', $a->appointment))
-            <x-ui.button :href="route('panel.appointments.show', $a->appointment)" variant="secondary" icon="calendar">Agendamento {{ $a->appointment->code }}</x-ui.button>
-        @endif
+        <div class="cluster">
+            @if ($a->appointment !== null && $u->can('view', $a->appointment))
+                <x-ui.button :href="route('panel.appointments.show', $a->appointment)" variant="secondary" icon="calendar">Agendamento {{ $a->appointment->code }}</x-ui.button>
+            @endif
+            @if ($concluido)
+                <x-ui.button :href="route('panel.receipts.attendance', $a)" variant="secondary" icon="receipt">Comprovante (imprimir ou e-mail)</x-ui.button>
+            @endif
+        </div>
     </header>
 
     @foreach (['attendance', 'complete', 'refund'] as $campo)
@@ -189,12 +194,23 @@
                     <x-ui.button type="submit" variant="ghost" size="sm" icon="trash-2">Retirar desconto de {{ $d->rule()->label() }}</x-ui.button>
                 </form>
             @endforeach
+            <p class="text-sm text-muted">Vale um desconto só, o maior: se já houver cupom, pontos, aniversário ou indicação, o manual só entra se for maior (e libera o cupom/pontos).</p>
             <form method="POST" action="{{ route('panel.attendances.discount.store', $a) }}" class="stack stack-sm" novalidate>
                 @csrf
                 <x-ui.select name="discount_type" label="Tipo de desconto" :options="['percent' => 'Percentual (%)', 'fixed' => 'Valor (R$)']" value="percent" />
                 <x-ui.input name="discount_value" label="Desconto" inputmode="decimal" hint="Ex.: 10 (para 10%) ou 5,00 (para R$ 5,00)." />
                 <x-ui.input name="discount_reason" label="Motivo" hint="Obrigatório. Fica no histórico e na auditoria." />
                 <div><x-ui.button type="submit" variant="secondary" size="sm">Aplicar desconto</x-ui.button></div>
+            </form>
+        @endif
+
+        @if ($editable && $a->customer_id !== null && $u->can('promotions.apply'))
+            <form method="POST" action="{{ route('panel.attendances.promotion', $a) }}" class="stack stack-sm" novalidate>
+                @csrf
+                <h3 class="h4">Cupom ou pontos do cliente</h3>
+                <x-ui.input name="coupon" id="promocao-cupom" label="Cupom" optional />
+                <x-ui.checkbox name="use_loyalty" label="Usar os pontos do cliente" hint="Os pontos só saem do saldo quando o atendimento for concluído." />
+                <div><x-ui.button type="submit" variant="secondary" size="sm" icon="tag">Aplicar promoção</x-ui.button></div>
             </form>
         @endif
     </x-ui.card>
@@ -295,6 +311,7 @@
                             <x-ui.select :name="'payments['.$i.'][method]'" :id="'pagamento-'.$i.'-forma'" label="Forma" :options="$methods" :value="old('payments.'.$i.'.method')" placeholder="Escolha a forma" optional />
                             <x-ui.input :name="'payments['.$i.'][amount]'" :id="'pagamento-'.$i.'-valor'" label="Valor" inputmode="decimal" :value="old('payments.'.$i.'.amount', $i === 0 && (int) $total > 0 ? Money::fromCents((int) $total)->toInput() : null)" :error="$errors->first('payments.'.$i.'.amount') ?: null" optional />
                             <x-ui.input :name="'payments['.$i.'][tip]'" :id="'pagamento-'.$i.'-gorjeta'" label="Gorjeta" inputmode="decimal" :value="old('payments.'.$i.'.tip')" optional />
+                            <x-ui.input :name="'payments['.$i.'][gift_code]'" :id="'pagamento-'.$i.'-vale'" label="Código do vale-presente" :value="old('payments.'.$i.'.gift_code')" hint="Só quando a forma for vale-presente. Uso único: use o valor do vale, até o total." :error="$errors->first('payments.'.$i.'.gift_code') ?: null" optional />
                         </fieldset>
                     @endfor
                     <p class="text-sm text-muted">Ao confirmar: o valor fica congelado, o pagamento entra no caixa aberto, os produtos saem do estoque e o agendamento é concluído. Não dá para desfazer; correções são feitas por estorno.</p>

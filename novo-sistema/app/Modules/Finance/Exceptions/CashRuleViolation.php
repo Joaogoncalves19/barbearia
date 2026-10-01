@@ -20,6 +20,7 @@ final class CashRuleViolation extends RuntimeException
         'justification_required' => 'Há diferença entre o contado e o esperado: explique o motivo.',
         'refund_exceeds' => 'O estorno é maior que o valor ainda não estornado deste pagamento.',
         'not_refundable' => 'Só pagamentos de atendimentos concluídos podem ser estornados.',
+        'gift_card_not_refundable' => 'Pagamento com vale-presente não é estornado pelo caixa (não entrou dinheiro neste atendimento). Corrija com o dono.',
     ];
 
     public function __construct(public readonly string $reason)

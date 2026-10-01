@@ -45,7 +45,7 @@ final class CustomerRegistration
     ) {}
 
     /**
-     * @param  array{name: string, email: string, cpf: string, phone: ?string, password: string, marketing: bool}  $data
+     * @param  array{name: string, email: string, cpf: string, phone: ?string, password: string, marketing: bool, referral?: ?string}  $data
      */
     public function register(#[\SensitiveParameter] array $data, ?string $ip): void
     {
@@ -53,7 +53,7 @@ final class CustomerRegistration
     }
 
     /**
-     * @param  array{name: string, email: string, cpf: string, phone: ?string, password: string, marketing: bool}  $data
+     * @param  array{name: string, email: string, cpf: string, phone: ?string, password: string, marketing: bool, referral?: ?string}  $data
      */
     private function handle(#[\SensitiveParameter] array $data, ?string $ip): void
     {
@@ -83,6 +83,11 @@ final class CustomerRegistration
                     'password' => $data['password'],
                 ]);
                 $customer->password_changed_at = now();
+                // Indicacao (Fase 8): so com codigo valido de cliente ativo.
+                $indicador = ($data['referral'] ?? null) !== null
+                    ? Customer::query()->where('referral_code', $data['referral'])->whereNull('anonymized_at')->value('id')
+                    : null;
+                $customer->forceFill(['referred_by_customer_id' => $indicador]);
                 $customer->save();
 
                 if ($data['marketing']) {

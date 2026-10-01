@@ -32,5 +32,8 @@
             @endforeach
         </dl>
     </x-ui.card>
+    <div class="cluster">
+        <x-ui.button :href="route('account.attendances.print', $a)" variant="secondary" icon="receipt">Imprimir ou enviar por e-mail</x-ui.button>
+    </div>
     <p class="text-sm text-muted">Este comprovante não é documento fiscal.</p>
 </x-layouts.account>

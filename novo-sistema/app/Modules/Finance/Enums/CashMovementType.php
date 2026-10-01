@@ -21,6 +21,10 @@ enum CashMovementType: string
     case Advance = 'advance';
     /** Estorno de vale em dinheiro: o dinheiro volta ao caixa. */
     case AdvanceReversal = 'advance_reversal';
+    /** Venda de vale-presente (Fase 8): o dinheiro entra na venda. */
+    case GiftCardSale = 'gift_card_sale';
+    /** Cancelamento de vale-presente com devolucao do valor. */
+    case GiftCardRefund = 'gift_card_refund';
 
     public function label(): string
     {
@@ -33,12 +37,14 @@ enum CashMovementType: string
             self::PayoutReversal => 'Estorno de repasse',
             self::Advance => 'Vale',
             self::AdvanceReversal => 'Estorno de vale',
+            self::GiftCardSale => 'Venda de vale-presente',
+            self::GiftCardRefund => 'Devolução de vale-presente',
         };
     }
 
     public function isInflow(): bool
     {
-        return in_array($this, [self::Payment, self::Supply, self::PayoutReversal, self::AdvanceReversal], true);
+        return in_array($this, [self::Payment, self::Supply, self::PayoutReversal, self::AdvanceReversal, self::GiftCardSale], true);
     }
 
     /** Lancado a mao pela equipe (os outros nascem de um pagamento, repasse ou vale). */
@@ -54,6 +60,7 @@ enum CashMovementType: string
             self::Payment, self::Refund => 'payment_id',
             self::Payout, self::PayoutReversal => 'commission_payout_id',
             self::Advance, self::AdvanceReversal => 'advance_id',
+            self::GiftCardSale, self::GiftCardRefund => 'gift_card_id',
             self::Supply, self::Withdrawal => null,
         };
     }

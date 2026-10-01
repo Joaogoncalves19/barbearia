@@ -6,13 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Exceptions\CommissionRuleViolation;
-use App\Modules\Finance\Models\Advance;
-use App\Modules\Finance\Models\CommissionEntry;
 use App\Modules\Finance\Models\CommissionPayout;
-use App\Modules\Finance\Models\TipEntry;
 use App\Modules\Finance\Services\Payouts;
 use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
+use App\Modules\Receipts\Enums\ReceiptType;
+use App\Modules\Receipts\Services\Receipts;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Support\Money;
 use App\Modules\Team\Models\Professional;
@@ -78,16 +77,10 @@ class PayoutController extends Controller
         return redirect()->route('panel.payouts.show', $p)->with('status', 'Repasse de '.Money::fromCents($p->amount_cents)->format().' registrado.');
     }
 
-    public function show(CommissionPayout $payout): View
+    public function show(CommissionPayout $payout, Receipts $receipts): View
     {
-        $ids = fn (string $chave) => array_map(fn ($par) => (int) $par[0], (array) ($payout->snapshot[$chave] ?? []));
-
-        return view('panel.finance.payouts.show', [
-            'payout' => $payout->load(['professional', 'createdBy', 'reversedBy']),
-            'commissions' => CommissionEntry::query()->whereIn('id', $ids('comissoes'))->with('attendance')->orderBy('occurred_at')->get(),
-            'tips' => TipEntry::query()->whereIn('id', $ids('gorjetas'))->with('attendance')->orderBy('occurred_at')->get(),
-            'advances' => Advance::query()->whereIn('id', $ids('vales'))->orderBy('id')->get(),
-        ]);
+        // Os lancamentos do repasse vem da mesma fonte do recibo impresso.
+        return view('panel.finance.payouts.show', $receipts->data(ReceiptType::Payout, $payout->id));
     }
 
     public function reverse(Request $request, CommissionPayout $payout): RedirectResponse

@@ -12,6 +12,7 @@
         <x-ui.input name="phone" label="Celular com DDD" type="tel" autocomplete="tel-national" optional />
         <x-ui.input name="password" label="Senha" type="password" autocomplete="new-password" hint="Pelo menos 8 caracteres, com letras e números." />
         <x-ui.input name="password_confirmation" label="Repita a senha" type="password" autocomplete="new-password" />
+        <x-ui.input name="referral" label="Código de indicação" :value="request('indicacao')" hint="Se um amigo indicou, informe o código dele." optional />
         <x-ui.checkbox name="marketing" label="Quero receber novidades e promoções por e-mail" hint="Opcional. Você pode cancelar quando quiser." />
         <x-ui.button type="submit" variant="accent" block>Criar conta</x-ui.button>
     </form>

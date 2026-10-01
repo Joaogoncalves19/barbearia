@@ -148,6 +148,19 @@ class PermissionMatrixTest extends TestCase
             'advances.create' => ['owner', 'finance'],
             'advances.reverse' => ['owner', 'finance'],
             'reports.view' => ['owner', 'manager', 'finance'],
+            // Fase 8: promocoes, fidelidade e vale-presente. Configurar regras:
+            // so o proprietario. Cancelar vale (devolve dinheiro): proprietario
+            // e financeiro, como o estorno (D-30). Aplicar cupom/pontos no
+            // balcao: quem conclui atendimento.
+            'coupons.view' => ['owner', 'manager', 'reception', 'finance'],
+            'coupons.manage' => ['owner', 'manager'],
+            'promotions.apply' => ['owner', 'manager', 'reception', 'professional'],
+            'promotions.configure' => ['owner'],
+            'loyalty.view' => ['owner', 'manager', 'reception', 'finance'],
+            'loyalty.adjust' => ['owner', 'manager'],
+            'gift_cards.view' => ['owner', 'manager', 'reception', 'finance'],
+            'gift_cards.sell' => ['owner', 'manager', 'reception'],
+            'gift_cards.cancel' => ['owner', 'finance'],
             'marketing.manage' => ['owner', 'manager'],
             'settings.manage' => ['owner'],
         ];

@@ -5,6 +5,11 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Loyalty\Exceptions\PromotionRejected;
+use App\Modules\Loyalty\Pricing\PromotionEngine;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
+use App\Modules\Loyalty\Services\LoyaltyLedger;
+use App\Modules\Loyalty\Support\PromotionPolicy;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
 use App\Modules\Scheduling\Exceptions\SlotUnavailable;
@@ -28,7 +33,7 @@ use Illuminate\View\View;
  */
 class BookingController extends Controller
 {
-    public function confirm(Request $request, ProfessionalDirectory $directory, Availability $availability): View|RedirectResponse
+    public function confirm(Request $request, ProfessionalDirectory $directory, Availability $availability, PromotionEngine $promotions): View|RedirectResponse
     {
         [$servico, $pro, $inicio] = $this->choice($request, $directory);
 
@@ -43,7 +48,18 @@ class BookingController extends Controller
             return $this->backToSlots($servico, $pro, $inicio, $livre?->message() ?? 'Este horário acabou de ser ocupado. Escolha outro.');
         }
 
+        // Previa do valor (Fase 8): o MESMO motor que grava no agendamento.
+        /** @var Customer $cliente */
+        $cliente = $request->user('customer');
+        $pedido = $this->promotionRequest($request);
+        $preco = (int) $servico->price_cents;
+        $quote = $promotions->quote($cliente, [['total' => $preco, 'discountable' => true, 'unit' => $preco]], BusinessTime::dateOf($inicio), $pedido);
+
         return view('account.booking-confirm', [
+            'quote' => $quote,
+            'promotion' => $pedido,
+            'loyaltyAvailable' => app(LoyaltyLedger::class)->available($cliente),
+            'policy' => PromotionPolicy::current(),
             'service' => $servico,
             'professional' => $pro ?? $semPreferencia['professionals'][0],
             'anyProfessional' => $pro === null,
@@ -70,11 +86,17 @@ class BookingController extends Controller
                 customer: $cliente,
                 notes: $request->filled('notes') ? mb_substr(trim($request->string('notes')->value()), 0, 500) : null,
                 actor: $cliente,
+                promotion: $this->promotionRequest($request),
+                expectedTotalCents: $request->filled('expected_total') ? (int) $request->input('expected_total') : null,
             ));
         } catch (SlotUnavailable $e) {
             return $this->backToSlots($servico, $pro, $inicio, $e->getMessage());
         } catch (BookingRuleViolation $e) {
             return $this->backToSlots($servico, $pro, $inicio, $e->getMessage());
+        } catch (PromotionRejected $e) {
+            // Cupom/pontos recusados ou valor mudou: volta a confirmacao com o motivo (nada gravado).
+            return redirect()->route('account.booking.confirm', $request->only(['servico', 'profissional', 'data', 'hora', 'cupom', 'pontos']))
+                ->withErrors(['promotion' => $e->getMessage()]);
         }
 
         return redirect()->route('account.appointments.show', $a)->with('status', 'Agendamento feito! Código '.$a->code.'.');
@@ -94,6 +116,9 @@ class BookingController extends Controller
             'data' => ['required', 'string', 'size:10'],
             'hora' => ['required', 'string', 'size:5'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'cupom' => ['nullable', 'string', 'max:64'],
+            'pontos' => ['nullable', 'boolean'],
+            'expected_total' => ['nullable', 'integer', 'min:0'],
         ]);
 
         abort_unless(BusinessTime::isValidDate($dados['data']) && BusinessTime::isValidTime($dados['hora']), 404);
@@ -108,6 +133,11 @@ class BookingController extends Controller
         }
 
         return [$servico, $pro, BusinessTime::at($dados['data'], $dados['hora'])];
+    }
+
+    private function promotionRequest(Request $request): PromotionRequest
+    {
+        return new PromotionRequest($request->string('cupom')->value() ?: null, $request->boolean('pontos'));
     }
 
     private function backToSlots(Service $service, ?Professional $pro, CarbonImmutable $start, string $message): RedirectResponse

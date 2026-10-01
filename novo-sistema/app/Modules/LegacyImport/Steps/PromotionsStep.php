@@ -106,6 +106,7 @@ final class PromotionsStep extends Step
                 'issued_at' => $this->local($row['data_criacao'] ?? null),
                 'expires_on' => V::date($row['data_validade'] ?? null),
                 'purchaser_name' => $this->text('vouchers', $row['comprador'] ?? null),
+                'is_legacy' => true, // a venda nao foi registrada no sistema antigo
                 ...$this->stamps(),
             ]);
             $this->ctx->remember('vouchers', $sid, 'gift_card', $id, $row);

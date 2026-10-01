@@ -157,8 +157,15 @@ class ConstraintsTest extends TestCase
     {
         $cupom = Coupon::factory()->create();
         $cliente = Customer::factory()->create();
-        DB::table('coupon_redemptions')->insert([['coupon_id' => $cupom->id, 'customer_id' => null], ['coupon_id' => $cupom->id, 'customer_id' => null], ['coupon_id' => $cupom->id, 'customer_id' => $cliente->id]]);
+        $chave = "c{$cupom->id}|u{$cliente->id}";
+        // Convidados (sem cliente) e usos liberados (sem chave) nao colidem.
+        DB::table('coupon_redemptions')->insert([
+            ['coupon_id' => $cupom->id, 'customer_id' => null, 'active_key' => null, 'status' => 'redeemed'],
+            ['coupon_id' => $cupom->id, 'customer_id' => null, 'active_key' => null, 'status' => 'redeemed'],
+            ['coupon_id' => $cupom->id, 'customer_id' => $cliente->id, 'active_key' => null, 'status' => 'released'],
+            ['coupon_id' => $cupom->id, 'customer_id' => $cliente->id, 'active_key' => $chave, 'status' => 'reserved'],
+        ]);
         $this->expectException(QueryException::class);
-        DB::table('coupon_redemptions')->insert(['coupon_id' => $cupom->id, 'customer_id' => $cliente->id]);
+        DB::table('coupon_redemptions')->insert(['coupon_id' => $cupom->id, 'customer_id' => $cliente->id, 'active_key' => $chave, 'status' => 'redeemed']);
     }
 }

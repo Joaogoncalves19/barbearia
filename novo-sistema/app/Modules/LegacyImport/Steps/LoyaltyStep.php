@@ -121,7 +121,9 @@ final class LoyaltyStep extends Step
 
                 continue;
             }
-            $id = $this->ctx->insert('coupon_redemptions', ['coupon_id' => $cupom, 'customer_id' => $cliente, 'appointment_id' => null, 'redeemed_at' => null, 'created_at' => $this->ctx->now]);
+            // Uso feito no sistema antigo (Fase 8: estado "usado" e a sentinela de 1 uso por cliente).
+            $id = $this->ctx->insert('coupon_redemptions', ['coupon_id' => $cupom, 'customer_id' => $cliente, 'appointment_id' => null, 'redeemed_at' => null,
+                'status' => 'redeemed', 'active_key' => $cliente !== null ? "c{$cupom}|u{$cliente}" : null, 'created_at' => $this->ctx->now]);
             $this->ctx->remember('cupom_usos', $sid, 'coupon_redemption', $id, $row);
         }
     }

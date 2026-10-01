@@ -123,6 +123,32 @@ class IntegrityChecker
                 ->where('r.kind', 'reversal')->join('advances as o', 'o.id', '=', 'r.reverses_advance_id')
                 ->where(fn ($q) => $q->whereColumn('r.professional_id', '<>', 'o.professional_id')->orWhereRaw('r.amount_cents <> -o.amount_cents')->orWhere('o.kind', '<>', 'advance'))->count()
                 + DB::table('advances')->where(fn ($q) => $q->where(fn ($a) => $a->where('kind', 'advance')->where('amount_cents', '<=', 0))->orWhere(fn ($b) => $b->where('is_legacy', true)->whereNotNull('commission_payout_id')))->count()],
+            // Fase 8: promocoes, fidelidade e vale-presente.
+            'R39_uso_de_cupom' => ['Uso de cupom: reservado/usado tem a sentinela (1 por cliente), liberado nao; contador nunca abaixo dos usos em vigor', fn () => DB::table('coupon_redemptions')
+                ->where(fn ($q) => $q->where(fn ($a) => $a->where('status', 'reserved')->where(fn ($x) => $x->whereNull('active_key')->orWhereNull('customer_id')))
+                    ->orWhere(fn ($b) => $b->where('status', 'released')->whereNotNull('active_key'))
+                    ->orWhere(fn ($c) => $c->where('status', 'redeemed')->whereNotNull('customer_id')->whereNull('active_key')))->count()
+                + DB::table('coupons')->whereRaw("uses_count < (SELECT COUNT(*) FROM coupon_redemptions r WHERE r.coupon_id = coupons.id AND r.status IN ('reserved', 'redeemed'))")->count()],
+            'R40_resgate_de_pontos' => ['Resgate de pontos: usado tem um lancamento de resgate com os mesmos pontos; reservado/liberado nao; disponivel nunca negativo', fn () => DB::table('loyalty_redemptions as r')
+                ->where(fn ($q) => $q->where(fn ($a) => $a->where('r.status', 'redeemed')
+                    ->whereNotExists(fn ($e) => $e->from('loyalty_entries as e')->whereColumn('e.loyalty_redemption_id', 'r.id')->where('e.kind', 'redeemed')->whereRaw('e.points = -r.points')))
+                    ->orWhere(fn ($b) => $b->where('r.status', '<>', 'redeemed')->whereExists(fn ($e) => $e->from('loyalty_entries as e')->whereColumn('e.loyalty_redemption_id', 'r.id'))))->count()
+                + DB::query()->fromSub(DB::table('loyalty_redemptions as r')->where('r.status', 'reserved')->groupBy('r.customer_id')
+                    ->havingRaw('SUM(r.points) > (SELECT COALESCE(SUM(points), 0) FROM loyalty_entries WHERE loyalty_entries.customer_id = r.customer_id)')
+                    ->select('r.customer_id'), 'sem_saldo')->count()],
+            'R41_vale_presente' => ['Vale-presente: usado tem um pagamento (ate o valor do vale); pagamento com vale aponta o vale; venda e devolucao no caixa com o valor do vale', fn () => DB::table('gift_cards')->where('status', 'redeemed')->where('is_legacy', false)
+                ->whereRaw("(SELECT COUNT(*) FROM payments p WHERE p.gift_card_id = gift_cards.id AND p.amount_cents <= gift_cards.amount_cents) <> 1")->count()
+                + DB::table('payments')->where(fn ($q) => $q->where(fn ($a) => $a->where('method', 'gift_card')->whereNull('gift_card_id'))->orWhere(fn ($b) => $b->where('method', '<>', 'gift_card')->whereNotNull('gift_card_id')))->count()
+                + DB::table('gift_cards')->where('is_legacy', false)->whereNotNull('sale_cash_session_id')
+                    ->whereRaw("(SELECT COALESCE(SUM(amount_cents), 0) FROM cash_movements m WHERE m.gift_card_id = gift_cards.id AND m.type = 'gift_card_sale') <> amount_cents")->count()
+                + DB::table('gift_cards')->where('is_legacy', false)->where('status', 'cancelled')
+                    ->whereRaw("(SELECT COALESCE(SUM(amount_cents), 0) FROM cash_movements m WHERE m.gift_card_id = gift_cards.id AND m.type = 'gift_card_refund') <> -amount_cents")->count()],
+            'R42_um_desconto' => ['Um desconto so por atendimento (R-10); desconto de promocao aponta uma reserva em vigor ou usada', fn () => DB::query()->fromSub(DB::table('attendance_discounts')
+                ->join('attendances', 'attendances.id', '=', 'attendance_discounts.attendance_id')->where('attendances.source', '<>', 'legacy')
+                ->groupBy('attendance_discounts.attendance_id')->havingRaw('COUNT(*) > 1')->select('attendance_discounts.attendance_id'), 'varios')->count()
+                + DB::table('attendance_discounts')->join('attendances', 'attendances.id', '=', 'attendance_discounts.attendance_id')->where('attendances.status', 'completed')
+                    ->where(fn ($q) => $q->where(fn ($a) => $a->whereNotNull('attendance_discounts.coupon_redemption_id')->whereNotExists(fn ($e) => $e->from('coupon_redemptions')->whereColumn('coupon_redemptions.id', 'attendance_discounts.coupon_redemption_id')->where('coupon_redemptions.status', 'redeemed')))
+                        ->orWhere(fn ($b) => $b->whereNotNull('attendance_discounts.loyalty_redemption_id')->whereNotExists(fn ($e) => $e->from('loyalty_redemptions')->whereColumn('loyalty_redemptions.id', 'attendance_discounts.loyalty_redemption_id')->where('loyalty_redemptions.status', 'redeemed'))))->count()],
         ];
     }
 }

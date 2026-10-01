@@ -11,6 +11,7 @@ import Alpine from '@alpinejs/csp';
 import booking from './components/booking';
 import { dropdown, disclosure, tabs } from './components/ui';
 import { initDialogs } from './components/dialog';
+import { initPrint } from './components/print';
 
 Alpine.data('dropdown', dropdown);
 Alpine.data('disclosure', disclosure);
@@ -21,3 +22,4 @@ window.Alpine = Alpine;
 Alpine.start();
 
 initDialogs();
+initPrint();

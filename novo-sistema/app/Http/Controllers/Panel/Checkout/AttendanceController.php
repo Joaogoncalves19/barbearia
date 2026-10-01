@@ -25,6 +25,7 @@ use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Identity\Models\User;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
 use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
 use App\Modules\Scheduling\Exceptions\SlotUnavailable;
 use App\Modules\Scheduling\Models\Appointment;
@@ -248,6 +249,18 @@ class AttendanceController extends Controller
         return $this->run(fn () => $this->service->applyDiscount($attendance, $regra, $dados['discount_reason'], $this->user($request)), 'Desconto aplicado.');
     }
 
+    /** Cupom ou pontos do cliente no balcao (Fase 8): vale um desconto so, o maior. */
+    public function applyPromotion(Request $request, Attendance $attendance): RedirectResponse
+    {
+        $dados = $request->validate([
+            'coupon' => ['nullable', 'string', 'max:64'],
+            'use_loyalty' => ['nullable', 'boolean'],
+        ], [], ['coupon' => 'cupom', 'use_loyalty' => 'pontos']);
+        $pedido = new PromotionRequest($dados['coupon'] ?? null, (bool) ($dados['use_loyalty'] ?? false));
+
+        return $this->run(fn () => $this->service->applyPromotion($attendance, $pedido, $this->user($request)), 'Promoção aplicada.');
+    }
+
     public function removeDiscount(Request $request, Attendance $attendance, AttendanceDiscount $discount): RedirectResponse
     {
         abort_unless($discount->attendance_id === $attendance->id, 404);
@@ -284,7 +297,8 @@ class AttendanceController extends Controller
             'payments.*.method' => ['nullable', Rule::in(array_keys($this->methodOptions()))],
             'payments.*.amount' => ['nullable', 'string', 'max:20'],
             'payments.*.tip' => ['nullable', 'string', 'max:20'],
-        ], [], ['payments.*.method' => 'forma de pagamento', 'payments.*.amount' => 'valor', 'payments.*.tip' => 'gorjeta']);
+            'payments.*.gift_code' => ['nullable', 'string', 'max:64'],
+        ], [], ['payments.*.method' => 'forma de pagamento', 'payments.*.amount' => 'valor', 'payments.*.tip' => 'gorjeta', 'payments.*.gift_code' => 'código do vale-presente']);
 
         $linhas = [];
         foreach ($dados['payments'] ?? [] as $n => $p) {
@@ -298,7 +312,12 @@ class AttendanceController extends Controller
             if ($valor === null || $gorjeta === null || $valor->isNegative() || $gorjeta->isNegative() || empty($p['method'])) {
                 return back()->withInput()->withErrors(["payments.{$n}.amount" => 'Informe a forma e um valor válido (ex.: 50,00).']);
             }
-            $linhas[] = new PaymentLine(PaymentMethod::from($p['method']), $valor->cents, $gorjeta->cents);
+            $forma = PaymentMethod::from($p['method']);
+            $codigo = trim((string) ($p['gift_code'] ?? ''));
+            if ($forma === PaymentMethod::GiftCard && $codigo === '') {
+                return back()->withInput()->withErrors(["payments.{$n}.gift_code" => 'Informe o código do vale-presente.']);
+            }
+            $linhas[] = new PaymentLine($forma, $valor->cents, $gorjeta->cents, $forma === PaymentMethod::GiftCard ? $codigo : null);
         }
 
         $user = $this->user($request);

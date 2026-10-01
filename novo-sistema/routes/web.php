@@ -32,6 +32,13 @@ use App\Http\Controllers\Panel\Checkout\AttendanceController;
 use App\Http\Controllers\Panel\Checkout\CashController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\Finance\AdvanceController;
+use App\Http\Controllers\Panel\Promotions\CouponController;
+use App\Http\Controllers\Panel\Promotions\CustomerLoyaltyController;
+use App\Http\Controllers\Panel\Promotions\GiftCardController;
+use App\Http\Controllers\Panel\Promotions\PromotionSettingsController;
+use App\Http\Controllers\Panel\ReceiptController as PanelReceiptController;
+use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
+use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
 use App\Http\Controllers\Panel\Finance\CommissionController;
 use App\Http\Controllers\Panel\Finance\CommissionRuleController;
 use App\Http\Controllers\Panel\Finance\PayoutController;
@@ -141,6 +148,14 @@ Route::prefix('minha-conta')
             // Comprovante do atendimento concluido (Fase 6): so o proprio; alheio = 404.
             Route::get('/atendimentos/{attendance}', [AccountAppointmentController::class, 'receipt'])
                 ->middleware('can:view,attendance')->name('attendances.show');
+            // Fase 8: versao para imprimir e envio para o e-mail da propria conta.
+            Route::get('/atendimentos/{attendance}/imprimir', [AccountReceiptController::class, 'show'])
+                ->middleware('can:view,attendance')->name('attendances.print');
+            Route::post('/atendimentos/{attendance}/enviar', [AccountReceiptController::class, 'email'])
+                ->middleware(['can:view,attendance', 'throttle:receipts'])->name('attendances.email');
+            // Fidelidade e indicacao (Fase 8): saldo, extrato, regras e o proprio codigo.
+            Route::get('/fidelidade', [AccountLoyaltyController::class, 'show'])->name('loyalty');
+            Route::post('/fidelidade/codigo', [AccountLoyaltyController::class, 'generateCode'])->middleware('throttle:booking')->name('loyalty.code');
         });
     });
 
@@ -322,6 +337,36 @@ Route::prefix('painel')
         Route::get('/repasses', [PayoutController::class, 'index'])->middleware('can:payouts.view')->name('payouts.index');
         Route::get('/repasses/{payout}', [PayoutController::class, 'show'])->middleware('can:view,payout')->name('payouts.show');
         Route::post('/repasses/{payout}/estorno', [PayoutController::class, 'reverse'])->middleware(['can:payouts.reverse', 'throttle:money'])->name('payouts.reverse');
+
+        // --- Promocoes, fidelidade e vale-presente (Fase 8) ---
+        Route::get('/cupons', [CouponController::class, 'index'])->middleware('can:coupons.view')->name('coupons.index');
+        Route::get('/cupons/novo', [CouponController::class, 'create'])->middleware('can:coupons.manage')->name('coupons.create');
+        Route::post('/cupons', [CouponController::class, 'store'])->middleware('can:coupons.manage')->name('coupons.store');
+        Route::get('/cupons/{coupon}/editar', [CouponController::class, 'edit'])->middleware('can:coupons.manage')->name('coupons.edit');
+        Route::put('/cupons/{coupon}', [CouponController::class, 'update'])->middleware('can:coupons.manage')->name('coupons.update');
+        Route::post('/cupons/{coupon}/situacao', [CouponController::class, 'setStatus'])->middleware('can:coupons.manage')->name('coupons.status');
+        Route::get('/fidelidade', [PromotionSettingsController::class, 'edit'])->middleware('can:promotions.configure')->name('promotions.settings');
+        Route::put('/fidelidade', [PromotionSettingsController::class, 'update'])->middleware(['can:promotions.configure', 'throttle:money'])->name('promotions.settings.update');
+        Route::get('/fidelidade/clientes', [CustomerLoyaltyController::class, 'index'])->middleware('can:loyalty.view')->name('loyalty.customers');
+        Route::get('/fidelidade/clientes/{customer:public_id}', [CustomerLoyaltyController::class, 'show'])->middleware('can:loyalty.view')->name('loyalty.customer');
+        Route::post('/fidelidade/clientes/{customer:public_id}/ajuste', [CustomerLoyaltyController::class, 'adjust'])->middleware(['can:loyalty.adjust', 'throttle:money'])->name('loyalty.adjust');
+        Route::post('/atendimentos/{attendance}/promocao', [AttendanceController::class, 'applyPromotion'])->middleware(['can:update,attendance', 'can:promotions.apply', 'throttle:money'])->name('attendances.promotion');
+        Route::get('/vales-presente', [GiftCardController::class, 'index'])->middleware('can:gift_cards.view')->name('gift-cards.index');
+        Route::get('/vales-presente/novo', [GiftCardController::class, 'create'])->middleware('can:gift_cards.sell')->name('gift-cards.create');
+        Route::post('/vales-presente', [GiftCardController::class, 'store'])->middleware(['can:gift_cards.sell', 'throttle:money'])->name('gift-cards.store');
+        Route::get('/vales-presente/{giftCard}', [GiftCardController::class, 'show'])->middleware('can:gift_cards.view')->name('gift-cards.show');
+        Route::post('/vales-presente/{giftCard}/cancelar', [GiftCardController::class, 'cancel'])->middleware(['can:gift_cards.cancel', 'throttle:money'])->name('gift-cards.cancel');
+
+        // --- Comprovantes impressos e por e-mail (Fase 8) ---
+        // Mesmo acesso da tela do documento; envio com limite proprio.
+        Route::get('/atendimentos/{attendance}/comprovante', [PanelReceiptController::class, 'attendance'])->middleware('can:view,attendance')->name('receipts.attendance');
+        Route::post('/atendimentos/{attendance}/comprovante/email', [PanelReceiptController::class, 'emailAttendance'])->middleware(['can:view,attendance', 'throttle:receipts'])->name('receipts.attendance.email');
+        Route::get('/repasses/{payout}/recibo', [PanelReceiptController::class, 'payout'])->middleware('can:view,payout')->name('receipts.payout');
+        Route::post('/repasses/{payout}/recibo/email', [PanelReceiptController::class, 'emailPayout'])->middleware(['can:view,payout', 'throttle:receipts'])->name('receipts.payout.email');
+        Route::get('/vales-presente/{giftCard}/imprimir', [PanelReceiptController::class, 'giftCard'])->middleware('can:gift_cards.view')->name('receipts.gift-card');
+        Route::post('/vales-presente/{giftCard}/email', [PanelReceiptController::class, 'emailGiftCard'])->middleware(['can:gift_cards.view', 'throttle:receipts'])->name('receipts.gift-card.email');
+        Route::get('/caixa/{session}/comprovante', [PanelReceiptController::class, 'cash'])->middleware('can:cash.view')->name('receipts.cash');
+        Route::post('/caixa/{session}/comprovante/email', [PanelReceiptController::class, 'emailCash'])->middleware(['can:cash.view', 'throttle:receipts'])->name('receipts.cash.email');
 
         Route::get('/auditoria', [AuditLogController::class, 'index'])
             ->middleware('can:audit.view')->name('audit.index');

@@ -5,6 +5,7 @@ namespace App\Modules\Scheduling\Services;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Support\Channel;
 use App\Modules\Team\Models\Professional;
@@ -28,5 +29,9 @@ final class BookingRequest
         public readonly ?string $contactPhone = null,
         public readonly ?string $notes = null,
         public readonly User|Customer|null $actor = null,
+        // Fase 8: cupom/pontos pedidos e o total que a pessoa viu na tela
+        // (se informado e diferente do calculado, o agendamento e recusado).
+        public readonly ?PromotionRequest $promotion = null,
+        public readonly ?int $expectedTotalCents = null,
     ) {}
 }

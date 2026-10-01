@@ -23,6 +23,17 @@ use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Finance\Services\ProfessionalLedger;
+use App\Modules\Loyalty\Enums\GiftCardStatus;
+use App\Modules\Loyalty\Enums\RedemptionStatus;
+use App\Modules\Loyalty\Exceptions\PromotionRejected;
+use App\Modules\Loyalty\Models\CouponRedemption;
+use App\Modules\Loyalty\Models\LoyaltyRedemption;
+use App\Modules\Loyalty\Pricing\PromotionCandidate;
+use App\Modules\Loyalty\Pricing\PromotionEngine;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
+use App\Modules\Loyalty\Services\GiftCards;
+use App\Modules\Loyalty\Services\LoyaltyLedger;
+use App\Modules\Loyalty\Services\PromotionService;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
@@ -80,6 +91,9 @@ final class AttendanceService
         private readonly CashRegister $cash,
         private readonly BookingService $booking,
         private readonly ProfessionalLedger $ledger,
+        private readonly PromotionService $promotions,
+        private readonly LoyaltyLedger $loyalty,
+        private readonly GiftCards $giftCards,
     ) {}
 
     /**
@@ -198,16 +212,24 @@ final class AttendanceService
             ]);
         }
         foreach ($a->adjustments as $adj) {
-            if ($adj->amount_cents > 0) {
-                $at->discounts()->create([
-                    'kind' => $adj->kind,
-                    'type' => DiscountType::Fixed,
-                    'fixed_cents' => $adj->amount_cents,
-                    'base_cents' => 0,
-                    'amount_cents' => 0,
-                    'reason' => $adj->description ?? 'Desconto do agendamento',
-                ]);
+            // Fase 8: copia a REGRA (percentual ou valor) e a reserva de cupom/
+            // pontos; reserva ja liberada (desconto trocado num atendimento
+            // cancelado) nao volta.
+            if ($adj->amount_cents <= 0 || $this->promotionReleased($adj->coupon_redemption_id, $adj->loyalty_redemption_id)) {
+                continue;
             }
+            $tipo = $adj->discount_type ?? DiscountType::Fixed;
+            $at->discounts()->create([
+                'kind' => $adj->kind,
+                'type' => $tipo,
+                'percent_bp' => $tipo === DiscountType::Percent ? $adj->percent_bp : null,
+                'fixed_cents' => $tipo === DiscountType::Fixed ? ($adj->fixed_cents ?? $adj->amount_cents) : null,
+                'base_cents' => 0,
+                'amount_cents' => 0,
+                'reason' => $adj->description ?? 'Desconto do agendamento',
+                'coupon_redemption_id' => $adj->coupon_redemption_id,
+                'loyalty_redemption_id' => $adj->loyalty_redemption_id,
+            ]);
         }
         $this->pricing->refreshDiscounts($at);
 
@@ -330,23 +352,67 @@ final class AttendanceService
 
         return $this->mutate($attendance, function (Attendance $at) use ($rule, $motivo, $actor): void {
             $this->assertEditable($at);
-            $at->discounts()->where('kind', AdjustmentKind::Manual->value)->get()->each->delete();
-            $d = $at->discounts()->create([
-                'kind' => AdjustmentKind::Manual,
-                'type' => $rule->type,
-                'percent_bp' => $rule->type === DiscountType::Percent ? $rule->value : null,
-                'fixed_cents' => $rule->type === DiscountType::Fixed ? $rule->value : null,
-                'base_cents' => 0,
-                'amount_cents' => 0,
-                'reason' => mb_substr($motivo, 0, 255),
-                'applied_by_user_id' => $actor->id,
-            ]);
+            $atuais = $at->discounts()->get();
+            if ($atuais->every(fn (AttendanceDiscount $x) => $x->kind === AdjustmentKind::Manual)) {
+                // Corrigir o proprio desconto manual: substitui sempre.
+                $atuais->each->delete();
+                $at->discounts()->create([
+                    'kind' => AdjustmentKind::Manual,
+                    'type' => $rule->type,
+                    'percent_bp' => $rule->type === DiscountType::Percent ? $rule->value : null,
+                    'fixed_cents' => $rule->type === DiscountType::Fixed ? $rule->value : null,
+                    'base_cents' => 0,
+                    'amount_cents' => 0,
+                    'reason' => mb_substr($motivo, 0, 255),
+                    'applied_by_user_id' => $actor->id,
+                ]);
+            } else {
+                // Ha promocao (cupom, pontos, aniversario...): um desconto so,
+                // vale o maior (R-10, decisao do dono). Manual maior substitui e
+                // libera a reserva; menor ou igual e recusado.
+                $linhas = PromotionEngine::linesFrom($at->items()->get());
+                $manual = new PromotionCandidate(AdjustmentKind::Manual, $rule, PromotionEngine::amountFor($rule, $linhas), 'Desconto manual ('.$rule->label().')');
+                try {
+                    $this->promotions->applyToAttendance($at, PromotionRequest::none(), $manual, $actor->id, mb_substr($motivo, 0, 255));
+                } catch (PromotionRejected $e) {
+                    throw new CheckoutRuleViolation('promotion', $e->getMessage());
+                }
+            }
             $this->pricing->refreshDiscounts($at);
-            $d->refresh();
+            $d = $at->discounts()->sole();
             $this->event($at, 'discount_applied', 'Desconto de '.$rule->label().' aplicado.', $actor, [
                 'antes_cents' => $d->base_cents, 'desconto_cents' => $d->amount_cents,
                 'depois_cents' => $d->base_cents - $d->amount_cents, 'motivo' => $motivo,
             ]);
+        });
+    }
+
+    /**
+     * Cupom ou pontos no balcao (Fase 8). Um desconto so, vale o maior: se o
+     * pedido for maior que o atual, substitui (e libera a reserva do atual);
+     * senao, e recusado com o motivo.
+     *
+     * @throws CheckoutRuleViolation
+     */
+    public function applyPromotion(Attendance $attendance, PromotionRequest $request, User $actor): Attendance
+    {
+        if ($request->isEmpty()) {
+            throw new CheckoutRuleViolation('promotion', 'Informe o cupom ou marque o uso de pontos.');
+        }
+
+        return $this->mutate($attendance, function (Attendance $at) use ($request, $actor): void {
+            $this->assertEditable($at);
+            if ($at->customer_id === null) {
+                throw new CheckoutRuleViolation('customer_required');
+            }
+            try {
+                $c = $this->promotions->applyToAttendance($at, $request, null, $actor->id);
+            } catch (PromotionRejected $e) {
+                throw new CheckoutRuleViolation('promotion', $e->getMessage());
+            }
+            $this->pricing->refreshDiscounts($at);
+            $this->promotions->audit($at, $c, $actor);
+            $this->event($at, 'promotion_applied', $c->label.' aplicado.', $actor, ['desconto_cents' => $at->discounts()->sum('amount_cents')]);
         });
     }
 
@@ -356,6 +422,7 @@ final class AttendanceService
             $this->assertEditable($at);
             $linha = AttendanceDiscount::query()->whereKey($discount->id)->where('attendance_id', $at->id)->first()
                 ?? throw new CheckoutRuleViolation('not_in_attendance');
+            $this->promotions->releaseFor($linha->coupon_redemption_id, $linha->loyalty_redemption_id, 'Desconto retirado no atendimento '.$at->code);
             $linha->delete();
             $this->pricing->refreshDiscounts($at);
             $this->event($at, 'discount_removed', 'Desconto retirado.', $actor, ['desconto_cents' => $linha->amount_cents]);
@@ -452,6 +519,9 @@ final class AttendanceService
             if ($p->method === PaymentMethod::Unknown || $p->amountCents < 0 || $p->tipCents < 0 || $p->amountCents + $p->tipCents <= 0) {
                 throw new CheckoutRuleViolation('invalid_payment');
             }
+            if ($p->isGiftCard() && ($p->tipCents > 0 || trim((string) $p->giftCardCode) === '')) {
+                throw new CheckoutRuleViolation('invalid_gift_card_line');
+            }
         }
 
         return DB::transaction(function () use ($attendance, $payments, $key, $actor): Attendance {
@@ -481,8 +551,10 @@ final class AttendanceService
             }
             $gorjeta = array_sum(array_map(fn (PaymentLine $p) => $p->tipCents, $payments));
 
-            // 2) Caixa: todo pagamento entra no caixa aberto.
-            $caixa = $payments !== [] ? $this->cash->lockOpen() : null;
+            // 2) Caixa: todo pagamento entra no caixa aberto, menos o vale-
+            //    presente (o dinheiro dele entrou na venda; Fase 8).
+            $emDinheiro = array_filter($payments, fn (PaymentLine $p) => ! $p->isGiftCard());
+            $caixa = $emDinheiro !== [] ? $this->cash->lockOpen() : null;
 
             // 3) Estoque: venda e consumo, travando os produtos em ordem de id.
             $baixas = [];
@@ -502,13 +574,22 @@ final class AttendanceService
                 ]);
             }
 
-            // 4) Pagamentos e entradas no caixa.
+            // 4) Pagamentos e entradas no caixa. Vale-presente: uso unico,
+            //    travado e conferido aqui; nao entra na gaveta.
             $gravados = [];
             foreach ($payments as $linha) {
+                $vale = null;
+                if ($linha->isGiftCard()) {
+                    try {
+                        $vale = $this->giftCards->checkForPayment((string) $linha->giftCardCode, $linha->amountCents, $b->total->cents);
+                    } catch (PromotionRejected $e) {
+                        throw new CheckoutRuleViolation('promotion', $e->getMessage());
+                    }
+                }
                 $gravados[] = $pg = Payment::query()->create([
                     'attendance_id' => $at->id,
                     'customer_id' => $at->customer_id,
-                    'cash_session_id' => $caixa?->id,
+                    'cash_session_id' => $vale === null ? $caixa?->id : null,
                     'kind' => PaymentKind::Payment,
                     'method' => $linha->method,
                     'amount_cents' => $linha->amountCents,
@@ -517,8 +598,11 @@ final class AttendanceService
                     'paid_at' => BusinessTime::now(),
                     'received_by_user_id' => $actor->id,
                     'received_by_label' => $actor->name,
+                    'gift_card_id' => $vale?->id,
                 ]);
-                if ($caixa !== null) {
+                if ($vale !== null) {
+                    $vale->forceFill(['status' => GiftCardStatus::Redeemed, 'redeemed_at' => BusinessTime::now(), 'redeemed_attendance_id' => $at->id, 'redeemed_appointment_id' => $at->appointment_id])->save();
+                } elseif ($caixa !== null) {
                     $this->cash->recordPayment($caixa, $pg, 'Atendimento '.$at->code.' · '.$at->customer_name, $actor);
                 }
             }
@@ -546,6 +630,16 @@ final class AttendanceService
             // 7) Comissao (por item, regra fotografada) e gorjeta (por pagamento)
             //    do profissional que atendeu. Mesma transacao: tudo ou nada.
             $this->ledger->recordCompletion($at, $gravados);
+
+            // 8) Promocoes (Fase 8): cupom conta o uso, pontos do resgate saem
+            //    do saldo, reservas nao usadas sao liberadas; pontos ganhos e
+            //    bonus de indicacao. Mesma transacao.
+            try {
+                $this->promotions->finalizeForAttendance($at);
+            } catch (PromotionRejected $e) {
+                throw new CheckoutRuleViolation('promotion', $e->getMessage());
+            }
+            $this->loyalty->recordCompletion($at);
 
             $this->event($at, 'completed', 'Atendimento concluído.', $actor, [
                 'subtotal_cents' => $b->subtotal->cents,
@@ -622,6 +716,13 @@ final class AttendanceService
         if (! $srv->isBookable() || ! $pro->services()->whereKey($srv->id)->exists()) {
             throw new CheckoutRuleViolation('service_unavailable');
         }
+    }
+
+    /** A reserva (cupom/pontos) que deu origem ao desconto ja foi liberada? */
+    private function promotionReleased(?int $couponRedemptionId, ?int $loyaltyRedemptionId): bool
+    {
+        return ($couponRedemptionId !== null && CouponRedemption::query()->whereKey($couponRedemptionId)->where('status', RedemptionStatus::Released)->exists())
+            || ($loyaltyRedemptionId !== null && LoyaltyRedemption::query()->whereKey($loyaltyRedemptionId)->where('status', RedemptionStatus::Released)->exists());
     }
 
     private function assertEditable(Attendance $at): void

@@ -41,6 +41,9 @@ class CustomerRegisterRequest extends FormRequest
             }],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
             'marketing' => ['sometimes', 'boolean'],
+            // Fase 8: codigo de quem indicou (opcional). Codigo inexistente e
+            // ignorado sem aviso (o cadastro nao revela se um codigo existe).
+            'referral' => ['nullable', 'string', 'max:32'],
         ];
     }
 
@@ -66,6 +69,7 @@ class CustomerRegisterRequest extends FormRequest
             'phone' => $telefone === '' ? null : Phone::normalize($telefone),
             'password' => $this->string('password')->value(),
             'marketing' => $this->boolean('marketing'),
+            'referral' => mb_strtoupper(trim($this->string('referral')->value())) ?: null,
         ];
     }
 }

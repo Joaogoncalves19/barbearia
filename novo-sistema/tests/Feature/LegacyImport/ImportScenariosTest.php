@@ -280,7 +280,10 @@ class ImportScenariosTest extends ImporterTestCase
     {
         $tudo = json_encode(DB::table('settings')->get());
         $this->assertStringNotContainsString(FictitiousLegacyDatabase::FAKE_CREDENTIAL, $tudo);
-        $this->assertSame(['legacy.config_agendamento', 'legacy.config_geral', 'legacy.fidelidade_config', 'legacy.landing_page'], DB::table('settings')->orderBy('key')->pluck('key')->all());
+        $this->assertSame(['legacy.config_agendamento', 'legacy.config_geral', 'legacy.fidelidade_config', 'legacy.landing_page', 'promotions.policy'], DB::table('settings')->orderBy('key')->pluck('key')->all());
+        // Fase 8: a fidelidade do sistema antigo (10 pontos por visita) vira a regra nova.
+        $politica = json_decode((string) DB::table('settings')->where('key', 'promotions.policy')->value('value'), true);
+        $this->assertSame(['visit', 10, true], [$politica['loyalty_earn_mode'], $politica['loyalty_points_per_visit'], $politica['loyalty_enabled']]);
         $this->assertSame(['titulo' => 'Barbearia Exemplo', 'integracao' => ['cor' => '#000']], json_decode(DB::table('settings')->where('key', 'legacy.landing_page')->value('value'), true));
         $this->assertCount(3, $this->issues($this->r, 'secret_section_not_imported'));
 

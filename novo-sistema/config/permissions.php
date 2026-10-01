@@ -123,8 +123,20 @@ return [
         // Despesas, metas, DRE e relatorios gerais: fases seguintes.
         'reports.view' => 'Ver relatórios',
 
-        // Marketing e configuracoes (Fases 8 a 10)
-        'marketing.manage' => 'Gerenciar cupons, campanhas e fidelidade',
+        // Promocoes, fidelidade e vale-presente (Fase 8). Cada acao tem a sua
+        // habilidade; aplicar cupom/pontos no balcao nao da direito a
+        // configurar nem a dar desconto manual (attendances.discount).
+        'coupons.view' => 'Ver cupons e usos',
+        'coupons.manage' => 'Criar, editar, ativar e desativar cupons',
+        'promotions.apply' => 'Aplicar cupom ou pontos do cliente no atendimento',
+        'promotions.configure' => 'Configurar fidelidade, aniversário e indicação',
+        'loyalty.view' => 'Ver saldo e extrato de pontos dos clientes',
+        'loyalty.adjust' => 'Ajustar pontos de cliente (com motivo)',
+        'gift_cards.view' => 'Ver vales-presente',
+        'gift_cards.sell' => 'Vender vale-presente (entra no caixa)',
+        'gift_cards.cancel' => 'Cancelar vale-presente (devolve o valor pelo caixa)',
+        // Campanhas e configuracoes (Fases 10 e seguintes)
+        'marketing.manage' => 'Gerenciar campanhas',
         'settings.manage' => 'Alterar configurações do estabelecimento',
     ],
 
@@ -149,6 +161,8 @@ return [
             'commissions.view', 'commissions.configure', 'commissions.correct', 'commissions.history',
             'payouts.view', 'payouts.create', 'payouts.reverse', 'advances.create', 'advances.reverse',
             'reports.view',
+            'coupons.view', 'coupons.manage', 'promotions.apply', 'promotions.configure', 'loyalty.view', 'loyalty.adjust',
+            'gift_cards.view', 'gift_cards.sell', 'gift_cards.cancel',
             'marketing.manage', 'settings.manage',
         ],
 
@@ -168,6 +182,8 @@ return [
             'stock.view', 'stock.receive', 'stock.issue', 'stock.adjust',
             'commissions.view', 'commissions.history', 'payouts.view',
             'reports.view',
+            'coupons.view', 'coupons.manage', 'promotions.apply', 'loyalty.view', 'loyalty.adjust',
+            'gift_cards.view', 'gift_cards.sell',
             'marketing.manage',
         ],
 
@@ -183,6 +199,7 @@ return [
             'attendances.view', 'attendances.manage', 'attendances.cancel',
             'payments.receive', 'cash.view', 'cash.open', 'cash.move', 'cash.close',
             'products.view', 'stock.view', 'stock.receive', 'stock.issue',
+            'coupons.view', 'promotions.apply', 'loyalty.view', 'gift_cards.view', 'gift_cards.sell',
         ],
 
         // Financeiro: numeros, sem agenda e sem clientes. Consulta
@@ -195,6 +212,7 @@ return [
             'commissions.view', 'commissions.correct', 'commissions.history',
             'payouts.view', 'payouts.create', 'payouts.reverse', 'advances.create', 'advances.reverse',
             'reports.view',
+            'coupons.view', 'loyalty.view', 'gift_cards.view', 'gift_cards.cancel',
         ],
 
         // Profissional: so o que e dele (Policies conferem o registro).
@@ -205,7 +223,7 @@ return [
             'customers.view_own',
             'appointments.view_own', 'appointments.manage_own',
             'attendances.view_own', 'attendances.manage_own', 'payments.receive',
-            'commissions.view_own',
+            'commissions.view_own', 'promotions.apply',
         ],
     ],
 

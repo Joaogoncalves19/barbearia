@@ -26,11 +26,15 @@ final class CheckoutRuleViolation extends RuntimeException
         'payment_mismatch' => 'A soma dos pagamentos precisa ser igual ao total a pagar.',
         'unknown_price' => 'Há item sem preço conhecido: o atendimento não pode ser concluído.',
         'not_in_attendance' => 'Este item não pertence ao atendimento.',
+        // Fase 8: o detalhe (motivo da promocao/vale) vem do PromotionRejected.
+        'promotion' => '',
+        'invalid_gift_card_line' => 'Vale-presente: informe o código do vale e não lance gorjeta nele.',
+        'customer_required' => 'Cupom e pontos exigem cliente cadastrado no atendimento.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)
     {
         $msg = self::MESSAGES[$reason] ?? 'Operação não permitida.';
-        parent::__construct($detail !== null ? "{$msg} {$detail}" : $msg);
+        parent::__construct($detail !== null ? trim("{$msg} {$detail}") : $msg);
     }
 }

@@ -5,6 +5,9 @@ namespace App\Modules\Scheduling\Services;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
+use App\Modules\Loyalty\Exceptions\PromotionRejected;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
+use App\Modules\Loyalty\Services\PromotionService;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Enums\CancelledBy;
@@ -38,6 +41,10 @@ use Illuminate\Support\Facades\DB;
  * busy_timeout): a segunda so revalida depois que a primeira terminou, ve o
  * horario ocupado e recebe SlotUnavailable('conflict'). Nada fica gravado
  * pela metade (tudo ou nada).
+ *
+ * Fase 8: a mesma transacao aplica o desconto (PromotionService: um so, o
+ * maior; cupom e pontos reservados) e confere o total que a pessoa viu.
+ * Cancelamento e falta liberam as reservas.
  */
 final class BookingService
 {
@@ -50,6 +57,7 @@ final class BookingService
     public function __construct(
         private readonly Availability $availability,
         private readonly ProfessionalDirectory $directory,
+        private readonly PromotionService $promotions,
     ) {}
 
     /**
@@ -131,7 +139,13 @@ final class BookingService
                 'price_source' => PriceSource::CatalogAtBooking,
             ]);
 
+            // Fase 8: o desconto (um so, o maior) e a reserva de cupom/pontos,
+            // na mesma transacao. Pedido invalido recusa o agendamento inteiro.
+            $q = $this->promotions->applyToAppointment($a, $r->customer, $r->promotion ?? PromotionRequest::none());
             app(AppointmentPricing::class)->refresh($a);
+            if ($r->expectedTotalCents !== null && $a->total_cents !== $r->expectedTotalCents) {
+                throw new PromotionRejected('price_changed');
+            }
 
             $descricao = match (true) {
                 $r->source === AppointmentSource::WalkIn => 'Encaixe: cliente chegou sem hora marcada.',
@@ -144,6 +158,8 @@ final class BookingService
                 'inicio' => BusinessTime::formatLocal($janela->start),
                 'servico' => $servico->name,
                 'preco_cents' => $servico->price_cents,
+                'desconto' => $q->chosen?->label,
+                'total_cents' => $a->total_cents,
             ]);
 
             return $a;
@@ -261,6 +277,7 @@ final class BookingService
             $a->cancelled_by = $channel === Channel::Customer ? CancelledBy::Customer : CancelledBy::Staff;
             $a->cancellation_reason = $motivo ?: null;
             $a->save();
+            $this->promotions->releaseForAppointment($a->id, 'Agendamento '.$a->code.' cancelado');
 
             $this->event($a, 'cancelled', 'Agendamento cancelado.', $actor, ['por' => $a->cancelled_by->label(), 'motivo' => $motivo]);
 
@@ -284,6 +301,7 @@ final class BookingService
                 throw new BookingRuleViolation('not_started');
             }
             $this->assertNotInAttendance($a);
+            $this->promotions->releaseForAppointment($a->id, 'Falta no agendamento '.$a->code);
         });
     }
 

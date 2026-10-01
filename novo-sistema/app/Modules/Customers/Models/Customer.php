@@ -56,6 +56,8 @@ use Illuminate\Support\Str;
  * @property Carbon|null $last_login_at
  * @property Carbon|null $password_changed_at
  * @property int|null $merged_into_customer_id
+ * @property string|null $referral_code
+ * @property int|null $referred_by_customer_id
  */
 #[Fillable(['name', 'email', 'phone', 'cpf', 'password', 'birth_date'])]
 #[Hidden(['password', 'remember_token', 'cpf'])]
@@ -101,6 +103,7 @@ class Customer extends Authenticatable implements MustVerifyEmail
                 throw DomainRuleViolation::rule('R-CPF', 'Cliente novo precisa de CPF valido.');
             }
             $c->public_id ??= (string) Str::ulid();
+            $c->referral_code ??= self::newReferralCode(); // Fase 8: codigo de indicacao
             $c->status ??= CustomerStatus::Active;
             $c->marketing_email_consent ??= MarketingConsent::Unknown;
         });
@@ -242,5 +245,19 @@ class Customer extends Authenticatable implements MustVerifyEmail
         return $this->email !== null
             && $this->marketing_email_consent === MarketingConsent::Granted
             && ! EmailSuppression::isSuppressed($this->email);
+    }
+
+    /** Codigo de indicacao unico (Fase 8), facil de ditar: 8 letras/numeros sem ambiguidade. */
+    public static function newReferralCode(): string
+    {
+        $alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        do {
+            $codigo = '';
+            for ($i = 0; $i < 8; $i++) {
+                $codigo .= $alfabeto[random_int(0, strlen($alfabeto) - 1)];
+            }
+        } while (static::query()->where('referral_code', $codigo)->exists());
+
+        return $codigo;
     }
 }

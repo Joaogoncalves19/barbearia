@@ -2,6 +2,7 @@
 
 namespace App\Modules\Scheduling\Models;
 
+use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Loyalty\Models\Coupon;
 use App\Modules\Loyalty\Models\GiftCard;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
@@ -12,6 +13,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Desconto aplicado ao agendamento, com a origem. amount_cents e sempre >= 0.
+ * Fase 8: guarda a regra (tipo e valor) e a reserva de cupom/pontos.
+ *
+ * @property int $id
+ * @property int $appointment_id
+ * @property AdjustmentKind $kind
+ * @property int $amount_cents
+ * @property DiscountType|null $discount_type
+ * @property int|null $percent_bp
+ * @property int|null $fixed_cents
+ * @property int|null $coupon_id
+ * @property int|null $coupon_redemption_id
+ * @property int|null $loyalty_redemption_id
+ * @property string|null $description
  */
 class AppointmentAdjustment extends Model
 {
@@ -27,6 +41,9 @@ class AppointmentAdjustment extends Model
         return [
             'kind' => AdjustmentKind::class,
             'amount_cents' => 'integer',
+            'discount_type' => DiscountType::class,
+            'percent_bp' => 'integer',
+            'fixed_cents' => 'integer',
         ];
     }
 

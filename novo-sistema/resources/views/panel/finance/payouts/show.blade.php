@@ -17,11 +17,14 @@
                 <span class="text-muted">em {{ $p->paid_on?->format('d/m/Y') ?? '—' }}@if ($p->method) · {{ $p->method->value === 'other' ? 'Outro (transferência)' : $p->method->label() }}@endif @if ($p->createdBy) · por {{ $p->createdBy->name }}@endif</span>
             </p>
         </div>
-        @can('payouts.reverse')
-            @if (! $p->isReversed() && ! $p->isLegacy())
-                <x-ui.button variant="danger" icon="undo-2" data-dialog-open="estornar-repasse">Estornar repasse</x-ui.button>
-            @endif
-        @endcan
+        <div class="cluster">
+            <x-ui.button :href="route('panel.receipts.payout', $p)" variant="secondary" icon="receipt">Recibo (imprimir ou e-mail)</x-ui.button>
+            @can('payouts.reverse')
+                @if (! $p->isReversed() && ! $p->isLegacy())
+                    <x-ui.button variant="danger" icon="undo-2" data-dialog-open="estornar-repasse">Estornar repasse</x-ui.button>
+                @endif
+            @endcan
+        </div>
     </header>
 
     @error('payout')@if (! old('_dialog'))<x-ui.alert variant="danger">{{ $message }}</x-ui.alert>@endif @enderror

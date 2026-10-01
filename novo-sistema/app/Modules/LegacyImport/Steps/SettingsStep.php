@@ -4,7 +4,9 @@ namespace App\Modules\LegacyImport\Steps;
 
 use App\Modules\LegacyImport\Enums\IssueClassification as C;
 use App\Modules\LegacyImport\Enums\IssueSeverity as S;
+use App\Modules\Loyalty\Support\PromotionPolicy;
 use App\Modules\System\Models\Setting;
+use Illuminate\Support\Facades\DB;
 
 /**
  * configuracoes (secao -> JSON). Segredos NUNCA entram no banco novo:
@@ -65,6 +67,59 @@ final class SettingsStep extends Step
             ]);
             $this->ctx->remember('configuracoes', $secao, 'setting', $id, $row);
         }
+
+        $this->promotionPolicy();
+    }
+
+    /**
+     * Fase 8: fidelidade, aniversario e indicacao do sistema antigo viram a
+     * PromotionPolicy (mesmos padroes do sistema antigo quando faltar campo).
+     * So na primeira importacao: depois, quem manda e a tela do sistema novo.
+     */
+    private function promotionPolicy(): void
+    {
+        if (DB::table('settings')->where('key', PromotionPolicy::KEY)->exists()) {
+            return;
+        }
+        $ler = function (string $secao): ?array {
+            $v = DB::table('settings')->where('key', 'legacy.'.$secao)->value('value');
+            $d = is_string($v) ? json_decode($v, true) : null;
+
+            return is_array($d) ? $d : null;
+        };
+        $fid = $ler('fidelidade_config');
+        $ani = $ler('config_aniversario');
+        $ind = $ler('config_indicacao');
+        if ($fid === null && $ani === null && $ind === null) {
+            return;
+        }
+        $bp = fn ($v) => is_numeric($v) ? (int) round((float) $v * 100) : null;
+        $valores = array_filter([
+            'loyalty_enabled' => $fid !== null ? (bool) ($fid['ativado'] ?? 1) : null,
+            'loyalty_earn_mode' => isset($fid['modo_ganho']) ? ($fid['modo_ganho'] === 'valor' ? 'value' : 'visit') : null,
+            'loyalty_points_per_visit' => isset($fid['pontos_por_visita']) ? (int) $fid['pontos_por_visita'] : null,
+            'loyalty_cents_per_point' => $bp($fid['real_por_ponto'] ?? null) ?: null,
+            'loyalty_points_required' => isset($fid['pontos_necessarios']) ? (int) $fid['pontos_necessarios'] : null,
+            'loyalty_reward_type' => isset($fid['tipo_recompensa']) ? (['valor_fixo' => 'fixed', 'servico_gratis' => 'free_service'][$fid['tipo_recompensa']] ?? 'percent') : null,
+            'loyalty_reward_base' => isset($fid['base_desconto']) ? (['mais_caro' => 'most_expensive', 'total' => 'total'][$fid['base_desconto']] ?? 'cheapest') : null,
+            'loyalty_reward_percent_bp' => $bp($fid['desconto_percentual'] ?? null),
+            'loyalty_reward_fixed_cents' => $bp($fid['valor_desconto_fixo'] ?? null) ?: null,
+            'birthday_enabled' => $ani !== null ? (bool) ($ani['ativado'] ?? 0) : null,
+            'birthday_percent_bp' => $bp($ani['desconto_percentual'] ?? null),
+            'referral_enabled' => $ind !== null ? (bool) ($ind['ativado'] ?? 0) : null,
+            'referral_percent_bp' => $bp($ind['desconto_novo_cliente'] ?? null),
+            'referral_bonus_points' => isset($ind['pontos_indicacao']) ? (int) $ind['pontos_indicacao'] : null,
+        ], fn ($v) => $v !== null);
+
+        $normal = PromotionPolicy::normalize($valores);
+        foreach ($valores as $campo => $v) {
+            if ($normal[$campo] !== $v) {
+                $this->ctx->issue('configuracoes', 'fidelidade', C::Inconsistent, S::Warning, 'promotion_value_out_of_range',
+                    "Valor de {$campo} fora do limite no sistema antigo: usado o padrão.", ['valor' => $v], true);
+            }
+        }
+        $this->ctx->insert('settings', ['key' => PromotionPolicy::KEY, 'value' => json_encode($normal), ...$this->stamps()]);
+        $this->ctx->count('configuracoes', 'promotion_policy_converted');
     }
 
     /**

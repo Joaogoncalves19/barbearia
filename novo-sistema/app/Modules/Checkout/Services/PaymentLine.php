@@ -11,5 +11,12 @@ final class PaymentLine
         public readonly PaymentMethod $method,
         public readonly int $amountCents,
         public readonly int $tipCents = 0,
+        // Fase 8: vale-presente (forma GiftCard) informa o codigo.
+        public readonly ?string $giftCardCode = null,
     ) {}
+
+    public function isGiftCard(): bool
+    {
+        return $this->method === PaymentMethod::GiftCard;
+    }
 }

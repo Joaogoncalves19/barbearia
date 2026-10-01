@@ -150,6 +150,13 @@ class AppServiceProvider extends ServiceProvider
             'money|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
         ));
 
+        // Envio de comprovante por e-mail (Fase 8): evita usar o sistema para
+        // disparar e-mails em serie. Por conta (equipe ou cliente) + IP.
+        RateLimiter::for('receipts', fn (Request $request) => [
+            Limit::perMinute(10)->by('receipts|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()),
+            Limit::perHour(60)->by('receipts-h|'.$request->user()?->getAuthIdentifier()),
+        ]);
+
         // Troca/confirmacao de senha logado: segura quem tenta adivinhar a
         // senha atual numa sessao roubada.
         RateLimiter::for('password-check', fn (Request $request) => Limit::perMinute($max)->by(
