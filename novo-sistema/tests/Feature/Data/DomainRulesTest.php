@@ -10,6 +10,7 @@ use App\Modules\Finance\Enums\PaymentKind;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Models\CommissionEntry;
 use App\Modules\Finance\Models\CommissionPayout;
+use App\Modules\Finance\Models\CommissionRule;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
@@ -149,7 +150,9 @@ class DomainRulesTest extends TestCase
             $this->addToAssertionCount(1);
         }
         $this->expectException(DomainRuleViolation::class);
-        Professional::factory()->create(['commission_rate_bp' => 10001]);
+        $p = Professional::factory()->create();
+        CommissionRule::query()->create(['target' => 'service', 'professional_id' => $p->id, 'type' => 'percent', 'rate_bp' => 10001,
+            'scope_key' => "service|p{$p->id}|s*", 'current_scope' => "service|p{$p->id}|s*", 'starts_at' => now()]);
     }
 
     public function test_servico_com_duracao_e_preco_validos(): void

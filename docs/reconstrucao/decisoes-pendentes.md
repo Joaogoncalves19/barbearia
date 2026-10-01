@@ -46,6 +46,19 @@
 > usar a regra única da agenda, considerar o profissional, verificar o próximo compromisso, só alterar com
 > disponibilidade e registrar no histórico/auditoria. Ver
 > [relatorio-fase-6.md](relatorio-fase-6.md#4-decisões) e [§15](relatorio-fase-6.md#15-correção-antes-da-fase-7-o-encaixe-ocupa-a-agenda).
+>
+> **Fase 7 (decisões do dono, no início da fase):** **D-34** vales entram na Fase 7: lançados com motivo,
+> abatidos no próximo repasse, estornáveis sem apagar; em dinheiro, saem do caixa aberto. **D-35** estorno de
+> pagamento ajusta comissão e gorjeta automaticamente: quem estorna informa a parte da gorjeta (vira gorjeta
+> negativa); o resto reduz a comissão na mesma proporção. **D-36** comissão de produto com percentual próprio
+> por profissional (o legado "sim" vira o mesmo percentual dos serviços). **D-37** repasse em dinheiro sai do
+> caixa aberto; Pix/transferência só registrado.
+> **Pendentes da Fase 7 (não bloqueiam; implementadas na forma mais conservadora):** **D-38** quem configura
+> regra de comissão (hoje só o proprietário; o financeiro também?). **D-39** taxa da maquininha descontada da
+> comissão ou da gorjeta paga no cartão (hoje não; o sistema antigo também não). **D-40** período de
+> fechamento (hoje o repasse fecha tudo o que está em aberto até o momento, quando a equipe quiser; fixar
+> semanal/quinzenal/mensal?) e recibo impresso do repasse (o sistema antigo tinha; hoje é a tela). Ver
+> [relatorio-fase-7.md](relatorio-fase-7.md#4-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

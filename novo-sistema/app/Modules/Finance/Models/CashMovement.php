@@ -22,6 +22,8 @@ use Illuminate\Support\Carbon;
  * @property PaymentMethod $method
  * @property int $amount_cents
  * @property int|null $payment_id
+ * @property int|null $commission_payout_id
+ * @property int|null $advance_id
  * @property string $description
  * @property string|null $request_key
  * @property int|null $created_by_user_id
@@ -56,8 +58,12 @@ class CashMovement extends Model
             if ($m->amount_cents === 0 || ($m->amount_cents > 0) !== $m->type->isInflow()) {
                 throw DomainRuleViolation::rule('R-CAIXA', 'Movimentacao de caixa: entrada positiva, saida negativa, nunca zero.');
             }
-            if ($m->type->isManual() === ($m->payment_id !== null)) {
-                throw DomainRuleViolation::rule('R-CAIXA', 'Pagamento e estorno apontam o pagamento de origem; suprimento e sangria nao.');
+            // Exatamente a origem do tipo (pagamento, repasse ou vale), ou nenhuma (manual).
+            $origem = $m->type->originColumn();
+            foreach (['payment_id', 'commission_payout_id', 'advance_id'] as $coluna) {
+                if (($coluna === $origem) !== ($m->getAttribute($coluna) !== null)) {
+                    throw DomainRuleViolation::rule('R-CAIXA', 'Movimentacao de caixa aponta a sua origem (pagamento, repasse ou vale); suprimento e sangria nao apontam nenhuma.');
+                }
             }
         });
     }

@@ -9,6 +9,11 @@ use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Finance\Enums\PaymentMethod;
+use App\Modules\Finance\Models\CommissionRule;
+use App\Modules\Finance\Services\CommissionRules;
+use App\Modules\Finance\Services\Payouts;
+use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Enums\AppointmentSource;
@@ -23,6 +28,7 @@ use App\Modules\Team\Models\Professional;
 use Database\Factories\CustomerFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Contas FICTICIAS para os testes de navegador (Playwright).
@@ -104,6 +110,34 @@ class E2eAccounts extends Command
         $ocupado = $this->barbeiro("e2e-ocupado-{$s}", "Ocupado E2E {$s}", $senha);
         $ocupado->services()->syncWithoutDetaching([$corte->id]);
         $this->ocupadoAgora($s, $outra, $ocupado);
+
+        // Comissao e repasse (Fase 7): um dono so para estes testes (limite de
+        // login proprio) e um profissional com conta, sem regra e sem saldo.
+        $donoComissao = $this->membro("e2e-comissao-{$s}", 'Dono Comissão E2E', StaffRole::Owner, $senha);
+        $this->zerarComissao($this->barbeiro("e2e-comissao-pro-{$s}", "Comissão E2E {$s}", $senha), $donoComissao);
+    }
+
+    /**
+     * Comeca do zero a cada execucao, SEM apagar historico: encerra as regras
+     * do profissional e quita o saldo em aberto (ajuste + repasse por Pix,
+     * pelos servicos de verdade), como faria a equipe.
+     */
+    private function zerarComissao(Professional $pro, User $quem): void
+    {
+        $regras = app(CommissionRules::class);
+        foreach (CommissionRule::query()->where('professional_id', $pro->id)->whereNotNull('current_scope')->get() as $r) {
+            $regras->clear($r->target, $pro, $r->service, $quem);
+        }
+
+        $ledger = app(ProfessionalLedger::class);
+        $aberto = $ledger->open($pro);
+        if ($aberto['commission'] === 0 && $aberto['tips'] === 0 && $aberto['advances'] === 0) {
+            return;
+        }
+        if ($aberto['net'] < 0) {
+            $ledger->adjust($pro, 'commission', -$aberto['net'], 'Sobra de teste E2E', null, $quem, (string) Str::uuid());
+        }
+        app(Payouts::class)->pay($pro, PaymentMethod::Pix, 'Sobra de teste E2E', $quem, (string) Str::uuid());
     }
 
     /**

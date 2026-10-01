@@ -134,8 +134,19 @@ class PermissionMatrixTest extends TestCase
             'stock.receive' => ['owner', 'manager', 'reception'],
             'stock.issue' => ['owner', 'manager', 'reception'],
             'stock.adjust' => ['owner', 'manager'],
-            'finance.view' => ['owner', 'manager', 'finance'],
-            'finance.manage' => ['owner', 'finance'],
+            // Fase 7: comissao, gorjeta, vales e repasse. Regra de comissao so
+            // o proprietario; pagar, corrigir e estornar: proprietario e
+            // financeiro; gerente consulta; profissional ve o proprio extrato.
+            'commissions.view' => ['owner', 'manager', 'finance'],
+            'commissions.view_own' => ['professional'],
+            'commissions.configure' => ['owner'],
+            'commissions.correct' => ['owner', 'finance'],
+            'commissions.history' => ['owner', 'manager', 'finance'],
+            'payouts.view' => ['owner', 'manager', 'finance'],
+            'payouts.create' => ['owner', 'finance'],
+            'payouts.reverse' => ['owner', 'finance'],
+            'advances.create' => ['owner', 'finance'],
+            'advances.reverse' => ['owner', 'finance'],
             'reports.view' => ['owner', 'manager', 'finance'],
             'marketing.manage' => ['owner', 'manager'],
             'settings.manage' => ['owner'],

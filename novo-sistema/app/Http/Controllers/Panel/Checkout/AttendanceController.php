@@ -163,6 +163,8 @@ class AttendanceController extends Controller
         $pagamentos = $attendance->payments;
         $estornaveis = $pagamentos->filter(fn (Payment $p) => $p->kind === PaymentKind::Payment)
             ->mapWithKeys(fn (Payment $p) => [$p->id => $corrections->refundable($p)]);
+        $gorjetasEstornaveis = $pagamentos->filter(fn (Payment $p) => $p->kind === PaymentKind::Payment)
+            ->mapWithKeys(fn (Payment $p) => [$p->id => $corrections->refundableTip($p)]);
 
         return view('panel.checkout.show', [
             'attendance' => $attendance,
@@ -174,6 +176,7 @@ class AttendanceController extends Controller
             'professionals' => $editavel ? $this->assignable($user) : collect(),
             'cashOpen' => $cash->current() !== null,
             'refundable' => $estornaveis,
+            'refundableTip' => $gorjetasEstornaveis,
             'methods' => $this->methodOptions(),
         ]);
     }
@@ -322,21 +325,26 @@ class AttendanceController extends Controller
         $dados = $request->validate([
             'request_key' => ['required', 'string', 'uuid'],
             'refund_amount' => ['required', 'string', 'max:20'],
+            'refund_tip' => ['nullable', 'string', 'max:20'],
             'refund_reason' => ['required', 'string', 'min:3', 'max:255'],
-        ], [], ['refund_amount' => 'valor do estorno', 'refund_reason' => 'motivo']);
+        ], [], ['refund_amount' => 'valor do estorno', 'refund_tip' => 'parte da gorjeta', 'refund_reason' => 'motivo']);
 
         $valor = Money::tryParse($dados['refund_amount']);
         if ($valor === null || $valor->cents < 1) {
-            return back()->withErrors(['refund' => 'Informe um valor válido (ex.: 20,00).']);
+            return back()->withInput()->withErrors(['refund' => 'Informe um valor válido (ex.: 20,00).']);
+        }
+        $gorjeta = trim((string) ($dados['refund_tip'] ?? '')) === '' ? Money::zero() : Money::tryParse((string) $dados['refund_tip']);
+        if ($gorjeta === null || $gorjeta->isNegative() || $gorjeta->cents > $valor->cents) {
+            return back()->withInput()->withErrors(['refund' => 'A parte da gorjeta deve ser um valor entre zero e o total do estorno.']);
         }
 
         try {
-            $corrections->refund($payment, $valor->cents, $dados['refund_reason'], $this->user($request), $dados['request_key']);
+            $corrections->refund($payment, $valor->cents, $dados['refund_reason'], $this->user($request), $dados['request_key'], $gorjeta->cents);
         } catch (CashRuleViolation $e) {
-            return back()->withErrors(['refund' => $e->getMessage()]);
+            return back()->withInput()->withErrors(['refund' => $e->getMessage()]);
         }
 
-        return back()->with('status', 'Estorno de '.$valor->format().' registrado. O pagamento original continua no histórico.');
+        return back()->with('status', 'Estorno de '.$valor->format().' registrado. O pagamento original continua no histórico; comissão e gorjeta do profissional foram ajustadas.');
     }
 
     public function returnToStock(Request $request, Attendance $attendance, StockMovement $movement, AttendanceCorrections $corrections): RedirectResponse

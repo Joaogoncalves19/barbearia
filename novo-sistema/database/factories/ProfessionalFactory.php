@@ -23,6 +23,6 @@ class ProfessionalFactory extends Factory
      */
     public function definition(): array
     {
-        return ['display_name' => fake()->firstName(), 'commission_rate_bp' => 4000, 'is_active' => true, 'is_bookable' => true];
+        return ['display_name' => fake()->firstName(), 'is_active' => true, 'is_bookable' => true];
     }
 }

@@ -13,9 +13,12 @@ use App\Modules\Checkout\Services\AttendanceService;
 use App\Modules\Checkout\Services\PaymentLine;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Exceptions\CashRuleViolation;
+use App\Modules\Finance\Exceptions\CommissionRuleViolation;
 use App\Modules\Finance\Models\CashSession;
 use App\Modules\Finance\Services\CashRegister;
+use App\Modules\Finance\Services\Payouts;
 use App\Modules\Identity\Models\User;
+use App\Modules\Team\Models\Professional;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 use Throwable;
@@ -23,22 +26,23 @@ use Throwable;
 /**
  * Sonda do TESTE DE CONCORRENCIA do caixa (CheckoutConcurrencyTest): cada
  * processo tenta, ao mesmo tempo que os outros, concluir o mesmo
- * atendimento, tirar do estoque o mesmo produto ou fechar o mesmo caixa,
+ * atendimento, tirar do estoque o mesmo produto, fechar o mesmo caixa ou
+ * pagar o repasse do mesmo profissional (Fase 7),
  * pelos servicos de verdade. Espera um arquivo de "largada" e segura a
  * transacao aberta (--hold) na janela de corrida. So roda em local/testing.
  */
 class CheckoutProbe extends Command
 {
     protected $signature = 'app:checkout-probe
-        {mode : complete | stock | close}
-        {id : atendimento, produto ou caixa}
+        {mode : complete | stock | close | payout}
+        {id : atendimento, produto, caixa ou profissional}
         {actor : usuario que executa}
         {--barrier= : arquivo que libera a largada}
         {--hold=300 : milissegundos segurando a transacao}';
 
     protected $description = 'Tenta uma operacao de caixa/estoque (so para o teste de concorrencia)';
 
-    public function handle(AttendanceService $attendances, AttendancePricing $pricing, StockLedger $stock, CashRegister $cash): int
+    public function handle(AttendanceService $attendances, AttendancePricing $pricing, StockLedger $stock, CashRegister $cash, Payouts $payouts): int
     {
         if (! app()->environment(['local', 'testing'])) {
             $this->error('Somente em local/testing.');
@@ -56,6 +60,7 @@ class CheckoutProbe extends Command
         AttendanceService::$beforeFinish = $esperar;
         StockLedger::$afterCheck = $esperar;
         CashRegister::$afterLock = $esperar;
+        Payouts::$afterSum = $esperar;
 
         $id = (int) $this->argument('id');
         $ator = User::query()->findOrFail((int) $this->argument('actor'));
@@ -74,10 +79,11 @@ class CheckoutProbe extends Command
 
                     return $cash->close($s, $cash->expectedCash($s), null, $ator)->id;
                 })(),
+                'payout' => $payouts->pay(Professional::query()->findOrFail($id), PaymentMethod::Pix, null, $ator, (string) Str::uuid())->id,
                 default => throw new \InvalidArgumentException('modo desconhecido'),
             };
             $this->line('OK '.$resultado);
-        } catch (CheckoutRuleViolation|StockRuleViolation|CashRuleViolation $e) {
+        } catch (CheckoutRuleViolation|StockRuleViolation|CashRuleViolation|CommissionRuleViolation $e) {
             $this->line('RULE '.$e->reason);
         } catch (Throwable $e) {
             $this->line('ERROR '.get_class($e).': '.$e->getMessage());

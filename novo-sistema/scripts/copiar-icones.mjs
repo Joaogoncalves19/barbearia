@@ -19,6 +19,8 @@ const icones = [
     'arrow-up', 'arrow-down', 'power', 'tag', 'eye-off', 'upload',
     // Fase 6 (atendimento, caixa e estoque)
     'play', 'undo-2', 'receipt', 'boxes', 'banknote',
+    // Fase 7 (comissao, gorjeta e repasse)
+    'hand-coins', 'percent',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);

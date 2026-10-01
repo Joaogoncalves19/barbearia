@@ -213,7 +213,7 @@
                                 <td data-label="Tipo">{{ $p->kind?->label() }}@if ($p->reason)<span class="text-sm text-muted"> · {{ $p->reason }}</span>@endif</td>
                                 <td data-label="Forma">{{ $p->method->label() }}</td>
                                 <td data-label="Valor" class="numeric">{{ $p->kind === PaymentKind::Refund ? '−' : '' }}{{ $fmt($p->amount_cents) }}</td>
-                                <td data-label="Gorjeta" class="numeric">{{ (int) $p->tip_cents > 0 ? $fmt($p->tip_cents) : '—' }}</td>
+                                <td data-label="Gorjeta" class="numeric">{{ (int) $p->tip_cents > 0 ? ($p->kind === PaymentKind::Refund ? '−' : '').$fmt($p->tip_cents) : '—' }}</td>
                                 <td data-label="Quem">{{ $p->received_by_label ?? '—' }}</td>
                                 <td>
                                     @if ($p->kind === PaymentKind::Payment && ($refundable[$p->id] ?? 0) > 0)
@@ -224,9 +224,13 @@
                                                     @csrf
                                                     <input type="hidden" name="_dialog" value="estorno-{{ $p->id }}">
                                                     <input type="hidden" name="request_key" value="{{ Str::uuid() }}">
-                                                    <p>{{ $p->method->label() }} de {{ $fmt($p->amount_cents) }}. Pode estornar até {{ $fmt($refundable[$p->id]) }}. O pagamento original continua no histórico; o estorno sai do caixa aberto.</p>
-                                                    <x-ui.input name="refund_amount" :id="'valor-estorno-'.$p->id" label="Valor do estorno" inputmode="decimal" :value="Money::fromCents($refundable[$p->id])->toInput()" />
-                                                    <x-ui.input name="refund_reason" :id="'motivo-estorno-'.$p->id" label="Motivo" />
+                                                    @php $gorjetaEstornavel = $refundableTip[$p->id] ?? 0; $deste = old('_dialog') === 'estorno-'.$p->id; @endphp
+                                                    <p>{{ $p->method->label() }} de {{ $fmt($p->amount_cents) }}@if ((int) $p->tip_cents > 0) + gorjeta de {{ $fmt($p->tip_cents) }}@endif. Pode estornar até {{ $fmt($refundable[$p->id]) }}. O pagamento original continua no histórico; o estorno sai do caixa aberto. A comissão do profissional é reduzida na mesma proporção do valor estornado (sem contar a gorjeta).</p>
+                                                    <x-ui.input name="refund_amount" :id="'valor-estorno-'.$p->id" label="Valor total do estorno" inputmode="decimal" :value="$deste ? old('refund_amount') : Money::fromCents($refundable[$p->id])->toInput()" :error="$deste ? ($errors->first('refund_amount') ?: false) : false" />
+                                                    @if ($gorjetaEstornavel > 0)
+                                                        <x-ui.input name="refund_tip" :id="'gorjeta-estorno-'.$p->id" label="Quanto disso é gorjeta" inputmode="decimal" :hint="'Até '.$fmt($gorjetaEstornavel).'. Essa parte é descontada da gorjeta do profissional.'" :value="$deste ? old('refund_tip') : Money::fromCents($gorjetaEstornavel)->toInput()" :error="$deste ? ($errors->first('refund_tip') ?: false) : false" />
+                                                    @endif
+                                                    <x-ui.input name="refund_reason" :id="'motivo-estorno-'.$p->id" label="Motivo" :value="$deste ? old('refund_reason') : null" :error="$deste ? ($errors->first('refund_reason') ?: false) : false" />
                                                 </form>
                                                 <x-slot:footer>
                                                     <button type="button" class="btn btn--secondary" data-dialog-close>Voltar</button>

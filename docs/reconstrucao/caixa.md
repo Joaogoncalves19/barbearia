@@ -25,9 +25,15 @@ Tipos de movimentação:
 | Estorno (`refund`) | − | o `payment` de estorno | o estorno |
 | Suprimento (`supply`) | + | motivo | equipe (`cash.move`) |
 | Sangria (`withdrawal`) | − | motivo | equipe (`cash.move`) |
+| Repasse ao profissional (`payout`) | − | o repasse (`commission_payout_id`) | repasse pago em **dinheiro** (Fase 7) |
+| Estorno de repasse (`payout_reversal`) | + | o repasse | estorno de repasse pago em dinheiro |
+| Vale (`advance`) | − | o vale (`advance_id`) | vale pago em **dinheiro** (Fase 7) |
+| Estorno de vale (`advance_reversal`) | + | o estorno do vale | estorno de vale em dinheiro |
 
-Toda movimentação de pagamento/estorno aponta o pagamento (e só essas); a regra está no model e no verificador
-de integridade (R30/R31).
+Cada tipo aponta **exatamente** a sua origem (pagamento, repasse ou vale), e suprimento/sangria não apontam
+nenhuma; a regra está no model (`CashMovementType::originColumn`) e no verificador de integridade
+(R30/R31/R37). Repasse e vale em dinheiro são recusados se o dinheiro esperado na gaveta não cobrir o valor,
+como a sangria ([repasses.md](repasses.md)).
 
 ## 3. Operações
 

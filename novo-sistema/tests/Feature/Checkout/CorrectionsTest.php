@@ -49,9 +49,10 @@ class CorrectionsTest extends TestCase
         $pg = $at->payments()->sole();
 
         $e1 = $this->corrections()->refund($pg, 2000, 'Cliente reclamou do acabamento', $this->recepcao, $this->key());
-        $e2 = $this->corrections()->refund($pg, 3500, 'Devolução do restante', $this->recepcao, $this->key());
+        $e2 = $this->corrections()->refund($pg, 3500, 'Devolução do restante', $this->recepcao, $this->key(), tipCents: 500);
 
         $this->assertSame([PaymentKind::Refund, $pg->id, 2000, PaymentMethod::Cash], [$e1->kind, $e1->refunds_payment_id, $e1->amount_cents, $e1->method]);
+        $this->assertSame([3000, 500], [$e2->amount_cents, $e2->tip_cents], 'o estorno separa serviço e gorjeta, como o pagamento');
         $this->assertSame(0, $this->corrections()->refundable($pg));
         $this->assertSame([5000, 500], [$pg->fresh()?->amount_cents, $pg->fresh()?->tip_cents], 'o pagamento original não muda');
         $this->assertSame(AttendanceStatus::Completed, $at->fresh()?->status);

@@ -10,6 +10,8 @@ use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Policies\AttendancePolicy;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Policies\CustomerPolicy;
+use App\Modules\Finance\Models\CommissionPayout;
+use App\Modules\Finance\Policies\CommissionPayoutPolicy;
 use App\Modules\Identity\Authorization\PermissionMatrix;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Policies\UserPolicy;
@@ -102,6 +104,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Service::class, ServicePolicy::class);
         Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
         Gate::policy(Attendance::class, AttendancePolicy::class);
+        Gate::policy(CommissionPayout::class, CommissionPayoutPolicy::class);
     }
 
     /**

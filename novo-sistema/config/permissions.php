@@ -107,9 +107,20 @@ return [
         'stock.issue' => 'Registrar saída e perda de estoque',
         'stock.adjust' => 'Ajustar inventário e estornar movimentações',
 
-        // Financeiro (Fase 7)
-        'finance.view' => 'Ver o financeiro',
-        'finance.manage' => 'Lançar despesas, vales e pagar comissões',
+        // Comissao, gorjeta, vales e repasse (Fase 7). Cada acao tem a sua
+        // habilidade: ver nao da direito a configurar, pagar ou corrigir.
+        // view_own: o profissional ve SO o proprio extrato (Gate viewLedger).
+        'commissions.view' => 'Ver comissões, gorjetas, vales e saldo de todos os profissionais',
+        'commissions.view_own' => 'Ver o próprio extrato (comissões, gorjetas, vales e repasses)',
+        'commissions.configure' => 'Configurar regras de comissão',
+        'commissions.correct' => 'Lançar ajuste (correção) de comissão ou de gorjeta',
+        'commissions.history' => 'Consultar o histórico de regras de comissão e de correções',
+        'payouts.view' => 'Ver repasses',
+        'payouts.create' => 'Registrar repasse (pagar o profissional)',
+        'payouts.reverse' => 'Estornar repasse',
+        'advances.create' => 'Lançar vale (adiantamento)',
+        'advances.reverse' => 'Estornar vale',
+        // Despesas, metas, DRE e relatorios gerais: fases seguintes.
         'reports.view' => 'Ver relatórios',
 
         // Marketing e configuracoes (Fases 8 a 10)
@@ -135,12 +146,15 @@ return [
             'payments.receive', 'payments.refund', 'cash.view', 'cash.open', 'cash.move', 'cash.close',
             'products.view', 'products.create', 'products.update', 'products.toggle',
             'stock.view', 'stock.receive', 'stock.issue', 'stock.adjust',
-            'finance.view', 'finance.manage', 'reports.view',
+            'commissions.view', 'commissions.configure', 'commissions.correct', 'commissions.history',
+            'payouts.view', 'payouts.create', 'payouts.reverse', 'advances.create', 'advances.reverse',
+            'reports.view',
             'marketing.manage', 'settings.manage',
         ],
 
         // Gerente: opera a barbearia; nao mexe em usuarios, auditoria,
-        // configuracoes, lancamentos financeiros (inclusive estorno) nem LGPD.
+        // configuracoes, lancamentos financeiros (inclusive estorno, repasse,
+        // vale e regra de comissao) nem LGPD. Consulta comissoes e repasses.
         'manager' => [
             'panel.access', 'agenda.view', 'system.health.view',
             'customers.view', 'customers.create', 'customers.update', 'customers.view_cpf',
@@ -152,7 +166,8 @@ return [
             'payments.receive', 'cash.view', 'cash.open', 'cash.move', 'cash.close',
             'products.view', 'products.create', 'products.update', 'products.toggle',
             'stock.view', 'stock.receive', 'stock.issue', 'stock.adjust',
-            'finance.view', 'reports.view',
+            'commissions.view', 'commissions.history', 'payouts.view',
+            'reports.view',
             'marketing.manage',
         ],
 
@@ -171,12 +186,15 @@ return [
         ],
 
         // Financeiro: numeros, sem agenda e sem clientes. Consulta
-        // atendimentos, caixa e estoque; estorna pagamentos.
+        // atendimentos, caixa e estoque; estorna pagamentos; paga e corrige
+        // comissoes, repasses e vales. Regra de comissao: so o proprietario.
         'finance' => [
             'panel.access',
             'attendances.view', 'payments.refund', 'cash.view',
             'products.view', 'stock.view',
-            'finance.view', 'finance.manage', 'reports.view',
+            'commissions.view', 'commissions.correct', 'commissions.history',
+            'payouts.view', 'payouts.create', 'payouts.reverse', 'advances.create', 'advances.reverse',
+            'reports.view',
         ],
 
         // Profissional: so o que e dele (Policies conferem o registro).
@@ -187,6 +205,7 @@ return [
             'customers.view_own',
             'appointments.view_own', 'appointments.manage_own',
             'attendances.view_own', 'attendances.manage_own', 'payments.receive',
+            'commissions.view_own',
         ],
     ],
 

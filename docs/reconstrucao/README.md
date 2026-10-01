@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 6 concluídas e aprovadas ([relatorio-fase-6.md](relatorio-fase-6.md)). **Fase 7 em
-> andamento** (comissão, gorjeta e repasses).
+> **Status:** Fases 0 a 6 concluídas e aprovadas. **Fase 7 (comissão, gorjeta, vales e repasse) concluída,
+> aguardando aprovação** para a Fase 8 ([relatorio-fase-7.md](relatorio-fase-7.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -44,7 +44,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
-| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5, 52–64 da Fase 6): onde são garantidas e qual teste as prova |
+| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5, 52–64 da Fase 6, 65–72 da Fase 7): onde são garantidas e qual teste as prova |
 | [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
 | [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |
@@ -93,6 +93,14 @@ plano para reconstruí-lo do zero, por etapas.
 | [produtos.md](produtos.md) | Cadastro de produtos (venda e insumo), ativação, exclusão |
 | [estoque.md](estoque.md) | Estoque como razão: entrada, saída, venda, consumo, ajuste, estorno, mínimo |
 | [relatorio-fase-6.md](relatorio-fase-6.md) | Relatório final da Fase 6 |
+
+### Fase 7
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [comissoes.md](comissoes.md) | Regras de comissão (precedência, versões), cálculo na conclusão, rateio do desconto, estorno, correção, permissões |
+| [repasses.md](repasses.md) | Gorjeta, vales, saldo em aberto, repasse e estorno, caixa, travas, idempotência, concorrência |
+| [relatorio-fase-7.md](relatorio-fase-7.md) | Relatório final da Fase 7 |
 
 ## Legenda usada em todos os documentos
 

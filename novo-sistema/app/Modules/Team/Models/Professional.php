@@ -51,7 +51,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property bool $is_featured
  * @property int $sort_order
  * @property int $lock_version
- * @property int|null $commission_rate_bp
+ * @property int $ledger_version
  * @property int|null $subscription_commission_rate_bp
  * @property SubscriptionCommissionMode|null $subscription_commission_mode
  */
@@ -66,7 +66,7 @@ class Professional extends Model
     protected $guarded = ['id'];
 
     /** @var list<string> */
-    protected array $auditExclude = ['lock_version'];
+    protected array $auditExclude = ['lock_version', 'ledger_version'];
 
     /**
      * @return array<string, string>
@@ -80,8 +80,7 @@ class Professional extends Model
             'is_featured' => 'boolean',
             'sort_order' => 'integer',
             'lock_version' => 'integer',
-            'commission_rate_bp' => 'integer',
-            'commission_on_products' => 'boolean',
+            'ledger_version' => 'integer',
             'subscription_commission_mode' => SubscriptionCommissionMode::class,
             'subscription_commission_rate_bp' => 'integer',
             'subscription_commission_amount_cents' => 'integer',
@@ -95,7 +94,7 @@ class Professional extends Model
         });
 
         static::saving(function (self $p): void {
-            foreach (['commission_rate_bp', 'subscription_commission_rate_bp'] as $campo) {
+            foreach (['subscription_commission_rate_bp'] as $campo) {
                 if ($p->{$campo} !== null && ($p->{$campo} < 0 || $p->{$campo} > 10000)) {
                     throw DomainRuleViolation::rule('R-COMISSAO', 'Percentual de comissao deve ficar entre 0% e 100%.');
                 }

@@ -3,6 +3,7 @@
 namespace Tests\Feature\LegacyImport;
 
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
 use App\Modules\LegacyImport\Testing\FictitiousLegacyDatabase;
 use App\Modules\Loyalty\Services\LoyaltyLedger;
@@ -207,8 +208,29 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertNull($ag->completed_at);
         $this->assertSame(0, DB::table('attendances')->where('appointment_id', $ag->id)->count(), 'não vira atendimento');
         $this->assertSame(0, $this->paymentsOf($ag->id)->count(), 'sem receita');
-        $this->assertSame(0, DB::table('commission_entries')->where('appointment_id', $ag->id)->count(), 'sem comissao');
+        $this->assertSame(0, DB::table('commission_entries')->count(), 'sem comissao (o sistema antigo nao guardava; nada e recalculado)');
         $this->assertSame(0, DB::table('loyalty_entries')->where('appointment_id', $ag->id)->count(), 'sem pontos');
+    }
+
+    /**
+     * Fase 7: o percentual do barbeiro vira a regra de comissao do
+     * profissional (servicos); "comissao_produtos" = sim vira a regra de
+     * produtos com o mesmo percentual. Vales antigos ficam como historico
+     * (ja abatidos no sistema antigo) e nunca entram num repasse novo.
+     */
+    public function test_comissao_do_barbeiro_vira_regra_e_vales_antigos_sao_historico(): void
+    {
+        $carlos = $this->ref('barbeiros', 'br-1');
+        $rafael = $this->ref('barbeiros', 'br-2');
+        $regras = fn (?int $pro) => DB::table('commission_rules')->where('professional_id', $pro)->whereNotNull('current_scope')
+            ->orderBy('target')->get(['target', 'type', 'rate_bp'])->map(fn ($r) => [$r->target, $r->type, (int) $r->rate_bp])->all();
+
+        $this->assertSame([['product', 'percent', 4000], ['service', 'percent', 4000]], $regras($carlos));
+        $this->assertSame([['service', 'percent', 3750]], $regras($rafael), 'sem comissao de produto');
+        $this->assertSame([], $regras($this->ref('barbeiros', 'br-4')), 'percentual invalido: sem regra (pendencia registrada)');
+
+        $this->assertSame(0, DB::table('advances')->where('is_legacy', false)->count(), 'todo vale importado e historico');
+        $this->assertSame(0, app(ProfessionalLedger::class)->open((int) $carlos)['advances'], 'nao abate no repasse novo');
     }
 
     /** Fase 4: o importador gera o mesmo identificador estavel (slug) dos models. */

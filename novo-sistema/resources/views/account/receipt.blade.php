@@ -22,7 +22,13 @@
             @endforeach
             <div class="summary-total"><dt>Total</dt><dd class="numeric">{{ $fmt($a->total_cents) }}</dd></div>
             @foreach ($a->payments as $p)
-                <div><dt>{{ $p->kind === PaymentKind::Refund ? 'Estorno' : 'Pago' }} · {{ $p->method->label() }}</dt><dd class="numeric">{{ $p->kind === PaymentKind::Refund ? '−' : '' }}{{ $fmt($p->amount_cents) }}</dd></div>
+                @php $sinal = $p->kind === PaymentKind::Refund ? '−' : ''; @endphp
+                @if ($p->amount_cents > 0)
+                    <div><dt>{{ $p->kind === PaymentKind::Refund ? 'Estorno' : 'Pago' }} · {{ $p->method->label() }}</dt><dd class="numeric">{{ $sinal }}{{ $fmt($p->amount_cents) }}</dd></div>
+                @endif
+                @if ((int) $p->tip_cents > 0)
+                    <div><dt>{{ $p->kind === PaymentKind::Refund ? 'Estorno de gorjeta' : 'Gorjeta' }} · {{ $p->method->label() }}</dt><dd class="numeric">{{ $sinal }}{{ $fmt($p->tip_cents) }}</dd></div>
+                @endif
             @endforeach
         </dl>
     </x-ui.card>

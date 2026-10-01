@@ -96,14 +96,22 @@ final class ProfessionalsStep extends Step
                 'photo_path' => V::text($row['foto'] ?? null),
                 'is_active' => $ativo,
                 'is_bookable' => $ativo,
-                'commission_rate_bp' => $comissao ?? 0,
-                'commission_on_products' => V::bool($row['comissao_produtos'] ?? null),
                 'subscription_commission_mode' => $modo,
                 'subscription_commission_rate_bp' => $modo === 'percent' ? V::percentBp($valorModo) : null,
                 'subscription_commission_amount_cents' => $modo === 'fixed' ? $this->money('barbeiros', $sid, 'comissao_assinatura_valor', $valorModo) : null,
                 ...$this->stamps(),
             ]);
             $this->ctx->remember('barbeiros', $sid, 'professional', $id, $row);
+
+            // Comissao (Fase 7): o percentual do barbeiro vira a regra do
+            // profissional para servicos; "comissao_produtos" vira a regra de
+            // produtos com o MESMO percentual (como o sistema atual calculava).
+            if (($comissao ?? 0) > 0) {
+                $this->commissionRule('service', $id, $comissao);
+                if (V::bool($row['comissao_produtos'] ?? null)) {
+                    $this->commissionRule('product', $id, $comissao);
+                }
+            }
 
             // Servicos e combos que realiza (CSV misturando os dois).
             foreach (array_unique(V::csv($row['servicos_ids'] ?? null)) as $item) {
@@ -246,5 +254,17 @@ final class ProfessionalsStep extends Step
             $id = $this->ctx->insert('blocked_slots', ['professional_id' => $prof, 'starts_at' => $inicio, 'ends_at' => $inicio->addMinutes(30), ...$this->stamps()]);
             $this->ctx->remember('horarios_bloqueados', $sid, 'blocked_slot', $id, $row);
         }
+    }
+
+    /** Regra de comissao do profissional (a mesma forma de CommissionRules::set). */
+    private function commissionRule(string $target, int $professionalId, int $rateBp): void
+    {
+        $escopo = $target.'|p'.$professionalId.'|s*';
+        $this->ctx->insert('commission_rules', [
+            'target' => $target, 'professional_id' => $professionalId, 'service_id' => null,
+            'type' => 'percent', 'rate_bp' => $rateBp, 'amount_cents' => null,
+            'scope_key' => $escopo, 'current_scope' => $escopo, 'starts_at' => $this->ctx->now,
+            'reason' => 'Importada do sistema antigo', ...$this->stamps(),
+        ]);
     }
 }

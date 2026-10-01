@@ -61,7 +61,8 @@ class IntegrityChecker
             'R15_avaliacao_nota' => ['Nota de avaliacao de 1 a 5', fn () => DB::table('reviews')->where(fn ($q) => $q->where('rating', '<', 1)->orWhere('rating', '>', 5))->count()],
             'R16_cupom' => ['Cupom coerente com o tipo de desconto', fn () => DB::table('coupons')->where(fn ($q) => $q->where(fn ($p) => $p->where('discount_type', 'percent')->where(fn ($x) => $x->whereNull('percent_bp')->orWhere('percent_bp', '<', 1)->orWhere('percent_bp', '>', 10000)->orWhereNotNull('amount_cents')))->orWhere(fn ($f) => $f->where('discount_type', 'fixed')->where(fn ($x) => $x->whereNull('amount_cents')->orWhere('amount_cents', '<=', 0)->orWhereNotNull('percent_bp')))->orWhereNotIn('discount_type', ['percent', 'fixed']))->count()],
             'R17_cupom_codigo' => ['Codigo de cupom em maiusculas', fn () => DB::table('coupons')->whereRaw('code <> UPPER(code)')->count()],
-            'R18_comissao_percentual' => ['Comissao entre 0% e 100%', fn () => DB::table('professionals')->where(fn ($q) => $q->where('commission_rate_bp', '>', 10000)->orWhere('subscription_commission_rate_bp', '>', 10000))->count()],
+            'R18_comissao_percentual' => ['Comissao entre 0% e 100% (regras e assinatura)', fn () => DB::table('professionals')->where('subscription_commission_rate_bp', '>', 10000)->count()
+                + DB::table('commission_rules')->where(fn ($q) => $q->where('rate_bp', '>', 10000)->orWhere('rate_bp', '<', 0)->orWhere('amount_cents', '<', 0))->count()],
             'R19_assinatura_vigente' => ['Sentinela de assinatura vigente coerente', fn () => DB::table('subscriptions')->where(fn ($q) => $q->where(fn ($a) => $a->whereIn('status', $atuais)->where(fn ($x) => $x->whereNull('active_customer_id')->orWhereColumn('active_customer_id', '<>', 'customer_id')))->orWhere(fn ($b) => $b->whereNotIn('status', $atuais)->whereNotNull('active_customer_id')))->count()],
             'R20_expediente' => ['Expediente valido (dia 0-6, fim > inicio)', fn () => DB::table('working_hours')->where(fn ($q) => $q->where('weekday', '>', 6)->orWhereColumn('ends_at', '<=', 'starts_at'))->count()],
             'R21_ausencia' => ['Ausencia termina depois de comecar', fn () => DB::table('time_off')->whereColumn('ends_on', '<', 'starts_on')->count()],
@@ -92,6 +93,36 @@ class IntegrityChecker
             'R33_encaixe_na_agenda' => ['Encaixe e agendamento de origem encaixe (ocupa a agenda), um para o outro', fn () => DB::table('attendances')->where('source', 'walk_in')
                 ->where(fn ($q) => $q->whereNull('appointment_id')->orWhereNotExists(fn ($e) => $e->from('appointments')->whereColumn('appointments.id', 'attendances.appointment_id')->where('appointments.source', 'walk_in')))->count()
                 + DB::table('appointments')->where('source', 'walk_in')->whereNotExists(fn ($e) => $e->from('attendances')->whereColumn('attendances.appointment_id', 'appointments.id')->where('attendances.source', 'walk_in'))->count()],
+            // Fase 7: comissao, gorjeta, vales e repasse.
+            'R34_comissao_por_item' => ['Atendimento concluido (novo) tem uma comissao calculada por item, do profissional que atendeu', fn () => DB::table('attendance_items')
+                ->join('attendances', 'attendances.id', '=', 'attendance_items.attendance_id')
+                ->where('attendances.status', 'completed')->where('attendances.source', '<>', 'legacy')->whereNotNull('attendances.professional_id')
+                ->whereNotExists(fn ($e) => $e->from('commission_entries')->whereColumn('commission_entries.attendance_item_id', 'attendance_items.id')
+                    ->whereColumn('commission_entries.professional_id', 'attendances.professional_id')->where('commission_entries.kind', 'earned'))->count()
+                + DB::table('commission_entries')->where('kind', 'earned')->whereNotNull('attendance_item_id')
+                    ->whereNotExists(fn ($e) => $e->from('attendance_items')->whereColumn('attendance_items.id', 'commission_entries.attendance_item_id')->whereColumn('attendance_items.attendance_id', 'commission_entries.attendance_id'))->count()],
+            'R35_gorjeta_por_pagamento' => ['Toda gorjeta paga (atendimento novo) esta no razao de gorjeta, com o mesmo valor; estorno de gorjeta idem', fn () => DB::table('payments')
+                ->join('attendances', 'attendances.id', '=', 'payments.attendance_id')
+                ->where('attendances.source', '<>', 'legacy')->whereNotNull('attendances.professional_id')->where('payments.tip_cents', '>', 0)
+                ->whereNotExists(fn ($e) => $e->from('tip_entries')->whereColumn('tip_entries.payment_id', 'payments.id')
+                    ->whereRaw("tip_entries.amount_cents = CASE WHEN payments.kind = 'refund' THEN -payments.tip_cents ELSE payments.tip_cents END"))->count()],
+            'R36_estorno_de_comissao' => ['Estorno de comissao nunca passa da comissao calculada do atendimento', fn () => DB::query()->fromSub(DB::table('commission_entries as r')
+                ->where('r.kind', 'refund')->groupBy('r.attendance_id')->select('r.attendance_id')
+                ->havingRaw('-SUM(r.amount_cents) > (SELECT COALESCE(SUM(e.amount_cents), 0) FROM commission_entries e WHERE e.attendance_id = r.attendance_id AND e.kind = ?)', ['earned']), 'excesso')
+                ->count()],
+            'R37_repasse_fecha' => ['Repasse: liquido = comissao + gorjeta - vales; lancamentos vinculados somam o mesmo; em dinheiro, saida igual no caixa', fn () => DB::table('commission_payouts')
+                ->whereNotNull('snapshot')->whereRaw('amount_cents <> COALESCE(commission_cents, 0) + COALESCE(tip_cents, 0) - COALESCE(advances_cents, 0)')->count()
+                + DB::table('commission_payouts')->whereNotNull('snapshot')->whereNull('reversed_at')
+                    ->whereRaw('(COALESCE(commission_cents, 0) <> (SELECT COALESCE(SUM(amount_cents), 0) FROM commission_entries WHERE commission_entries.commission_payout_id = commission_payouts.id)
+                        OR COALESCE(tip_cents, 0) <> (SELECT COALESCE(SUM(amount_cents), 0) FROM tip_entries WHERE tip_entries.commission_payout_id = commission_payouts.id)
+                        OR COALESCE(advances_cents, 0) <> (SELECT COALESCE(SUM(amount_cents), 0) FROM advances WHERE advances.commission_payout_id = commission_payouts.id))')->count()
+                + DB::table('commission_payouts')->whereNotNull('cash_session_id')
+                    ->whereRaw("(SELECT COALESCE(SUM(amount_cents), 0) FROM cash_movements WHERE cash_movements.commission_payout_id = commission_payouts.id AND cash_movements.type = 'payout') <> -amount_cents")->count()
+                + DB::table('commission_entries')->whereNotNull('commission_payout_id')->whereExists(fn ($e) => $e->from('commission_payouts')->whereColumn('commission_payouts.id', 'commission_entries.commission_payout_id')->whereNotNull('reversed_at'))->count()],
+            'R38_vale' => ['Vale positivo; estorno de vale = valor inverso, uma vez, do mesmo profissional; vale do sistema antigo nunca entra em repasse novo', fn () => DB::table('advances as r')
+                ->where('r.kind', 'reversal')->join('advances as o', 'o.id', '=', 'r.reverses_advance_id')
+                ->where(fn ($q) => $q->whereColumn('r.professional_id', '<>', 'o.professional_id')->orWhereRaw('r.amount_cents <> -o.amount_cents')->orWhere('o.kind', '<>', 'advance'))->count()
+                + DB::table('advances')->where(fn ($q) => $q->where(fn ($a) => $a->where('kind', 'advance')->where('amount_cents', '<=', 0))->orWhere(fn ($b) => $b->where('is_legacy', true)->whereNotNull('commission_payout_id')))->count()],
         ];
     }
 }

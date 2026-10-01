@@ -102,7 +102,9 @@ final class FinanceStep extends Step
             $id = $this->ctx->insert('advances', [
                 'professional_id' => $prof, 'amount_cents' => $valor, 'issued_on' => V::date($row['data_vale'] ?? null),
                 'reference_month' => ($mes && preg_match('/^\d{4}-\d{2}$/', $mes)) ? $mes : null,
-                'description' => $this->text('vales', $row['descricao'] ?? null), ...$this->stamps(),
+                'description' => $this->text('vales', $row['descricao'] ?? null),
+                // Historico: o sistema antigo ja abatia o vale no mes; nao entra em repasse novo.
+                'kind' => 'advance', 'is_legacy' => true, ...$this->stamps(),
             ]);
             $this->ctx->remember('vales', $sid, 'advance', $id, $row);
         }

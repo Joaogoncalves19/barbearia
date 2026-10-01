@@ -44,7 +44,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `cupom_usos` | migra | `coupon_redemptions` | LoyaltyStep |
 | `despesas` | migra | `expenses` | FinanceStep |
 | `comissoes_pagas` | migra | `commission_payouts` (sem recálculo) | FinanceStep |
-| `vales` | migra | `advances` | FinanceStep |
+| `vales` | migra | `advances` (`is_legacy`: histórico, já abatido no sistema antigo; nunca entra em repasse novo) | FinanceStep |
 | `meta_financeira` | transforma | `financial_goals` (mensal, da barbearia) | FinanceStep |
 | `campanhas` | transforma | `campaigns` (só resumo, D-20) | MarketingAuditStep |
 | `campanha_destinatarios` | arquiva | — (D-20) | ArchiveStep |
@@ -107,8 +107,8 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `nome` | `display_name` (e `users.name`) | |
 | `username`, `password` | `users.username`, `users.password` | só cria usuário se houver `username`; colisão → sem usuário; senha não-bcrypt → sem senha |
 | `status` | `is_active`, `is_bookable` | vazio = ativo |
-| `comissao` | `commission_rate_bp` | "37.5" → 3750; inválido → 0 + pendência |
-| `comissao_produtos` | `commission_on_products` | |
+| `comissao` | `commission_rules` (Fase 7: regra do profissional para serviços, percentual) | "37.5" → 3750; inválido ou zero → sem regra + pendência |
+| `comissao_produtos` | `commission_rules` (regra do profissional para produtos, com o **mesmo** percentual, como o sistema antigo calculava) | só quando "sim" |
 | `comissao_assinatura_tipo/valor` | `subscription_commission_*` | padrao/percentual/fixo/nenhuma |
 | `servicos_ids` | `professional_service` / `professional_package` | |
 | `meta_diaria` | `financial_goals` (diária) | |

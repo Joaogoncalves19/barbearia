@@ -104,7 +104,6 @@ abstract class Step
             'display_name' => 'Profissional removido ('.$legacyBarberId.')',
             'is_active' => false,
             'is_bookable' => false,
-            'commission_rate_bp' => 0,
             ...$this->stamps(),
         ]);
         $this->ctx->remember('barbeiros:removido', $legacyBarberId, 'professional', $id, ['barbeiro_id' => $legacyBarberId]);

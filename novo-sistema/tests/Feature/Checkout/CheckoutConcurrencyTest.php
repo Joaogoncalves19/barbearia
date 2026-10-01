@@ -9,16 +9,26 @@ use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Services\AttendanceService;
+use App\Modules\Checkout\Services\PaymentLine;
+use App\Modules\Finance\Enums\CommissionRuleType;
+use App\Modules\Finance\Enums\CommissionTarget;
+use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Models\CashMovement;
 use App\Modules\Finance\Models\CashSession;
+use App\Modules\Finance\Models\CommissionEntry;
+use App\Modules\Finance\Models\CommissionPayout;
 use App\Modules\Finance\Models\Payment;
+use App\Modules\Finance\Models\TipEntry;
 use App\Modules\Finance\Services\CashRegister;
+use App\Modules\Finance\Services\CommissionRules;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\BusinessHour;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\System\Integrity\IntegrityChecker;
 use App\Modules\Team\Models\Professional;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 /**
@@ -130,6 +140,40 @@ class CheckoutConcurrencyTest extends TestCase
         DB::purge('sqlite');
         $fechado = CashSession::query()->findOrFail($s->id);
         $this->assertSame([10000, 0], [$fechado->counted_cash_cents, $fechado->difference_cents]);
+    }
+
+    /**
+     * Fase 7: quatro pessoas registrando ao mesmo tempo o repasse do mesmo
+     * profissional (cada uma com a sua chave). Um repasse so; cada
+     * lancamento entra em um repasse; nada pago em dobro.
+     */
+    public function test_repasse_simultaneo_do_mesmo_profissional(): void
+    {
+        $servico = Service::factory()->create(['price_cents' => 5000]);
+        $pro = Professional::factory()->create();
+        $pro->services()->attach($servico->id);
+        app(CashRegister::class)->open(0, null, $this->ator);
+        for ($d = 0; $d <= 6; $d++) {
+            BusinessHour::query()->create(['weekday' => $d, 'starts_at' => '09:00', 'ends_at' => '20:00']);
+        }
+        // Ontem (relogio real): os filhos usam o relogio real e o corte do repasse e "agora".
+        $this->travelTo(BusinessTime::at(now(BusinessTime::zone())->subDay()->toDateString(), '10:02'));
+        app(CommissionRules::class)->set(CommissionTarget::Service, $pro, null, CommissionRuleType::Percent, 4000, null, null, $this->ator);
+        $svc = app(AttendanceService::class);
+        $at = $svc->start($svc->openWalkIn($servico, $pro, null, 'Cliente Fictício', null, $this->ator), $this->ator);
+        $svc->complete($at, [new PaymentLine(PaymentMethod::Pix, 5000, 500)], (string) Str::uuid(), $this->ator);
+        $this->travelBack();
+
+        $saidas = $this->race(4, ['payout', $pro->id, $this->ator->id]);
+
+        $this->assertCount(1, $this->starting('OK', $saidas), "um repasse vence:\n".implode("\n", $saidas));
+        $this->assertCount(3, $this->starting('RULE nothing_to_pay', $saidas), "os outros não acham nada em aberto:\n".implode("\n", $saidas));
+
+        DB::purge('sqlite');
+        $p = CommissionPayout::query()->sole();
+        $this->assertSame([2000, 500, 2500], [$p->commission_cents, $p->tip_cents, $p->amount_cents]);
+        $this->assertSame(0, CommissionEntry::query()->whereNull('commission_payout_id')->count() + TipEntry::query()->whereNull('commission_payout_id')->count());
+        $this->assertSame([], app(IntegrityChecker::class)->violations());
     }
 
     /**

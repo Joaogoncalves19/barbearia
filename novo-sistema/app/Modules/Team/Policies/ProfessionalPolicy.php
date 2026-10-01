@@ -32,6 +32,25 @@ class ProfessionalPolicy
             : Response::denyAsNotFound();
     }
 
+    /**
+     * Extrato do profissional (comissao, gorjeta, vales, repasses; Fase 7).
+     * commissions.view: qualquer um; commissions.view_own: so o proprio.
+     * Extrato de outro: 404.
+     */
+    public function viewLedger(User|Customer $actor, Professional $professional): Response
+    {
+        if (! $actor instanceof User) {
+            return Response::denyAsNotFound();
+        }
+        if ($actor->hasPermission('commissions.view')) {
+            return Response::allow();
+        }
+
+        return $actor->hasPermission('commissions.view_own') && $this->isOwn($actor, $professional)
+            ? Response::allow()
+            : Response::denyAsNotFound();
+    }
+
     public function update(User|Customer $actor, Professional $professional): bool
     {
         return $actor instanceof User && $actor->hasPermission('professionals.update');

@@ -64,7 +64,9 @@ As telas (`Panel\Checkout\AttendanceController`) só leem a intenção, validam 
 - **Serviço a mais durante o atendimento (D-33):** entra e o valor é recalculado, mas o horário ocupado na
   agenda **não** é estendido; vale a duração reservada no agendamento ou encaixe. Uma extensão futura teria de
   passar pela regra única da agenda e ficar no histórico.
-- **Conclusão:** conclui também o agendamento de origem (`BookingService::complete`, na mesma transação).
+- **Conclusão:** conclui também o agendamento de origem (`BookingService::complete`, na mesma transação) e,
+  desde a Fase 7, lança a comissão (por item) e a gorjeta (por pagamento) do profissional que atendeu, ainda
+  na mesma transação ([comissoes.md §3](comissoes.md#3-cálculo-na-conclusão-do-atendimento)).
 - **Cancelamento do atendimento:** vindo de agendamento, o agendamento não muda (a equipe decide na agenda se
   foi falta ou cancelamento). **Encaixe:** o agendamento de encaixe existia só por causa do atendimento e é
   cancelado junto ("Encaixe cancelado: motivo"), liberando o horário.

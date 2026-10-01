@@ -5,6 +5,7 @@ namespace Tests\Feature\Security;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Finance\Models\CommissionRule;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
 use App\Modules\Team\Models\Professional;
@@ -207,7 +208,7 @@ class CatalogAuthorizationTest extends TestCase
         ])->assertSessionHasNoErrors();
 
         $p = $this->pro->fresh();
-        $this->assertSame(4000, $p->commission_rate_bp, 'comissao e de outra fase e outra permissao');
+        $this->assertSame(0, CommissionRule::query()->count(), 'comissao tem tela e permissao proprias (Fase 7)');
         $this->assertTrue($p->is_active, 'ativar/desativar tem rota e permissao proprias');
         $this->assertNotSame('hack', $p->slug);
     }

@@ -22,6 +22,7 @@ use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
+use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
@@ -59,7 +60,8 @@ use Illuminate\Support\Facades\DB;
  * totais, confere que os pagamentos fecham exatamente com o total, baixa o
  * estoque (venda e consumo, vinculados ao atendimento), grava pagamentos e
  * as entradas no caixa, conclui o agendamento de origem e registra o
- * historico. Qualquer falha desfaz tudo.
+ * historico, e lanca a comissao e a gorjeta do profissional (Fase 7).
+ * Qualquer falha desfaz tudo.
  *
  * Idempotencia: a conclusao carrega a chave do formulario (completion_key).
  * Repetir a mesma requisicao (duplo clique) devolve o atendimento ja
@@ -77,6 +79,7 @@ final class AttendanceService
         private readonly StockLedger $stock,
         private readonly CashRegister $cash,
         private readonly BookingService $booking,
+        private readonly ProfessionalLedger $ledger,
     ) {}
 
     /**
@@ -500,8 +503,9 @@ final class AttendanceService
             }
 
             // 4) Pagamentos e entradas no caixa.
+            $gravados = [];
             foreach ($payments as $linha) {
-                $pg = Payment::query()->create([
+                $gravados[] = $pg = Payment::query()->create([
                     'attendance_id' => $at->id,
                     'customer_id' => $at->customer_id,
                     'cash_session_id' => $caixa?->id,
@@ -538,6 +542,10 @@ final class AttendanceService
             if ($at->appointment_id !== null) {
                 $this->booking->complete(Appointment::query()->findOrFail($at->appointment_id), $actor, $at->code);
             }
+
+            // 7) Comissao (por item, regra fotografada) e gorjeta (por pagamento)
+            //    do profissional que atendeu. Mesma transacao: tudo ou nada.
+            $this->ledger->recordCompletion($at, $gravados);
 
             $this->event($at, 'completed', 'Atendimento concluído.', $actor, [
                 'subtotal_cents' => $b->subtotal->cents,

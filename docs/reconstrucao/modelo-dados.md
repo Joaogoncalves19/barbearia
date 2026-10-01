@@ -31,7 +31,7 @@ depois de acontecer, e como ela nasce a partir do sistema atual.
 | **Catalog** | `service_categories`, `services`, `packages`, `package_items`, `products`, `stock_movements` | O que a barbearia vende: serviços, combos, produtos e o razão de estoque |
 | **Checkout** (Fase 6) | `attendances`, `attendance_items`, `attendance_consumptions`, `attendance_discounts`, `attendance_events` | O atendimento: o que aconteceu quando o cliente chegou (itens vendidos, material usado, descontos, linha do tempo) |
 | **Scheduling** | `appointments`, `appointment_items`, `appointment_adjustments`, `appointment_events`, `appointment_reminders` | A reserva: quando, com quem, o que foi combinado (com preço congelado), descontos, linha do tempo e lembretes |
-| **Finance** | `payments`, `cash_sessions`, `cash_movements`, `commission_entries`, `commission_payouts`, `advances`, `expenses`, `financial_goals` | Dinheiro que entrou (pagamentos do atendimento), caixa, comissões calculadas e pagas, vales, despesas e metas |
+| **Finance** | `payments`, `cash_sessions`, `cash_movements`, `commission_rules`, `commission_entries`, `tip_entries`, `commission_payouts`, `advances`, `expenses`, `financial_goals` | Dinheiro que entrou (pagamentos do atendimento), caixa, regras de comissão (versionadas), comissões e gorjetas do profissional, repasses, vales, despesas e metas |
 | **Loyalty** | `loyalty_entries`, `coupons`, `coupon_redemptions`, `gift_cards` | Pontos (razão), cupons e seus usos, vales-presente |
 | **Subscriptions** | `plans`, `plan_services`, `subscriptions`, `subscription_payments`, `gateway_events` | Planos mensais, assinaturas (com histórico), pagamentos e idempotência de webhooks |
 | **Reviews** | `reviews`, `review_replies` | Avaliação do atendimento e resposta da barbearia |
@@ -168,7 +168,8 @@ timestamps, **SD**.
 ### 2.3 Team
 
 **professionals** — `user_id` (FK users, null on delete, U, N), `display_name`, `photo_path` (N),
-`is_active`, `is_bookable`, `sort_order`, `commission_rate_bp` (0–10000), `commission_on_products`,
+`is_active`, `is_bookable`, `sort_order`, ~~`commission_rate_bp`, `commission_on_products`~~ (Fase 7: viraram
+`commission_rules`; a coluna saiu), `ledger_version` (Fase 7: trava do saldo do profissional),
 `subscription_commission_mode` (`default`|`percent`|`fixed`|`none`), `subscription_commission_rate_bp` (N),
 `subscription_commission_amount_cents` (N), timestamps, **SD**.
 **Fase 4:** `slug` (U, estável), `headline` (N, especialidade), `bio` (N), `is_public`, `is_featured`,
@@ -286,20 +287,43 @@ pagamento pertence ao atendimento, não à reserva), `cash_session_id` (FK restr
 **cash_sessions** — `open_marker` (N, U: 1 enquanto aberto = um caixa por barbearia), `status` (`open`|`closed`),
 `opened_by_user_id`, `opened_at`, `opening_float_cents`, `opening_notes` (N), `closed_by_user_id`/`closed_at` (N),
 `expected_cash_cents`/`counted_cash_cents`/`difference_cents` (N; no fechamento), `closing_notes` (N), `version`.
-**cash_movements** (só inclusão) — `cash_session_id` (restrict), `type` (`payment`|`refund`|`supply`|`withdrawal`),
-`method`, `amount_cents` (com sinal), `payment_id` (FK restrict, N, U), `description`, `request_key` (N, U),
-`created_by_user_id` (N), `occurred_at`. Ver [caixa.md](caixa.md).
+**cash_movements** (só inclusão) — `cash_session_id` (restrict), `type` (`payment`|`refund`|`supply`|`withdrawal`;
+Fase 7: `payout`|`payout_reversal`|`advance`|`advance_reversal`), `method`, `amount_cents` (com sinal),
+`payment_id` (FK restrict, N, U), `commission_payout_id`/`advance_id` (Fase 7, FK restrict, N: origem do
+repasse/vale em dinheiro), `description`, `request_key` (N, U), `created_by_user_id` (N), `occurred_at`. Cada
+tipo aponta exatamente a sua origem. Ver [caixa.md](caixa.md).
 
-**commission_entries** (só inclusão) — `professional_id` (restrict), `appointment_id` (restrict, N),
-`base_cents`, `rate_bp` (N), `amount_cents` (com sinal: estorno negativo), `rule` (snapshot da regra),
-`commission_payout_id` (N), `created_at`. **Não** há lançamentos para atendimentos antigos (o
-sistema atual não guardava a comissão; ver [importador.md](importador.md)).
+**commission_rules** (Fase 7; versionada, só inclusão) — `target` (`service`|`product`), `professional_id`
+(N = todos), `service_id` (N = todos; sempre nulo em produto), `type` (`percent`|`fixed`|`none`), `rate_bp`
+(N, 0–10000), `amount_cents` (N, ≥0, só serviço), `scope_key`, `current_scope` (N, U: sentinela "uma regra em
+vigor por escopo"), `starts_at`, `ends_at` (N), `reason` (N), `created_by_user_id`/`ended_by_user_id` (N),
+timestamps. Só `ends_at`/`current_scope`/`ended_by_user_id` mudam, uma vez. Ver [comissoes.md](comissoes.md).
 
-**commission_payouts** — `professional_id` (restrict), `amount_cents`, `tip_cents` (N), `services_total_cents` (N),
-`period_start`/`period_end` (N), `reference_month` (N, `YYYY-MM`), `paid_on` (N), `notes` (N), timestamps.
+**commission_entries** (só inclusão) — `professional_id` (restrict), `kind` (`earned`|`refund`|`adjustment`),
+`attendance_id` (Fase 7, FK restrict, N; `appointment_id` saiu, como em `payments` na Fase 6),
+`attendance_item_id` (FK restrict, N, **U**: uma comissão por item), `payment_id` (N: o estorno de origem),
+`commission_rule_id` (N), `item_name`, `quantity` (N), `base_cents`, `rate_bp` (N), `amount_cents` (com sinal),
+`rule` (fotografia da regra), `reason` (N), `created_by_user_id` (N), `request_key` (N, U), `occurred_at`,
+`commission_payout_id` (N; a única coluna que muda), timestamps. **Não** há lançamentos para atendimentos
+antigos (o sistema atual não guardava a comissão; ver [importador.md](importador.md)).
 
-**advances** (vales) — `professional_id` (restrict), `amount_cents`, `issued_on` (N), `reference_month` (N),
-`description` (N), `commission_payout_id` (N), timestamps.
+**tip_entries** (Fase 7; só inclusão) — `professional_id` (restrict), `attendance_id` (N), `payment_id` (N, U:
+o pagamento com gorjeta, ou o estorno), `kind` (`earned`|`refund`|`adjustment`), `amount_cents` (com sinal),
+`reason` (N), `created_by_user_id` (N), `request_key` (N, U), `commission_payout_id` (N), `occurred_at`,
+timestamps. Ver [repasses.md](repasses.md).
+
+**commission_payouts** (repasse) — `professional_id` (restrict), `amount_cents` (líquido), `tip_cents` (N),
+`services_total_cents` (N), `period_start`/`period_end` (N), `reference_month` (N, `YYYY-MM`), `paid_on` (N),
+`notes` (N), timestamps. **Fase 7:** `commission_cents`/`advances_cents` (N), `cutoff_at` (N), `method` (N),
+`cash_session_id` (N), `snapshot` (N: lançamentos incluídos; nulo = repasse do sistema antigo),
+`created_by_user_id` (N), `request_key` (N, U), `reversed_at`/`reversed_by_user_id`/`reversal_reason`/
+`reversal_cash_session_id`/`reversal_request_key` (estorno, uma vez). Imutável fora o estorno.
+
+**advances** (vales) — `professional_id` (restrict), `amount_cents` (vale > 0; estorno < 0), `issued_on` (N),
+`reference_month` (N), `description` (N), `commission_payout_id` (N), timestamps. **Fase 7:** `kind`
+(`advance`|`reversal`), `reverses_advance_id` (N, U), `method` (N), `cash_session_id` (N),
+`created_by_user_id` (N), `request_key` (N, U), `occurred_at` (N), `is_legacy` (vale do sistema antigo:
+histórico, nunca abatido de novo). Só inclusão.
 
 **expenses** — `description`, `category` (N), `amount_cents`, `due_on` (N), `paid_on` (N), `status`
 (`pending`|`paid`|`cancelled`), `is_recurring`, `recurrence_parent_id` (FK expenses, N), timestamps, SD.
@@ -374,10 +398,8 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (58 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
-
+Gerado por `php artisan app:schema-doc` (60 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -389,9 +411,17 @@ Gerado por `php artisan app:schema-doc` (58 tabelas de dominio; tabelas tecnicas
 | `commission_payout_id` | integer | sim | | commission_payouts.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
+| `kind` | varchar | nao | `advance` | |
+| `reverses_advance_id` | integer | sim | | advances.id (restrict) |
+| `method` | varchar | sim | | |
+| `cash_session_id` | integer | sim | | cash_sessions.id (restrict) |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+| `occurred_at` | datetime | sim | | |
+| `is_legacy` | tinyint | nao | `0` | |
+Unicos: (request_key) · (reverses_advance_id)
+Indices: (professional_id, commission_payout_id)
 ### `appointment_adjustments`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -404,9 +434,7 @@ Gerado por `php artisan app:schema-doc` (58 tabelas de dominio; tabelas tecnicas
 | `description` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `appointment_events`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -417,11 +445,8 @@ Gerado por `php artisan app:schema-doc` (58 tabelas de dominio; tabelas tecnicas
 | `data` | text | sim | | |
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
-
 Indices: (appointment_id, occurred_at)
-
 ### `appointment_items`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -439,9 +464,7 @@ Indices: (appointment_id, occurred_at)
 | `price_source` | varchar | nao | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `appointment_reminders`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -451,11 +474,8 @@ Indices: (appointment_id, occurred_at)
 | `sent_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (appointment_id, kind)
-
 ### `appointments`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -486,13 +506,9 @@ Unicos: (appointment_id, kind)
 | `updated_at` | datetime | sim | | |
 | `customer_reschedules` | integer | nao | `0` | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
-
 Unicos: (code)
-
 Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
-
 ### `attendance_consumptions`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -504,9 +520,7 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `added_by_user_id` | integer | sim | | users.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `attendance_discounts`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -521,9 +535,7 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `applied_by_user_id` | integer | sim | | users.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `attendance_events`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -533,9 +545,7 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `actor_label` | varchar | sim | | |
 | `data` | text | sim | | |
 | `occurred_at` | datetime | nao | | |
-
 ### `attendance_items`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -555,9 +565,7 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `added_by_user_id` | integer | sim | | users.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `attendances`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -588,13 +596,9 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `version` | integer | nao | `0` | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (active_appointment_id) · (code) · (completion_key)
-
 Indices: (completed_at) · (professional_id, opened_at) · (status, opened_at)
-
 ### `audit_logs`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -609,11 +613,8 @@ Indices: (completed_at) · (professional_id, opened_at) · (status, opened_at)
 | `description` | text | sim | | |
 | `ip_address` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
-
 Indices: (auditable_type, auditable_id) · (created_at)
-
 ### `blocked_slots`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -624,13 +625,9 @@ Indices: (auditable_type, auditable_id) · (created_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
-
 Unicos: (professional_id, starts_at)
-
 Indices: (starts_at, ends_at)
-
 ### `business_hours`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -639,11 +636,8 @@ Indices: (starts_at, ends_at)
 | `ends_at` | time | nao | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (weekday, starts_at)
-
 ### `campaigns`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -660,9 +654,7 @@ Unicos: (weekday, starts_at)
 | `completed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `cash_movements`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -676,13 +668,11 @@ Unicos: (weekday, starts_at)
 | `created_by_user_id` | integer | sim | | users.id (set null) |
 | `occurred_at` | datetime | nao | | |
 | `created_at` | datetime | sim | | |
-
+| `commission_payout_id` | integer | sim | | commission_payouts.id (restrict) |
+| `advance_id` | integer | sim | | advances.id (restrict) |
 Unicos: (payment_id) · (request_key)
-
 Indices: (cash_session_id, method)
-
 ### `cash_sessions`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -701,18 +691,13 @@ Indices: (cash_session_id, method)
 | `version` | integer | nao | `0` | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (open_marker)
-
 Indices: (opened_at)
-
 ### `commission_entries`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
 | `professional_id` | integer | nao | | professionals.id (restrict) |
-| `appointment_id` | integer | sim | | appointments.id (restrict) |
 | `base_cents` | integer | nao | | |
 | `rate_bp` | integer | sim | | |
 | `amount_cents` | integer | nao | | |
@@ -720,9 +705,20 @@ Indices: (opened_at)
 | `commission_payout_id` | integer | sim | | commission_payouts.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
+| `kind` | varchar | nao | `earned` | |
+| `attendance_id` | integer | sim | | attendances.id (restrict) |
+| `attendance_item_id` | integer | sim | | attendance_items.id (restrict) |
+| `payment_id` | integer | sim | | payments.id (restrict) |
+| `commission_rule_id` | integer | sim | | commission_rules.id (restrict) |
+| `item_name` | varchar | sim | | |
+| `quantity` | integer | sim | | |
+| `reason` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+| `occurred_at` | datetime | sim | | |
+Unicos: (attendance_item_id) · (request_key)
+Indices: (professional_id, commission_payout_id)
 ### `commission_payouts`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -737,11 +733,43 @@ Indices: (opened_at)
 | `notes` | text | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
+| `commission_cents` | integer | sim | | |
+| `advances_cents` | integer | sim | | |
+| `cutoff_at` | datetime | sim | | |
+| `method` | varchar | sim | | |
+| `cash_session_id` | integer | sim | | cash_sessions.id (restrict) |
+| `snapshot` | text | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+| `reversed_at` | datetime | sim | | |
+| `reversed_by_user_id` | integer | sim | | users.id (set null) |
+| `reversal_reason` | varchar | sim | | |
+| `reversal_cash_session_id` | integer | sim | | cash_sessions.id (restrict) |
+| `reversal_request_key` | varchar | sim | | |
+Unicos: (request_key) · (reversal_request_key)
 Indices: (professional_id, paid_on)
-
+### `commission_rules`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `target` | varchar | nao | | |
+| `professional_id` | integer | sim | | professionals.id (restrict) |
+| `service_id` | integer | sim | | services.id (restrict) |
+| `type` | varchar | nao | | |
+| `rate_bp` | integer | sim | | |
+| `amount_cents` | integer | sim | | |
+| `scope_key` | varchar | nao | | |
+| `current_scope` | varchar | sim | | |
+| `starts_at` | datetime | nao | | |
+| `ends_at` | datetime | sim | | |
+| `reason` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `ended_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (current_scope)
+Indices: (scope_key, starts_at)
 ### `consent_records`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -753,11 +781,8 @@ Indices: (professional_id, paid_on)
 | `occurred_at` | datetime | sim | | |
 | `evidence` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
-
 Indices: (customer_id, purpose) · (email)
-
 ### `coupon_redemptions`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -766,11 +791,8 @@ Indices: (customer_id, purpose) · (email)
 | `appointment_id` | integer | sim | | appointments.id (set null) |
 | `redeemed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
-
 Unicos: (coupon_id, customer_id)
-
 ### `coupons`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -785,19 +807,14 @@ Unicos: (coupon_id, customer_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
-
 Unicos: (code)
-
 ### `customer_favorite_professionals`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `customer_id` | integer | nao | | customers.id (cascade) |
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `created_at` | datetime | sim | | |
-
 ### `customer_login_tokens`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -807,13 +824,9 @@ Unicos: (code)
 | `used_at` | datetime | sim | | |
 | `requested_ip` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
-
 Unicos: (token_hash)
-
 Indices: (customer_id, used_at)
-
 ### `customer_merge_candidates`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -828,13 +841,9 @@ Indices: (customer_id, used_at)
 | `resolved_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (customer_id, duplicate_customer_id, match_field)
-
 Indices: (status)
-
 ### `customer_notes`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -845,9 +854,7 @@ Indices: (status)
 | `body` | text | nao | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `customer_notifications`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -856,11 +863,8 @@ Indices: (status)
 | `read_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Indices: (customer_id, read_at)
-
 ### `customers`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -886,13 +890,9 @@ Indices: (customer_id, read_at)
 | `deleted_at` | datetime | sim | | |
 | `password_changed_at` | datetime | sim | | |
 | `last_login_at` | datetime | sim | | |
-
 Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
-
 Indices: (name)
-
 ### `email_suppressions`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -902,11 +902,8 @@ Indices: (name)
 | `suppressed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (email)
-
 ### `expenses`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -921,11 +918,8 @@ Unicos: (email)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
-
 Indices: (status, due_on)
-
 ### `financial_goals`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -935,9 +929,7 @@ Indices: (status, due_on)
 | `effective_from` | date | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `gateway_events`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -945,11 +937,8 @@ Indices: (status, due_on)
 | `event_id` | varchar | nao | | |
 | `type` | varchar | sim | | |
 | `processed_at` | datetime | sim | | |
-
 Unicos: (gateway, event_id)
-
 ### `gift_cards`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -963,11 +952,8 @@ Unicos: (gateway, event_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `redeemed_appointment_id` | integer | sim | | appointments.id (set null) |
-
 Unicos: (code)
-
 ### `import_issues`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -981,11 +967,8 @@ Unicos: (code)
 | `context` | text | sim | | |
 | `needs_decision` | tinyint | nao | `0` | |
 | `created_at` | datetime | sim | | |
-
 Indices: (import_run_id, code) · (source_table, source_id)
-
 ### `import_runs`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -999,9 +982,7 @@ Indices: (import_run_id, code) · (source_table, source_id)
 | `report_path` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `legacy_references`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1013,13 +994,9 @@ Indices: (import_run_id, code) · (source_table, source_id)
 | `import_run_id` | integer | sim | | import_runs.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (source_table, source_id)
-
 Indices: (entity_type, entity_id)
-
 ### `loyalty_entries`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1030,11 +1007,8 @@ Indices: (entity_type, entity_id)
 | `appointment_id` | integer | sim | | appointments.id (set null) |
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
-
 Indices: (customer_id, occurred_at)
-
 ### `package_items`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1043,11 +1017,8 @@ Indices: (customer_id, occurred_at)
 | `quantity` | integer | nao | `1` | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (package_id, service_id)
-
 ### `packages`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1058,9 +1029,7 @@ Unicos: (package_id, service_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
-
 ### `payments`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1080,20 +1049,14 @@ Unicos: (package_id, service_id)
 | `received_by_user_id` | integer | sim | | users.id (set null) |
 | `reason` | varchar | sim | | |
 | `request_key` | varchar | sim | | |
-
 Unicos: (request_key)
-
 Indices: (attendance_id) · (paid_at)
-
 ### `plan_services`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `plan_id` | integer | nao | | plans.id (cascade) |
 | `service_id` | integer | nao | | services.id (restrict) |
-
 ### `plans`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1104,9 +1067,7 @@ Indices: (attendance_id) · (paid_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
-
 ### `products`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1124,25 +1085,18 @@ Indices: (attendance_id) · (paid_at)
 | `unit` | varchar | nao | `un` | |
 | `lock_version` | integer | nao | `0` | |
 | `stock_version` | integer | nao | `0` | |
-
 Unicos: (sku)
-
 ### `professional_package`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `package_id` | integer | nao | | packages.id (cascade) |
-
 ### `professional_service`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `professional_id` | integer | nao | | professionals.id (cascade) |
 | `service_id` | integer | nao | | services.id (cascade) |
-
 ### `professionals`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1152,8 +1106,6 @@ Unicos: (sku)
 | `is_active` | tinyint | nao | `1` | |
 | `is_bookable` | tinyint | nao | `1` | |
 | `sort_order` | integer | nao | `0` | |
-| `commission_rate_bp` | integer | nao | `0` | |
-| `commission_on_products` | tinyint | nao | `0` | |
 | `subscription_commission_mode` | varchar | nao | `default` | |
 | `subscription_commission_rate_bp` | integer | sim | | |
 | `subscription_commission_amount_cents` | integer | sim | | |
@@ -1167,13 +1119,10 @@ Unicos: (sku)
 | `is_featured` | tinyint | nao | `0` | |
 | `lock_version` | integer | nao | `0` | |
 | `schedule_version` | integer | nao | `0` | |
-
+| `ledger_version` | integer | nao | `0` | |
 Unicos: (slug) · (user_id)
-
 Indices: (is_active, sort_order)
-
 ### `review_replies`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1183,9 +1132,7 @@ Indices: (is_active, sort_order)
 | `replied_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `reviews`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1198,13 +1145,9 @@ Indices: (is_active, sort_order)
 | `reviewed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (appointment_id)
-
 Indices: (professional_id, reviewed_at)
-
 ### `schedule_breaks`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1216,9 +1159,7 @@ Indices: (professional_id, reviewed_at)
 | `is_active` | tinyint | nao | `1` | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 ### `service_categories`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1231,11 +1172,8 @@ Indices: (professional_id, reviewed_at)
 | `description` | text | sim | | |
 | `is_active` | tinyint | nao | `1` | |
 | `lock_version` | integer | nao | `0` | |
-
 Unicos: (slug)
-
 ### `services`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1254,13 +1192,9 @@ Unicos: (slug)
 | `is_featured` | tinyint | nao | `0` | |
 | `image_path` | varchar | sim | | |
 | `lock_version` | integer | nao | `0` | |
-
 Unicos: (slug)
-
 Indices: (is_active, sort_order)
-
 ### `settings`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1268,11 +1202,8 @@ Indices: (is_active, sort_order)
 | `value` | text | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (key)
-
 ### `stock_movements`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1289,13 +1220,9 @@ Unicos: (key)
 | `unit_cost_cents` | integer | sim | | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
 | `request_key` | varchar | sim | | |
-
 Unicos: (request_key) · (reverses_movement_id)
-
 Indices: (attendance_id) · (product_id, occurred_at)
-
 ### `subscription_payments`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1311,13 +1238,9 @@ Indices: (attendance_id) · (product_id, occurred_at)
 | `kind` | varchar | nao | | |
 | `paid_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
-
 Unicos: (gateway_payment_id)
-
 Indices: (customer_id, paid_at)
-
 ### `subscriptions`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1335,13 +1258,9 @@ Indices: (customer_id, paid_at)
 | `active_customer_id` | integer | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (active_customer_id) · (gateway_subscription_id)
-
 Indices: (customer_id, status) · (gateway_customer_id)
-
 ### `time_off`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1353,11 +1272,26 @@ Indices: (customer_id, status) · (gateway_customer_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
-
 Indices: (professional_id, starts_on)
-
+### `tip_entries`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `professional_id` | integer | nao | | professionals.id (restrict) |
+| `attendance_id` | integer | sim | | attendances.id (restrict) |
+| `payment_id` | integer | sim | | payments.id (restrict) |
+| `kind` | varchar | nao | | |
+| `amount_cents` | integer | nao | | |
+| `reason` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+| `commission_payout_id` | integer | sim | | commission_payouts.id (set null) |
+| `occurred_at` | datetime | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (payment_id) · (request_key)
+Indices: (professional_id, commission_payout_id)
 ### `users`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1374,11 +1308,8 @@ Indices: (professional_id, starts_on)
 | `updated_at` | datetime | sim | | |
 | `must_change_password` | tinyint | nao | `0` | |
 | `password_changed_at` | datetime | sim | | |
-
 Unicos: (email) · (username)
-
 ### `working_hours`
-
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
@@ -1388,5 +1319,4 @@ Unicos: (email) · (username)
 | `ends_at` | time | nao | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-
 Unicos: (professional_id, weekday, starts_at)

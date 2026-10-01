@@ -28,8 +28,9 @@ recusam. Nenhuma integração de gateway nesta fase: o sistema **registra** o pa
 - **Soma exata:** a soma dos valores tem de ser **igual** ao total a pagar. Faltou ou sobrou um centavo:
   recusado, nada gravado.
 - **Gorjeta:** à parte do total, por forma (`payments.tip_cents`), somada em `attendances.tip_cents`. Entra
-  no caixa junto com o pagamento (passou pela maquininha ou pela gaveta). O repasse ao profissional é da
-  Fase 7 (comissões).
+  no caixa junto com o pagamento (passou pela maquininha ou pela gaveta). Na conclusão, cada gorjeta vai
+  para o razão de gorjeta do profissional, apontando o pagamento, e é repassada inteira (Fase 7; não é
+  comissão: ver [repasses.md](repasses.md#3-gorjeta)).
 - **Total zero** (desconto de 100%): conclui sem pagamento e sem caixa.
 - **Pagar depois:** não existe (decisão do dono). Só se conclui pago.
 
@@ -76,6 +77,10 @@ total e não item a item).
 - **Nunca** se apaga ou edita um pagamento (`AppendOnly`). Estorno é um **novo** `payment` `kind = refund`
   que aponta o original (`refunds_payment_id`), com motivo, quem e quando.
 - Parcial ou total: o total estornado nunca passa de valor + gorjeta do original.
+- **Fase 7:** como o pagamento, o estorno separa a parte do serviço/produto (`amount_cents`) da parte da
+  gorjeta (`tip_cents`), informada por quem estorna (nunca mais que a gorjeta ainda não estornada). A parte
+  da gorjeta vira gorjeta negativa do profissional; o resto reduz a comissão na mesma proporção
+  ([comissoes.md §5](comissoes.md#5-estorno-de-pagamento-decisão-do-dono-d-35)). Mesma transação.
 - Sai do **caixa aberto** (movimentação negativa, mesma forma do original). Sem caixa aberto, recusado.
 - Só de atendimento **concluído**; estorno de estorno não existe.
 - O atendimento continua concluído com o valor do dia; o histórico mostra o estorno.

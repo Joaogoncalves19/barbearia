@@ -1,4 +1,4 @@
-# Papéis e permissões (Fases 3 a 6)
+# Papéis e permissões (Fases 3 a 7)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -68,7 +68,12 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `cash.view` / `cash.open` / `cash.move` / `cash.close` | Ver o caixa / abrir / suprimento e sangria / fechar | **Fase 6** |
 | `products.view` / `products.create` / `products.update` / `products.toggle` | Ver / cadastrar / editar / ativar, desativar e excluir (sem histórico) produtos | **Fase 6** |
 | `stock.view` / `stock.receive` / `stock.issue` / `stock.adjust` | Ver estoque / entrada / saída e perda / ajuste de inventário e estorno | **Fase 6** |
-| `finance.view` / `finance.manage` | Ver o financeiro / lançar despesas, vales e pagar comissões | Fase 7 |
+| `commissions.view` / `commissions.view_own` | Ver comissões, gorjetas, vales e saldo de todos / só o próprio extrato | **Fase 7** |
+| `commissions.configure` | Configurar regras de comissão | **Fase 7** |
+| `commissions.correct` | Lançar ajuste (correção) de comissão ou gorjeta | **Fase 7** |
+| `commissions.history` | Consultar o histórico de regras, correções e repasses estornados | **Fase 7** |
+| `payouts.view` / `payouts.create` / `payouts.reverse` | Ver repasses / registrar repasse / estornar repasse | **Fase 7** |
+| `advances.create` / `advances.reverse` | Lançar vale / estornar vale | **Fase 7** |
 | `reports.view` | Relatórios | Fase 7 |
 | `marketing.manage` | Cupons, campanhas e fidelidade | Fases 8 e 10 |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
@@ -127,8 +132,14 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `stock.view` | ✔ | ✔ | ✔ | ✔ | |
 | `stock.receive` / `stock.issue` | ✔ | ✔ | ✔ | | |
 | `stock.adjust` | ✔ | ✔ | | | |
-| `finance.view` | ✔ | ✔ | | ✔ | |
-| `finance.manage` | ✔ | | | ✔ | |
+| `commissions.view` | ✔ | ✔ | | ✔ | |
+| `commissions.view_own` | | | | | ✔ |
+| `commissions.configure` | ✔ | | | | |
+| `commissions.correct` | ✔ | | | ✔ | |
+| `commissions.history` | ✔ | ✔ | | ✔ | |
+| `payouts.view` | ✔ | ✔ | | ✔ | |
+| `payouts.create` / `payouts.reverse` | ✔ | | | ✔ | |
+| `advances.create` / `advances.reverse` | ✔ | | | ✔ | |
 | `reports.view` | ✔ | ✔ | | ✔ | |
 | `marketing.manage` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
@@ -168,8 +179,16 @@ próprios** atendimentos (alheio = 404) e abre encaixe só como ele mesmo (`open
 `payments.receive`, e desconto exige `attendances.discount`. A recepção opera atendimento e caixa do dia,
 mas não dá desconto manual, não estorna e não ajusta inventário. O gerente não estorna (lançamento
 financeiro, como na Fase 3). O financeiro consulta atendimentos, caixa e estoque e estorna. O cliente vê só o
-**comprovante** dos próprios atendimentos concluídos. Pontos em aberto com o dono: desconto pela recepção,
-estorno pelo gerente (ver [decisoes-pendentes.md](decisoes-pendentes.md)).
+**comprovante** dos próprios atendimentos concluídos. Desconto pela recepção e estorno pelo gerente foram
+decididos pelo dono: **não** (D-29, D-30).
+
+**Fase 7 — comissão, gorjeta, vales e repasse:** `finance.view`/`finance.manage` (declaradas na Fase 3, sem
+tela, amplas demais: "lançar despesas, vales e pagar comissões") foram substituídas por habilidades por ação:
+ver, ver o próprio, configurar regra, corrigir, histórico, ver/registrar/estornar repasse, lançar/estornar
+vale. Regra de comissão: **só o proprietário**. Pagar, corrigir e estornar: proprietário e financeiro. O
+gerente consulta (não lança finanças, como nas fases anteriores). O profissional vê **só o próprio**
+extrato e os próprios repasses: `ProfessionalPolicy@viewLedger` e `CommissionPayoutPolicy@view` (de outro =
+404). A recepção não vê comissões. Detalhes em [comissoes.md](comissoes.md) e [repasses.md](repasses.md).
 
 Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz:
 `HorizontalAccessTest::test_matriz_das_policies_de_cliente_e_agendamento_por_papel`.

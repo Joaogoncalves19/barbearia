@@ -33,7 +33,7 @@ Professional (quem atende: nome de exibição, serviços, agenda, site)
 | `is_public` / `is_featured` | Aparece / tem destaque no site |
 | `sort_order` | Ordem de exibição (subir/descer) |
 | `lock_version` | Concorrência otimista |
-| Comissão (`commission_*`) | Existe desde a Fase 2, mas **não é editada nesta fase** (Fases 6/7). Enviar esses campos no formulário não tem efeito |
+| Comissão | **Fase 7:** saiu do cadastro do profissional e virou regra versionada (`commission_rules`, tela "Regras de comissão", só o proprietário; ver [comissoes.md](comissoes.md)). Enviar campos de comissão no formulário do profissional não tem efeito |
 
 ## 3. Estados: ativo × histórico
 

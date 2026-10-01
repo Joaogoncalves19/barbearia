@@ -31,6 +31,10 @@ use App\Http\Controllers\Panel\Catalog\StockController;
 use App\Http\Controllers\Panel\Checkout\AttendanceController;
 use App\Http\Controllers\Panel\Checkout\CashController;
 use App\Http\Controllers\Panel\DashboardController;
+use App\Http\Controllers\Panel\Finance\AdvanceController;
+use App\Http\Controllers\Panel\Finance\CommissionController;
+use App\Http\Controllers\Panel\Finance\CommissionRuleController;
+use App\Http\Controllers\Panel\Finance\PayoutController;
 use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
@@ -298,6 +302,26 @@ Route::prefix('painel')
         Route::post('/produtos/{product}/estoque/saida', [StockController::class, 'issue'])->middleware(['can:stock.issue', 'throttle:money'])->name('stock.issue');
         Route::post('/produtos/{product}/estoque/ajuste', [StockController::class, 'adjust'])->middleware(['can:stock.adjust', 'throttle:money'])->name('stock.adjust');
         Route::post('/produtos/{product}/estoque/{movement}/estorno', [StockController::class, 'reverse'])->middleware(['can:stock.adjust', 'throttle:money'])->name('stock.reverse');
+
+        // --- Comissao, gorjeta, vales e repasse (Fase 7) ---
+        // Cada acao tem a sua habilidade (ver, configurar, corrigir, pagar,
+        // estornar). Extrato: commissions.view (todos) ou o proprio
+        // (viewLedger); de outro = 404. Dinheiro com throttle:money.
+        Route::get('/comissoes', [CommissionController::class, 'index'])->middleware('can:commissions.view')->name('commissions.index');
+        Route::get('/minhas-comissoes', [CommissionController::class, 'mine'])->middleware('can:commissions.view_own')->name('commissions.mine');
+        Route::get('/comissoes/regras', [CommissionRuleController::class, 'index'])->middleware('can:commissions.configure')->name('commission-rules.index');
+        Route::post('/comissoes/regras', [CommissionRuleController::class, 'store'])->middleware(['can:commissions.configure', 'throttle:money'])->name('commission-rules.store');
+        Route::post('/comissoes/regras/encerrar', [CommissionRuleController::class, 'clear'])->middleware(['can:commissions.configure', 'throttle:money'])->name('commission-rules.clear');
+        Route::get('/comissoes/historico', [CommissionRuleController::class, 'history'])->middleware('can:commissions.history')->name('commissions.history');
+        Route::get('/comissoes/profissionais/{professional}', [CommissionController::class, 'show'])->middleware('can:viewLedger,professional')->name('commissions.show');
+        Route::post('/comissoes/profissionais/{professional}/ajustes', [CommissionController::class, 'adjust'])->middleware(['can:commissions.correct', 'throttle:money'])->name('commissions.adjust');
+        Route::get('/comissoes/profissionais/{professional}/repasse', [PayoutController::class, 'create'])->middleware('can:payouts.create')->name('payouts.create');
+        Route::post('/comissoes/profissionais/{professional}/repasse', [PayoutController::class, 'store'])->middleware(['can:payouts.create', 'throttle:money'])->name('payouts.store');
+        Route::post('/comissoes/profissionais/{professional}/vales', [AdvanceController::class, 'store'])->middleware(['can:advances.create', 'throttle:money'])->name('advances.store');
+        Route::post('/vales/{advance}/estorno', [AdvanceController::class, 'reverse'])->middleware(['can:advances.reverse', 'throttle:money'])->name('advances.reverse');
+        Route::get('/repasses', [PayoutController::class, 'index'])->middleware('can:payouts.view')->name('payouts.index');
+        Route::get('/repasses/{payout}', [PayoutController::class, 'show'])->middleware('can:view,payout')->name('payouts.show');
+        Route::post('/repasses/{payout}/estorno', [PayoutController::class, 'reverse'])->middleware(['can:payouts.reverse', 'throttle:money'])->name('payouts.reverse');
 
         Route::get('/auditoria', [AuditLogController::class, 'index'])
             ->middleware('can:audit.view')->name('audit.index');

@@ -163,6 +163,34 @@ final class CashRegister
     }
 
     /** Dinheiro que deveria estar na gaveta agora. */
+    /**
+     * Repasse ou vale pago (ou devolvido) em DINHEIRO, num caixa ja travado
+     * pelo chamador (lockOpen) dentro da transacao dele. Saida maior que o
+     * dinheiro esperado e recusada, como a sangria.
+     *
+     * @param  array{commission_payout_id?: int, advance_id?: int}  $origin
+     */
+    public function recordProfessionalMovement(CashSession $session, CashMovementType $type, int $amountCents, string $description, User $actor, array $origin): CashMovement
+    {
+        if (! in_array($type, [CashMovementType::Payout, CashMovementType::PayoutReversal, CashMovementType::Advance, CashMovementType::AdvanceReversal], true) || $amountCents < 1) {
+            throw new CashRuleViolation('invalid_amount');
+        }
+        if (! $type->isInflow() && $this->expectedCash($session) < $amountCents) {
+            throw new CashRuleViolation('insufficient_cash_for_professional');
+        }
+
+        return CashMovement::query()->create([
+            'cash_session_id' => $session->id,
+            'type' => $type,
+            'method' => PaymentMethod::Cash,
+            'amount_cents' => $type->isInflow() ? $amountCents : -$amountCents,
+            'description' => mb_substr($description, 0, 255),
+            'created_by_user_id' => $actor->id,
+            'occurred_at' => BusinessTime::now(),
+            ...$origin,
+        ]);
+    }
+
     public function expectedCash(CashSession $session): int
     {
         return $session->opening_float_cents + (int) CashMovement::query()

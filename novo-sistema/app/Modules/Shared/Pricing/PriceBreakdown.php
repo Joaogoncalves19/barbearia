@@ -62,4 +62,44 @@ final class PriceBreakdown
 
         return new self($subtotal, $base, $aplicados, $desconto, $subtotal->subtract($desconto));
     }
+
+    /**
+     * Rateio do desconto entre as linhas descontaveis (comissoes.md §3), pelo
+     * metodo do MAIOR RESTO: cada linha recebe a parte proporcional ao seu
+     * valor, arredondada para baixo; os centavos que sobram vao, um a um, para
+     * as linhas com a maior fracao descartada (empate: a primeira). A soma das
+     * partes e exatamente o desconto; nenhuma parte passa do valor da linha.
+     *
+     * @param  list<int>  $lineTotals  valores das linhas descontaveis, em centavos
+     * @return list<int> parte do desconto de cada linha, na mesma ordem
+     */
+    public static function shareDiscount(int $discountCents, array $lineTotals): array
+    {
+        $base = array_sum($lineTotals);
+        if ($discountCents <= 0 || $base <= 0) {
+            return array_fill(0, count($lineTotals), 0);
+        }
+        $discountCents = min($discountCents, $base);
+
+        $partes = [];
+        $restos = [];
+        foreach ($lineTotals as $i => $valor) {
+            $bruto = $discountCents * max(0, $valor);
+            $partes[$i] = intdiv($bruto, $base);
+            $restos[$i] = $bruto % $base;
+        }
+
+        $sobra = $discountCents - array_sum($partes);
+        $ordem = array_keys($restos);
+        usort($ordem, fn (int $a, int $b) => $restos[$b] <=> $restos[$a] ?: $a <=> $b);
+        foreach ($ordem as $i) {
+            if ($sobra <= 0) {
+                break;
+            }
+            $partes[$i]++;
+            $sobra--;
+        }
+
+        return array_values($partes);
+    }
 }

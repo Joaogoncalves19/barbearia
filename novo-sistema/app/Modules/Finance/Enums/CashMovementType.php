@@ -4,7 +4,8 @@ namespace App\Modules\Finance\Enums;
 
 /**
  * Tipos de movimentacao do caixa (caixa.md). Entradas somam, saidas
- * subtraem; o sinal fica no valor (amount_cents).
+ * subtraem; o sinal fica no valor (amount_cents). Cada tipo tem UMA origem
+ * obrigatoria (ou nenhuma, nos lancamentos manuais).
  */
 enum CashMovementType: string
 {
@@ -12,6 +13,14 @@ enum CashMovementType: string
     case Refund = 'refund';
     case Supply = 'supply';
     case Withdrawal = 'withdrawal';
+    /** Repasse ao profissional pago em dinheiro (Fase 7). */
+    case Payout = 'payout';
+    /** Estorno de repasse em dinheiro: o dinheiro volta ao caixa. */
+    case PayoutReversal = 'payout_reversal';
+    /** Vale (adiantamento) pago em dinheiro (Fase 7). */
+    case Advance = 'advance';
+    /** Estorno de vale em dinheiro: o dinheiro volta ao caixa. */
+    case AdvanceReversal = 'advance_reversal';
 
     public function label(): string
     {
@@ -20,17 +29,32 @@ enum CashMovementType: string
             self::Refund => 'Estorno',
             self::Supply => 'Suprimento',
             self::Withdrawal => 'Sangria',
+            self::Payout => 'Repasse ao profissional',
+            self::PayoutReversal => 'Estorno de repasse',
+            self::Advance => 'Vale',
+            self::AdvanceReversal => 'Estorno de vale',
         };
     }
 
     public function isInflow(): bool
     {
-        return $this === self::Payment || $this === self::Supply;
+        return in_array($this, [self::Payment, self::Supply, self::PayoutReversal, self::AdvanceReversal], true);
     }
 
-    /** Lancado a mao pela equipe (os outros nascem de um pagamento). */
+    /** Lancado a mao pela equipe (os outros nascem de um pagamento, repasse ou vale). */
     public function isManual(): bool
     {
         return $this === self::Supply || $this === self::Withdrawal;
+    }
+
+    /** Coluna de origem obrigatoria (nula = lancamento manual, sem origem). */
+    public function originColumn(): ?string
+    {
+        return match ($this) {
+            self::Payment, self::Refund => 'payment_id',
+            self::Payout, self::PayoutReversal => 'commission_payout_id',
+            self::Advance, self::AdvanceReversal => 'advance_id',
+            self::Supply, self::Withdrawal => null,
+        };
     }
 }

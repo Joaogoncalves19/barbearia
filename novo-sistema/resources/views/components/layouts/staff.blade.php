@@ -38,6 +38,23 @@
         $cadastros[] = $item('Produtos e estoque', 'package', 'panel.products.index', 'panel.products.*');
     }
 
+    // Financeiro (Fase 7): comissao, gorjeta, vales e repasse.
+    $financeiro = [];
+    if ($user->can('commissions.view')) {
+        $financeiro[] = $item('Comissões', 'hand-coins', 'panel.commissions.index', 'panel.commissions.index');
+    } elseif ($user->can('commissions.view_own') && $user->professional !== null) {
+        $financeiro[] = $item('Minhas comissões', 'hand-coins', 'panel.commissions.mine', 'panel.commissions.show');
+    }
+    if ($user->can('payouts.view')) {
+        $financeiro[] = $item('Repasses', 'banknote', 'panel.payouts.index', 'panel.payouts.*');
+    }
+    if ($user->can('commissions.configure')) {
+        $financeiro[] = $item('Regras de comissão', 'percent', 'panel.commission-rules.index', 'panel.commission-rules.*');
+    }
+    if ($user->can('commissions.history')) {
+        $financeiro[] = $item('Histórico financeiro', 'history', 'panel.commissions.history', 'panel.commissions.history');
+    }
+
     $configAgenda = [];
     if ($user->can('schedule.settings')) {
         $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
@@ -58,6 +75,9 @@
     }
 
     $nav = [['group' => '', 'items' => $operacao]];
+    if ($financeiro !== []) {
+        $nav[] = ['group' => 'Financeiro', 'items' => $financeiro];
+    }
     if ($configAgenda !== []) {
         $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];
     }

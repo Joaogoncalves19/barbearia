@@ -6,6 +6,7 @@ use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Finance\Models\CommissionPayout;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Team\Models\Professional;
@@ -152,6 +153,7 @@ class RouteAuthorizationTest extends TestCase
             Service::class,
             ServiceCategory::class,
             Attendance::class,
+            CommissionPayout::class,
         ];
 
         foreach ($models as $model) {
@@ -219,6 +221,14 @@ class RouteAuthorizationTest extends TestCase
             'panel.stock.issue' => 'throttle:money',
             'panel.stock.adjust' => 'throttle:money',
             'panel.stock.reverse' => 'throttle:money',
+            // Comissao, vale e repasse (Fase 7).
+            'panel.commission-rules.store' => 'throttle:money',
+            'panel.commission-rules.clear' => 'throttle:money',
+            'panel.commissions.adjust' => 'throttle:money',
+            'panel.payouts.store' => 'throttle:money',
+            'panel.payouts.reverse' => 'throttle:money',
+            'panel.advances.store' => 'throttle:money',
+            'panel.advances.reverse' => 'throttle:money',
         ];
 
         foreach ($limites as $nome => $throttle) {
