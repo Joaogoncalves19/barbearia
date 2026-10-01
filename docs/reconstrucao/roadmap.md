@@ -206,9 +206,12 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 6 — Atendimento e caixa ✅ (aguardando aprovação)
+## Fase 6 — Atendimento e caixa ✅
 
-> **Concluída em 2026-09-30, aguardando aprovação do dono para iniciar a Fase 7.** Relatório:
+> **Concluída em 2026-09-30 e aprovada**, com D-29 a D-31 decididos e uma correção exigida antes da Fase 7:
+> **o encaixe passou a ocupar a agenda** (agendamento de origem `walk_in`, mesma regra de disponibilidade e
+> conflito; ver [relatório §15](relatorio-fase-6.md#15-correção-antes-da-fase-7-o-encaixe-ocupa-a-agenda)).
+> **O início da Fase 7 aguarda aprovação explícita do dono.** Relatório:
 > [relatorio-fase-6.md](relatorio-fase-6.md). Branch `claude/fase-6-atendimento-caixa` (a partir da Fase 5).
 > Entregue: atendimento separado do agendamento (abrir do agendamento ou encaixe), estados
 > aberto/em atendimento/concluído/cancelado, preço e nomes fotografados, **uma** regra de desconto e de

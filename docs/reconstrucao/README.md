@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 5 concluídas. **Fase 6 concluída, aguardando aprovação** para a Fase 7
-> ([relatorio-fase-6.md](relatorio-fase-6.md)).
+> **Status:** Fases 0 a 6 concluídas e aprovadas. Correção pedida na aprovação da Fase 6 (encaixe ocupa a
+> agenda) concluída; **início da Fase 7 aguardando aprovação** ([relatorio-fase-6.md](relatorio-fase-6.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -44,7 +44,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [modelo-dados.md](modelo-dados.md) | Modelagem conceitual, entidades, relacionamentos e esquema físico gerado |
-| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5, 52–63 da Fase 6): onde são garantidas e qual teste as prova |
+| [regras-dados.md](regras-dados.md) | Regras de dados (1–35 da Fase 2, 36–43 da Fase 4, 44–51 da Fase 5, 52–64 da Fase 6): onde são garantidas e qual teste as prova |
 | [mapa-banco-antigo-novo.md](mapa-banco-antigo-novo.md) | Destino de cada tabela e campo antigo; as 6 tabelas abandonadas |
 | [importador.md](importador.md) | Como usar e o que garante o `legacy:import`; resultados e desempenho |
 | [estrategia-duplicidades.md](estrategia-duplicidades.md) | Duplicidades: detectar, registrar, nunca mesclar sozinho |

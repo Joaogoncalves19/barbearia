@@ -25,8 +25,12 @@ use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Identity\Models\User;
+use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
+use App\Modules\Scheduling\Exceptions\SlotUnavailable;
 use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Scheduling\Services\Availability;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Scheduling\Support\Channel;
 use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Support\Decimal;
 use App\Modules\Shared\Support\Money;
@@ -97,7 +101,7 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Availability $availability): RedirectResponse
     {
         $user = $this->user($request);
         $dados = $request->validate([
@@ -122,8 +126,10 @@ class AttendanceController extends Controller
         try {
             $at = $this->service->openWalkIn($servico, $pro, $cliente, $cliente === null ? $dados['contact_name'] : null,
                 $cliente === null ? ($dados['contact_phone'] ?? null) : null, $user);
-        } catch (CheckoutRuleViolation $e) {
+        } catch (CheckoutRuleViolation|BookingRuleViolation $e) {
             return back()->withInput()->withErrors(['attendance' => $e->getMessage()]);
+        } catch (SlotUnavailable $e) {
+            return back()->withInput()->withErrors(['attendance' => $this->walkInRefusal($e, $servico, $pro, $availability)]);
         }
 
         return redirect()->route('panel.attendances.show', $at)->with('status', "Atendimento {$at->code} aberto.");
@@ -357,11 +363,29 @@ class AttendanceController extends Controller
     {
         try {
             $action();
-        } catch (CheckoutRuleViolation|CashRuleViolation|StockRuleViolation $e) {
+        } catch (CheckoutRuleViolation|CashRuleViolation|StockRuleViolation|BookingRuleViolation $e) {
             return back()->withInput()->withErrors(['attendance' => $e->getMessage()]);
+        } catch (SlotUnavailable $e) {
+            $motivo = $e->isConflict() ? 'o profissional já tem agendamento neste horário.' : mb_lcfirst($e->getMessage());
+
+            return back()->withInput()->withErrors(['attendance' => 'A agenda não permite: '.$motivo]);
         }
 
         return back()->with('status', $ok);
+    }
+
+    /**
+     * Encaixe recusado pela agenda: diz por que e, se houver, o proximo
+     * horario livre do profissional hoje (para marcar pela agenda).
+     */
+    private function walkInRefusal(SlotUnavailable $e, Service $service, Professional $pro, Availability $availability): string
+    {
+        $motivo = $e->isConflict() ? $pro->display_name.' já tem agendamento agora.' : $e->getMessage();
+        $livre = $availability->slots($service, $pro, BusinessTime::today(), Channel::Staff)[0]['start'] ?? null;
+
+        return 'Encaixe não permitido: '.$motivo.($livre !== null
+            ? ' Próximo horário livre hoje: '.BusinessTime::local($livre)->format('H:i').' (marque pela agenda).'
+            : ' Não há outro horário livre hoje com este profissional.');
     }
 
     /**

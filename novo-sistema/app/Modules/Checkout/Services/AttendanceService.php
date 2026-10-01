@@ -25,22 +25,28 @@ use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
+use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Enums\ItemType;
 use App\Modules\Scheduling\Enums\PriceSource;
+use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
+use App\Modules\Scheduling\Exceptions\SlotUnavailable;
 use App\Modules\Scheduling\Models\Appointment;
+use App\Modules\Scheduling\Services\BookingRequest;
 use App\Modules\Scheduling\Services\BookingService;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Scheduling\Support\Channel;
 use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Support\Money;
 use App\Modules\Team\Models\Professional;
+use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
  * As UNICAS regras do atendimento (atendimento.md): abrir (do agendamento ou
- * encaixe), iniciar, itens, consumo, desconto, profissional, cancelar e
+ * encaixe, que tambem e um agendamento e ocupa a agenda), iniciar, itens, consumo, desconto, profissional, cancelar e
  * CONCLUIR. Nenhuma tela grava atendimento, pagamento, caixa ou estoque por
  * conta propria.
  *
@@ -95,63 +101,11 @@ final class AttendanceService
                 if ($a->starts_at === null || BusinessTime::dateOf($a->starts_at) !== BusinessTime::today()) {
                     throw new CheckoutRuleViolation('appointment_not_today');
                 }
-                $pro = $a->professional_id !== null ? Professional::withTrashed()->find($a->professional_id) : null;
-                if ($pro === null) {
-                    throw new CheckoutRuleViolation('appointment_without_professional');
-                }
                 if ($a->status === AppointmentStatus::Pending) {
                     $this->booking->confirm($a, $actor);
                 }
 
-                $at = Attendance::query()->create([
-                    'source' => AttendanceSource::Appointment,
-                    'appointment_id' => $a->id,
-                    'active_appointment_id' => $a->id,
-                    'customer_id' => $a->customer_id,
-                    'customer_name' => $a->customer_name,
-                    'customer_phone' => $a->customer_phone,
-                    'professional_id' => $pro->id,
-                    'professional_name' => $pro->display_name,
-                    'status' => AttendanceStatus::Open,
-                    'opened_at' => BusinessTime::now(),
-                    'opened_by_user_id' => $actor->id,
-                ]);
-
-                // O combinado no agendamento vale no atendimento: mesmo item,
-                // mesmo preco fotografado, mesmos descontos.
-                foreach ($a->items as $item) {
-                    $at->items()->create([
-                        'item_type' => $item->item_type,
-                        'service_id' => $item->service_id,
-                        'package_id' => $item->package_id,
-                        'product_id' => $item->product_id,
-                        'appointment_item_id' => $item->id,
-                        'name' => $item->name,
-                        'quantity' => $item->quantity ?? 1,
-                        'unit_price_cents' => $item->unit_price_cents,
-                        'duration_minutes' => $item->duration_minutes,
-                        'price_source' => $item->price_source ?? PriceSource::CatalogAtBooking,
-                        'cost_cents' => $item->cost_cents,
-                        'added_by_user_id' => $actor->id,
-                    ]);
-                }
-                foreach ($a->adjustments as $adj) {
-                    if ($adj->amount_cents > 0) {
-                        $at->discounts()->create([
-                            'kind' => $adj->kind,
-                            'type' => DiscountType::Fixed,
-                            'fixed_cents' => $adj->amount_cents,
-                            'base_cents' => 0,
-                            'amount_cents' => 0,
-                            'reason' => $adj->description ?? 'Desconto do agendamento',
-                        ]);
-                    }
-                }
-                $this->pricing->refreshDiscounts($at);
-
-                $this->event($at, 'opened', 'Atendimento aberto a partir do agendamento '.$a->code.'.', $actor);
-
-                return $at;
+                return $this->createFromAppointment($a, AttendanceSource::Appointment, 'Atendimento aberto a partir do agendamento '.$a->code.'.', $actor);
             });
         } catch (QueryException $e) {
             // Dois cliques simultaneos: a sentinela active_appointment_id barra o segundo.
@@ -163,7 +117,18 @@ final class AttendanceService
         }
     }
 
-    /** Encaixe: atendimento sem agendamento (cliente cadastrado ou so nome e telefone). */
+    /**
+     * Encaixe: cliente chegou sem hora marcada (cadastrado ou so nome e
+     * telefone). O encaixe e um AGENDAMENTO de origem "encaixe", reservado
+     * pelo mesmo BookingService::book da agenda (mesma regra de
+     * disponibilidade, mesmo conflito, mesma trava da agenda do
+     * profissional), comecando no proximo ponto da grade
+     * (BusinessTime::nextStart) e com a duracao do servico. O atendimento
+     * nasce dele na MESMA transacao. Horario ocupado, fora do expediente,
+     * folga, pausa ou bloqueio: recusado, nada gravado.
+     *
+     * @throws CheckoutRuleViolation|SlotUnavailable|BookingRuleViolation
+     */
     public function openWalkIn(Service $service, Professional $professional, ?Customer $customer, ?string $contactName, ?string $contactPhone, User $actor): Attendance
     {
         if ($customer === null && mb_strlen(trim((string) $contactName)) < 2) {
@@ -171,26 +136,81 @@ final class AttendanceService
         }
 
         return DB::transaction(function () use ($service, $professional, $customer, $contactName, $contactPhone, $actor): Attendance {
-            $pro = Professional::query()->findOrFail($professional->id);
-            $srv = Service::query()->findOrFail($service->id);
-            $this->assertCanPerform($pro, $srv);
+            $a = $this->booking->book(new BookingRequest(
+                service: $service,
+                professional: $professional,
+                start: BusinessTime::nextStart(),
+                channel: Channel::Staff,
+                source: AppointmentSource::WalkIn,
+                customer: $customer,
+                contactName: $customer === null ? trim((string) $contactName) : null,
+                contactPhone: $customer === null && $contactPhone !== null && trim($contactPhone) !== '' ? mb_substr(trim($contactPhone), 0, 32) : null,
+                actor: $actor,
+            ));
+            $a->load(['items', 'adjustments']);
 
-            $at = Attendance::query()->create([
-                'source' => AttendanceSource::WalkIn,
-                'customer_id' => $customer?->id,
-                'customer_name' => $customer !== null ? $customer->name : trim((string) $contactName),
-                'customer_phone' => $customer !== null ? $customer->phone : ($contactPhone !== null ? mb_substr(trim($contactPhone), 0, 32) : null),
-                'professional_id' => $pro->id,
-                'professional_name' => $pro->display_name,
-                'status' => AttendanceStatus::Open,
-                'opened_at' => BusinessTime::now(),
-                'opened_by_user_id' => $actor->id,
-            ]);
-            $this->createServiceItem($at, $srv, $actor);
-            $this->event($at, 'opened', 'Atendimento aberto (encaixe, sem agendamento).', $actor, ['servico' => $srv->name]);
-
-            return $at;
+            return $this->createFromAppointment($a, AttendanceSource::WalkIn, 'Atendimento aberto (encaixe '.$a->code.').', $actor);
         });
+    }
+
+    /**
+     * O atendimento nasce do agendamento: mesmo cliente, mesmo profissional,
+     * mesmos itens com o preco fotografado, mesmos descontos.
+     */
+    private function createFromAppointment(Appointment $a, AttendanceSource $source, string $description, User $actor): Attendance
+    {
+        $pro = $a->professional_id !== null ? Professional::withTrashed()->find($a->professional_id) : null;
+        if ($pro === null) {
+            throw new CheckoutRuleViolation('appointment_without_professional');
+        }
+
+        $at = Attendance::query()->create([
+            'source' => $source,
+            'appointment_id' => $a->id,
+            'active_appointment_id' => $a->id,
+            'customer_id' => $a->customer_id,
+            'customer_name' => $a->customer_name,
+            'customer_phone' => $a->customer_phone,
+            'professional_id' => $pro->id,
+            'professional_name' => $pro->display_name,
+            'status' => AttendanceStatus::Open,
+            'opened_at' => BusinessTime::now(),
+            'opened_by_user_id' => $actor->id,
+        ]);
+
+        foreach ($a->items as $item) {
+            $at->items()->create([
+                'item_type' => $item->item_type,
+                'service_id' => $item->service_id,
+                'package_id' => $item->package_id,
+                'product_id' => $item->product_id,
+                'appointment_item_id' => $item->id,
+                'name' => $item->name,
+                'quantity' => $item->quantity ?? 1,
+                'unit_price_cents' => $item->unit_price_cents,
+                'duration_minutes' => $item->duration_minutes,
+                'price_source' => $item->price_source ?? PriceSource::CatalogAtBooking,
+                'cost_cents' => $item->cost_cents,
+                'added_by_user_id' => $actor->id,
+            ]);
+        }
+        foreach ($a->adjustments as $adj) {
+            if ($adj->amount_cents > 0) {
+                $at->discounts()->create([
+                    'kind' => $adj->kind,
+                    'type' => DiscountType::Fixed,
+                    'fixed_cents' => $adj->amount_cents,
+                    'base_cents' => 0,
+                    'amount_cents' => 0,
+                    'reason' => $adj->description ?? 'Desconto do agendamento',
+                ]);
+            }
+        }
+        $this->pricing->refreshDiscounts($at);
+
+        $this->event($at, 'opened', $description, $actor);
+
+        return $at;
     }
 
     /** Aberto -> em atendimento (cliente na cadeira). */
@@ -339,7 +359,15 @@ final class AttendanceService
         });
     }
 
-    /** Quem efetivamente atende (pode nao ser quem estava agendado). */
+    /**
+     * Quem efetivamente atende (pode nao ser quem estava agendado). A agenda
+     * acompanha: o agendamento de origem e remarcado para o novo profissional
+     * pelo BookingService (mesma regra de disponibilidade), no horario
+     * combinado ou, se ele ja passou, a partir do proximo ponto da grade. Se
+     * o novo profissional nao estiver livre, nada muda.
+     *
+     * @throws CheckoutRuleViolation|SlotUnavailable|BookingRuleViolation
+     */
     public function changeProfessional(Attendance $attendance, Professional $professional, User $actor): Attendance
     {
         return $this->mutate($attendance, function (Attendance $at) use ($professional, $actor): void {
@@ -350,6 +378,11 @@ final class AttendanceService
             }
             if ($pro->id === $at->professional_id) {
                 return;
+            }
+            $ag = $at->appointment_id !== null ? Appointment::query()->find($at->appointment_id) : null;
+            if ($ag !== null && $ag->status->isOpen() && $ag->professional_id !== $pro->id) {
+                $inicio = CarbonImmutable::instance($ag->starts_at)->max(BusinessTime::nextStart());
+                $this->booking->reschedule($ag, $inicio, $pro, Channel::Staff, $actor, byAttendance: true);
             }
             $de = $at->professional_name;
             $at->professional_id = $pro->id;
@@ -370,8 +403,10 @@ final class AttendanceService
 
     /**
      * Cancela antes da conclusao (desistencia). Nada foi cobrado nem baixado
-     * do estoque (isso so acontece na conclusao); o agendamento de origem
+     * do estoque (isso so acontece na conclusao). Agendamento de origem:
      * continua como esta (a equipe decide se foi falta ou cancelamento).
+     * Encaixe: o agendamento existia so por causa do atendimento e e
+     * cancelado junto, liberando o horario na agenda.
      */
     public function cancel(Attendance $attendance, string $reason, User $actor): Attendance
     {
@@ -391,6 +426,13 @@ final class AttendanceService
             $at->cancellation_reason = mb_substr($motivo, 0, 255);
             $at->save();
             $this->event($at, 'cancelled', 'Atendimento cancelado.', $actor, ['motivo' => $motivo]);
+
+            if ($at->source === AttendanceSource::WalkIn && $at->appointment_id !== null) {
+                $ag = Appointment::query()->find($at->appointment_id);
+                if ($ag !== null && $ag->status->canTransitionTo(AppointmentStatus::Cancelled)) {
+                    $this->booking->cancel($ag, Channel::Staff, $actor, 'Encaixe cancelado: '.$motivo);
+                }
+            }
         });
     }
 

@@ -26,6 +26,23 @@ Tela (site / conta / painel)
 
 A disponibilidade em si (expediente, folga, bloqueio, conflito) é a **mesma** para os dois.
 
+### Origem (`appointments.source`)
+
+O canal decide as regras de tempo; a **origem** diz de onde veio o agendamento. Todas ocupam a agenda do mesmo
+jeito e passam pelo mesmo `BookingService::book`.
+
+| Origem | Rótulo | Canal | De onde |
+|---|---|---|---|
+| `online` | Site | `Customer` | Cliente pelo site/conta |
+| `staff` | Equipe | `Staff` | Equipe pela agenda |
+| `walk_in` | Encaixe | `Staff` | Cliente chegou sem hora marcada: tela de encaixe do atendimento. Começa no próximo ponto da grade de 5 min, dura o tempo do serviço, e o atendimento nasce dele na mesma transação ([atendimento.md §2](atendimento.md#2-relação-com-o-agendamento)) |
+| `legacy` | Sistema antigo | — | Importador |
+
+**Com atendimento em vigor** (o cliente chegou), o agendamento não é cancelado, remarcado nem marcado como
+falta por fora do atendimento (`in_attendance`): o horário continua ocupado enquanto o cliente está lá. A
+troca de profissional e o cancelamento do encaixe passam pelo atendimento, que remarca/cancela pelo
+`BookingService`.
+
 ## 3. Snapshot: o que é congelado e o que é referência
 
 | Dado | Onde | Tipo | Por quê |

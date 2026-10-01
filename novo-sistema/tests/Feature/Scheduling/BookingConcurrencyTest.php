@@ -3,11 +3,15 @@
 namespace Tests\Feature\Scheduling;
 
 use App\Modules\Catalog\Models\Service;
+use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Models\AppointmentItem;
 use App\Modules\Scheduling\Models\BusinessHour;
+use App\Modules\Scheduling\Support\BookingPolicy;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\System\Integrity\IntegrityChecker;
 use App\Modules\Team\Models\Professional;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
@@ -91,6 +95,53 @@ class BookingConcurrencyTest extends TestCase
         // So a transacao vencedora ficou: as perdedoras foram desfeitas por inteiro
         // (inclusive a escrita de bloqueio).
         $this->assertSame(1, (int) DB::table('professionals')->where('id', $pro->id)->value('schedule_version'));
+    }
+
+    /**
+     * Encaixe da recepcao x agendamento pelo site, ao mesmo tempo, no mesmo
+     * profissional e em horarios que se sobrepoem: o encaixe passa pelo
+     * mesmo BookingService (mesma trava da agenda), entao so UM vence, seja
+     * ele qual for, e o perdedor nao deixa nada gravado (nem atendimento).
+     */
+    public function test_encaixe_e_site_disputando_o_mesmo_horario(): void
+    {
+        for ($d = 0; $d <= 6; $d++) {
+            BusinessHour::query()->create(['weekday' => $d, 'starts_at' => '09:00', 'ends_at' => '20:00']);
+        }
+        BookingPolicy::save(['min_notice_minutes' => 0]);
+        $servico = Service::factory()->create(['duration_minutes' => 30]);
+        $pro = Professional::factory()->create();
+        $pro->services()->attach($servico->id);
+        $recepcao = User::factory()->create();
+        $clientes = Customer::factory()->count(6)->create();
+
+        // Relogio parado nos filhos: segunda 10:02:20; o encaixe ocupa 10:05-10:35.
+        $agora = BusinessTime::at('2026-10-05', '10:02')->addSeconds(20)->toIso8601String();
+        $largada = $this->dir.DIRECTORY_SEPARATOR.'largada-mista';
+        $comum = ["--barrier={$largada}", '--hold=400', "--now={$agora}"];
+
+        $processos = [];
+        foreach ([['walk-in', '10:05'], ['online', '10:05'], ['walk-in', '10:05'], ['online', '10:20'], ['walk-in', '10:05'], ['online', '10:30']] as $i => [$como, $hora]) {
+            $processos[] = $this->spawn([$servico->id, $pro->id, $clientes[$i]->id, BusinessTime::at('2026-10-05', $hora)->toIso8601String(),
+                "--as={$como}", "--actor={$recepcao->id}", ...$comum]);
+        }
+
+        usleep(1_500_000);
+        touch($largada);
+
+        $saidas = array_map(fn ($p) => $this->finish($p), $processos);
+        $ok = array_values(array_filter($saidas, fn ($s) => str_starts_with($s, 'OK')));
+        $conflitos = array_values(array_filter($saidas, fn ($s) => str_starts_with($s, 'CONFLICT conflict')));
+
+        $this->assertCount(1, $ok, "exatamente um vence:\n".implode("\n", $saidas));
+        $this->assertCount(5, $conflitos, "os outros recebem conflito:\n".implode("\n", $saidas));
+
+        DB::purge('sqlite');
+        $this->assertSame(1, Appointment::query()->where('professional_id', $pro->id)->count(), 'uma reserva no banco');
+        $this->assertSame(1, AppointmentItem::query()->count(), 'nada gravado pela metade');
+        $encaixes = Appointment::query()->where('source', 'walk_in')->count();
+        $this->assertSame($encaixes, Attendance::query()->count(), 'atendimento só se o encaixe venceu');
+        $this->assertSame([], app(IntegrityChecker::class)->violations());
     }
 
     /**

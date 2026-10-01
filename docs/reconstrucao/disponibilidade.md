@@ -6,7 +6,7 @@
 
 | Método | Uso |
 |---|---|
-| `check(serviço, profissional, início, canal, [ignorar], [duração])` | Verificar um horário: confirmação do site, gravação (`BookingService`), remarcação |
+| `check(serviço, profissional, início, canal, [ignorar], [duração])` | Verificar um horário: confirmação do site, gravação (`BookingService`), remarcação, **encaixe** e troca de profissional no atendimento (ambos pelo `BookingService`) |
 | `slots(serviço, profissional ou nulo, dia, canal, [ignorar], [duração])` | Listar horários livres: site, conta do cliente, painel |
 | `bookableDates(canal)` | Dias que aparecem para escolha (barbearia aberta, dentro do alcance do canal) |
 
@@ -15,6 +15,10 @@ que aparece como livre é exatamente o que a gravação aceita. O teste
 `AvailabilityTest::test_lista_de_horarios_e_verificacao_concordam` percorre a grade inteira do dia e confere
 os dois métodos, ponto a ponto. Controllers, Blade e JavaScript não decidem disponibilidade: só mostram o
 resultado.
+
+O **encaixe** (cliente chegou sem hora marcada) não tem regra própria: é um agendamento de origem `walk_in`
+reservado pelo `BookingService::book`, logo passa por esta mesma regra
+([agendamento.md §2](agendamento.md#2-canais), [atendimento.md §2](atendimento.md#2-relação-com-o-agendamento)).
 
 ## 2. O que torna um horário livre
 

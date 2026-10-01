@@ -14,6 +14,8 @@ use App\Modules\Finance\Models\CashSession;
 use App\Modules\Finance\Models\Payment;
 use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Identity\Models\User;
+use App\Modules\Scheduling\Models\BusinessHour;
+use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Team\Models\Professional;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -74,10 +76,18 @@ class CheckoutConcurrencyTest extends TestCase
         app(StockLedger::class)->receive($pomada, 5, null, 'Estoque inicial', $this->ator);
         app(CashRegister::class)->open(0, null, $this->ator);
 
+        // O encaixe ocupa a agenda: abre com a barbearia funcionando (relogio
+        // parado so neste processo; os filhos concluem no relogio real).
+        for ($d = 0; $d <= 6; $d++) {
+            BusinessHour::query()->create(['weekday' => $d, 'starts_at' => '09:00', 'ends_at' => '20:00']);
+        }
+        $this->travelTo(BusinessTime::at('2026-10-05', '10:02'));
+
         $svc = app(AttendanceService::class);
         $at = $svc->openWalkIn($servico, $pro, null, 'Cliente Fictício', null, $this->ator);
         $svc->addProduct($at, $pomada, 1, $this->ator);
         $svc->start($at, $this->ator);
+        $this->travelBack();
 
         $saidas = $this->race(4, ['complete', $at->id, $this->ator->id]);
 

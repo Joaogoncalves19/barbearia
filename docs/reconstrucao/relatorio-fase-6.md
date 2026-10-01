@@ -1,6 +1,8 @@
 # Relatório da Fase 6 — Atendimento, caixa, produtos e estoque
 
-> **Status: concluída em 2026-09-30, aguardando aprovação explícita do dono para iniciar a Fase 7.**
+> **Status: aprovada pelo dono em 2026-09-30, com D-29, D-30 e D-31 decididos e uma correção exigida antes da
+> Fase 7 (encaixe ocupa a agenda, §15). Correção concluída; aguardando aprovação explícita do dono para
+> iniciar a Fase 7.**
 > Branch `claude/fase-6-atendimento-caixa`, criada a partir de `claude/fase-5-agenda` (as Fases 3 a 5 ainda não
 > estão na `main`). Só dados fictícios; nenhum banco de produção acessado; nenhuma migração real executada;
 > sistema antigo não alterado; nenhum segredo no repositório.
@@ -12,7 +14,7 @@
 | Critério | Situação | Evidência |
 |---|---|---|
 | Atendimento implementado | PASSOU | `attendances` + `AttendanceService`; telas de lista, encaixe e atendimento |
-| Relação com agendamento definida | PASSOU | abrir do agendamento (pendente/confirmado, do dia) ou encaixe; um em vigor por agendamento; conclusão conclui a reserva ([atendimento.md §2](atendimento.md#2-relação-com-o-agendamento)) |
+| Relação com agendamento definida | PASSOU | abrir do agendamento (pendente/confirmado, do dia) ou encaixe (que também é agendamento e ocupa a agenda, §15); um em vigor por agendamento; conclusão conclui a reserva ([atendimento.md §2](atendimento.md#2-relação-com-o-agendamento)) |
 | Snapshot definido | PASSOU | tabela histórico × referência em [atendimento.md §3](atendimento.md#3-snapshot-histórico--referência) |
 | Preço preservado | PASSOU | `test_preco_profissional_e_cliente_ficam_congelados_depois_de_concluir`, `test_abre_do_agendamento_com_o_preco_combinado...` |
 | Descontos centralizados | PASSOU | `Discount` + `PriceBreakdown` (o agendamento passou a usar o mesmo cálculo); `DiscountTest` (19) |
@@ -42,7 +44,7 @@ appointments ──"cliente chegou"──▶ attendances ───────�
 appointment_items                  attendance_items (vendido)          ├──▶ stock_movements (venda e consumo)
 (preço combinado)                  attendance_consumptions (usado)     └──▶ appointments.status = concluído
                                    attendance_discounts / _events
-encaixe (sem agendamento) ───────▶ attendances
+encaixe ──▶ appointments (origem walk_in, mesma agenda) ──▶ attendances   (correção, §15)
 ```
 
 | Peça | Arquivo |
@@ -106,13 +108,14 @@ certo):
 | T6-11 | Venda/consumo de atendimento é devolvida **pelo atendimento**, não pela tela de estoque | Fica no histórico do atendimento |
 | T6-12 | Comprovante do cliente = tela na conta (sem impressão) | Base para a Fase 11 |
 
-**PRECISA DE DECISÃO (não bloqueou; implementado na forma mais conservadora, muda numa linha de configuração):**
+**Decididas pelo dono na aprovação (2026-09-30):**
 
-- **D-29 — desconto manual:** hoje só proprietário e gerente, sem limite além do valor dos serviços, com motivo
-  obrigatório. A recepção deve dar desconto? Deve haver limite por papel (ex.: até 10% sem gerente)?
-- **D-30 — estorno:** hoje só proprietário e financeiro (estorno é lançamento financeiro, e o gerente já não
-  lançava finanças na Fase 3). O gerente deve estornar?
-- **D-31 — gorjeta:** registrada por pagamento; o repasse ao profissional (com a comissão) fica para a Fase 7.
+| # | Decisão |
+|---|---|
+| D-29 | **Desconto:** mantida a regra. Proprietário e gerente aplicam; recepção **não**; motivo obrigatório; auditado. Sem permissão genérica que deixe a recepção contornar a regra. |
+| D-30 | **Estorno:** mantida a regra. Proprietário e financeiro estornam; gerente, recepção e profissional **não**. Estorno continua sendo movimentação nova, sem apagar nem editar o pagamento original. |
+| D-31 | **Gorjeta:** repasse ao profissional na Fase 7, junto de comissão e repasses, **com os conceitos separados**: gorjeta é o valor que o cliente destina ao profissional; comissão é a remuneração calculada por uma regra de comissão. Gorjeta não é tratada como comissão. |
+| D-32 | **Encaixe ocupa a agenda** como um agendamento normal, com a mesma infraestrutura de disponibilidade e conflito da Fase 5; origem diferente, mesma ocupação (§15). |
 
 ## 5. Permissões
 
@@ -207,7 +210,7 @@ O commit seguinte só atualiza este relatório (documentação).
 
 ## 11. Pendências
 
-1. **D-29, D-30, D-31** (§4).
+1. ~~D-29, D-30, D-31~~ decididos (§4). **D-33** (§15.6) aberto, não bloqueia.
 2. **Comissão** (cálculo e gravação no fechamento): Fase 7, a partir do **atendimento** (valores congelados).
 3. **Rateio do desconto por item/profissional:** necessário para comissão; recomendação em
    [pagamentos.md §5](pagamentos.md#5-arredondamento).
@@ -228,7 +231,8 @@ tabelas), [regras-dados.md](regras-dados.md) (regras 52 a 63), [papeis-permissoe
 
 | Risco | Mitigação |
 |---|---|
-| Encaixe não reserva horário: alguém agenda online por cima | Aviso na tela de encaixe; para reservar, criar agendamento. Avaliar com o dono se o encaixe deve ocupar a agenda |
+| ~~Encaixe não reserva horário: alguém agenda online por cima~~ | **Resolvido** (§15): o encaixe é agendamento de origem `walk_in` e ocupa a agenda |
+| Serviço incluído no atendimento não estica o horário na agenda | A reserva ocupa a duração do que foi reservado (no encaixe, o serviço escolhido). Já era assim para qualquer agendamento. Ver §15.6 (D-33) |
 | Caixa esquecido aberto de um dia para o outro | O caixa mostra desde quando está aberto; relatório diário na Fase 7 deve olhar a sessão, não a data |
 | SQLite × MySQL | Trava por escrita na linha funciona nos dois; repetir o teste de concorrência no banco escolhido (D-02) |
 | Matriz de permissões proposta pela equipe técnica | Conservadora; dono revisa D-29/D-30 |
@@ -245,6 +249,106 @@ tabelas), [regras-dados.md](regras-dados.md) (regras 52 a 63), [papeis-permissoe
 4. **Relatórios por `attendances.completed_at`** e por sessão de caixa; receita = pagamentos − estornos.
 5. **Repasse de gorjeta** (D-31) junto com o pagamento de comissões.
 6. Decidir D-02 (banco) antes de relatórios pesados.
+
+## 15. Correção antes da Fase 7: o encaixe ocupa a agenda
+
+**Problema** (risco do §13, que o dono considerou inaceitável): o encaixe criava só o atendimento. Às 14:00 a
+recepção encaixava João (14:00–14:40) e, ao mesmo tempo, um cliente via 14:00 livre no site e reservava.
+
+**Regra pedida:** o encaixe ocupa a agenda como um agendamento normal (profissional, duração, serviço,
+conflito, expediente, folgas, bloqueios, demais regras da Fase 5), **sem** segunda lógica de conflito e
+**sem** nova modalidade de agenda: um agendamento com origem diferente.
+
+### 15.1 O que mudou
+
+```text
+Agendamento (appointments)                          Atendimento (attendances)
+├── origem: online   (site)
+├── origem: staff    (equipe, pela agenda)
+└── origem: walk_in  (encaixe)  ──mesma transação──▶ source = walk_in, appointment_id = o encaixe
+```
+
+| Peça | Mudança |
+|---|---|
+| `AppointmentSource::WalkIn` (`walk_in`, "Encaixe") | Origem nova. A coluna já era texto: sem migration |
+| `AttendanceService::openWalkIn` | Em vez de gravar só o atendimento, chama **`BookingService::book`** (canal equipe, origem encaixe, início `BusinessTime::nextStart()` = próximo ponto da grade de 5 min, duração do serviço) e cria o atendimento a partir desse agendamento **na mesma transação** (`createFromAppointment`, o mesmo caminho do "cliente chegou"). A checagem própria de profissional/serviço que o encaixe tinha foi **removida**: quem decide é a `Availability` |
+| `AttendanceService::changeProfessional` | Trocar quem atende **remarca a agenda** pelo `BookingService::reschedule` (mesma regra), no horário combinado ou, se já passou, a partir do próximo ponto da grade. Profissional ocupado: recusado, nada muda. Antes, a agenda ficava presa no profissional antigo e a do novo ficava livre (furo do mesmo tipo, achado na revisão) |
+| `AttendanceService::cancel` | Cancelar um **encaixe** cancela o agendamento de encaixe e libera o horário. Vindo de agendamento, nada muda (T6-09) |
+| `BookingService::cancel/reschedule/markNoShow` | Com atendimento em vigor, recusa (`in_attendance`): a agenda não libera o horário com o cliente na cadeira (outro furo do mesmo tipo, achado na revisão). O atendimento remarca com `byAttendance: true` |
+| `IntegrityChecker` R33 | Atendimento de encaixe sem agendamento `walk_in`, ou agendamento `walk_in` sem atendimento = violação |
+| Tela de encaixe | O texto explica que o encaixe entra na agenda; a recusa mostra o motivo e o **próximo horário livre** do profissional hoje |
+
+### 15.2 Revisão: nenhuma regra de disponibilidade duplicada
+
+- O encaixe e a troca de profissional passam por `BookingService::book`/`reschedule`, que chamam
+  `Availability::check` dentro da transação, com a agenda do profissional travada. Nenhum código novo compara
+  intervalos, expediente, folga, pausa ou bloqueio.
+- Busca no código por comparação de intervalos (`starts_at <`, `overlaps`, `blockingSlot`) fora da
+  `Availability`: só os usos que já existiam (lista da agenda, cliente em dois lugares, aviso de bloqueio).
+- A única regra própria do encaixe é **quando** ele começa (`BusinessTime::nextStart`); se esse horário pode
+  ser ocupado, quem julga é a regra única.
+
+### 15.3 Testes
+
+`WalkInAgendaTest` (16) e `BookingConcurrencyTest::test_encaixe_e_site_disputando_o_mesmo_horario`:
+
+| # | Pedido | Teste | Resultado |
+|---|---|---|---|
+| 1 | Encaixe em horário livre | `test_1_encaixe_em_horario_livre_ocupa_a_agenda` (10:02 vira 10:05–10:35; a mesma regra passa a ver o horário ocupado) | PASSOU |
+| 2 | Impedir encaixe sobre outro agendamento | `test_2_encaixe_sobre_outro_agendamento_e_recusado` | PASSOU |
+| 3 | Impedir online sobre encaixe | `test_3_agendamento_online_sobre_encaixe_e_recusado` (10:15 e 10:30 recusados; 10:45 aceito) | PASSOU |
+| 4 | Impedir encaixe sobre online | `test_4_encaixe_sobre_agendamento_online_e_recusado` | PASSOU |
+| 5 | Duração do serviço | `test_5_respeita_a_duracao_do_servico` (60 min invade o próximo; 30 min cabe; atravessar o fechamento é recusado) | PASSOU |
+| 6 | Profissional | `test_6_respeita_o_profissional` (agenda de um não afeta a do outro; não executa o serviço; inativo) | PASSOU |
+| 7 | Expediente | `test_7_respeita_o_expediente` (antes de abrir; fora do expediente do profissional; dentro) | PASSOU |
+| 8 | Bloqueios (e pausas) | `test_8_respeita_bloqueios_e_pausas` (bloqueio do profissional, da barbearia inteira, pausa) | PASSOU |
+| 9 | Folgas | `test_9_respeita_folgas` | PASSOU |
+| 10 | Duplicidade em concorrência | `test_encaixe_e_site_disputando_o_mesmo_horario`: 6 processos PHP reais (3 encaixes e 3 reservas pelo site, horários sobrepostos, relógio parado em 10:02:20) → 1 vence, 5 "conflito", 1 agendamento, atendimento só se o encaixe venceu, verificador limpo | PASSOU |
+| — | Encaixe criado → cliente tenta o mesmo horário → servidor recusa | `test_encaixe_criado_cliente_tenta_reservar_o_mesmo_horario_e_o_servidor_recusa` (HTTP, requisição montada à mão) | PASSOU |
+| — | Online criado → recepção tenta encaixe → servidor recusa | `test_agendamento_online_criado_recepcao_tenta_encaixe_e_o_servidor_recusa` (HTTP; mensagem com o próximo horário livre, 10:45) | PASSOU |
+| — | Cancelar encaixe libera o horário | `test_cancelar_o_encaixe_libera_o_horario` | PASSOU |
+| — | Agenda não libera horário com cliente em atendimento | `test_agenda_nao_libera_o_horario_com_o_cliente_em_atendimento` (cancelar, falta, remarcar; serviço e HTTP) | PASSOU |
+| — | Trocar profissional move a agenda ou é recusado | `test_trocar_o_profissional_move_a_agenda_ou_e_recusado` | PASSOU |
+| — | Mesmo cliente em dois lugares | `test_o_mesmo_cliente_nao_fica_em_dois_lugares` | PASSOU |
+| — | Integridade | `test_integridade_encaixe_sempre_na_agenda` (R33 limpo; encaixe solto é acusado) | PASSOU |
+| — | Navegador | `caixa.spec.js` › "encaixe: a agenda recusa quando o profissional está ocupado" (celular e desktop; recusa do servidor, motivo na tela, o que foi digitado não se perde, axe) | PASSOU |
+
+**Ajustados (a regra mudou; nenhum desativado):** os testes antigos de encaixe abriam às 08:00, antes de a
+barbearia abrir; agora isso é recusado (correto), então o relógio desses testes passou para 09:02.
+`test_registra_o_profissional_que_efetivamente_atendeu` dizia que a reserva continuava com o profissional
+antigo; agora confere que a agenda acompanha e que o histórico registra a troca. `CheckoutConcurrencyTest`
+abre o encaixe com a barbearia funcionando.
+
+**Contraprova da concorrência:** executada desta vez (trava da agenda comentada temporariamente e depois
+restaurada). O teste **continua passando**, porque no SQLite a transação `IMMEDIATE` já serializa as
+escritas. A trava de linha é o que protege no MySQL; lá a contraprova faz sentido, mas está **NÃO EXECUTADO**
+(D-02).
+
+### 15.4 Validação
+
+| Verificação | Resultado |
+|---|---|
+| PHPUnit | **PASSOU** — 509 testes (eram 492), 0 falhas, 0 pulados |
+| Larastan nível 6 | **PASSOU** — 0 erros |
+| Pint | **PASSOU** |
+| Build (Vite) | **PASSOU** |
+| Playwright + axe | **PASSOU** — 87 passando (eram 85; +2 do encaixe, celular e desktop), 3 ignorados de propósito, em **duas execuções seguidas** num banco SQLite novo, como no CI. Antes delas, duas rodadas anteriores tiveram falhas de tempo esgotado sob carga (2 e 4 testes, de agenda, atendimento e o novo do encaixe), todas passando ao repetir; nenhum teste desativado nem com tempo aumentado. O banco local de desenvolvimento acumulou 129 categorias de execuções anteriores e deixava a tela de categorias lenta para o axe: por isso as rodadas usam banco novo |
+| CI | CI_RESULTADO |
+| Nenhuma regra de disponibilidade duplicada | **PASSOU** (§15.2) |
+
+### 15.5 Documentação
+
+[atendimento.md §2, §7 e §9](atendimento.md#2-relação-com-o-agendamento), [agendamento.md §2](agendamento.md#2-canais)
+(origens), [disponibilidade.md §1](disponibilidade.md#1-uma-regra-só), [regras-dados.md](regras-dados.md)
+(regra 64), [modelo-dados.md](modelo-dados.md) (`appointments.source`, `attendances.appointment_id`),
+[decisoes-pendentes.md](decisoes-pendentes.md) (D-29 a D-33), [roadmap.md](roadmap.md), [README.md](README.md).
+
+### 15.6 Observação (não bloqueia)
+
+O horário ocupado é o do que foi **reservado** (no encaixe, o serviço escolhido na tela). Se durante o
+atendimento a equipe incluir mais um serviço, a agenda **não** é esticada. Isso já valia para qualquer
+agendamento desde a Fase 5. Fazer um serviço a mais estender a ocupação (e ser recusado quando o horário
+seguinte estiver tomado) é uma decisão de negócio: **PRECISA DE DECISÃO (D-33)**, não implementado.
 
 ---
 

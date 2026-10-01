@@ -20,6 +20,7 @@ final class BookingRuleViolation extends RuntimeException
         'customer_incomplete' => 'Complete seu cadastro (CPF) antes de agendar.',
         'contact_required' => 'Informe o cliente do agendamento.',
         'not_started' => 'Só é possível marcar falta depois do horário do agendamento.',
+        'in_attendance' => 'O cliente já está em atendimento. Altere ou cancele pelo atendimento.',
     ];
 
     public function __construct(public readonly string $reason)

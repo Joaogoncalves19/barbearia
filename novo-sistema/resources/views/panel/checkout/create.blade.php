@@ -1,9 +1,9 @@
-<x-layouts.staff title="Novo atendimento (encaixe)">
+<x-layouts.staff title="Encaixe">
     <header class="page-head">
         <div class="stack stack-sm">
             <a class="link-arrow text-sm" href="{{ route('panel.attendances.index') }}">Voltar para atendimentos</a>
-            <h1 class="page-head__title">Encaixe (sem agendamento)</h1>
-            <p class="text-muted">Para cliente que chegou sem hora marcada. O preço é o do catálogo agora. O encaixe não reserva horário na agenda: se quiser reservar, crie um agendamento.</p>
+            <h1 class="page-head__title">Encaixe</h1>
+            <p class="text-muted">Para cliente que chegou sem hora marcada. O encaixe entra na agenda do profissional a partir de agora, pela duração do serviço, com o preço do catálogo. Se o profissional não estiver livre (outro agendamento, pausa, bloqueio, folga ou fora do expediente), o encaixe é recusado.</p>
         </div>
     </header>
 

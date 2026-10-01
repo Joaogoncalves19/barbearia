@@ -89,6 +89,9 @@ class IntegrityChecker
             'R32_estoque_origem' => ['Venda e consumo apontam o atendimento; estorno aponta o movimento', fn () => DB::table('stock_movements')->where(fn ($q) => $q->where(fn ($a) => $a->whereIn('kind', ['sale', 'consumption'])->whereNull('attendance_id'))
                 ->orWhere(fn ($b) => $b->where('kind', 'reversal')->whereNull('reverses_movement_id'))
                 ->orWhere(fn ($c) => $c->where('kind', '<>', 'reversal')->whereNotNull('reverses_movement_id')))->count()],
+            'R33_encaixe_na_agenda' => ['Encaixe e agendamento de origem encaixe (ocupa a agenda), um para o outro', fn () => DB::table('attendances')->where('source', 'walk_in')
+                ->where(fn ($q) => $q->whereNull('appointment_id')->orWhereNotExists(fn ($e) => $e->from('appointments')->whereColumn('appointments.id', 'attendances.appointment_id')->where('appointments.source', 'walk_in')))->count()
+                + DB::table('appointments')->where('source', 'walk_in')->whereNotExists(fn ($e) => $e->from('attendances')->whereColumn('attendances.appointment_id', 'appointments.id')->where('attendances.source', 'walk_in'))->count()],
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Scheduling\Support;
 
+use App\Modules\Shared\Support\Duration;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
@@ -30,6 +31,19 @@ final class BusinessTime
     public static function now(): CarbonImmutable
     {
         return CarbonImmutable::now('UTC');
+    }
+
+    /**
+     * Primeiro inicio valido de horario DEPOIS de agora (multiplo de
+     * Duration::STEP_MINUTES). E o inicio do encaixe: o cliente chegou, a
+     * agenda passa a ficar ocupada a partir do proximo ponto da grade.
+     */
+    public static function nextStart(): CarbonImmutable
+    {
+        $agora = self::now()->setSecond(0)->setMicrosecond(0);
+        $passo = Duration::STEP_MINUTES;
+
+        return $agora->addMinutes($passo - ((int) $agora->format('i') % $passo));
     }
 
     /** Hoje no calendario da barbearia (AAAA-MM-DD). */

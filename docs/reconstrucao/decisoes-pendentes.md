@@ -33,11 +33,16 @@
 > **Fase 6 (decisões do dono):** **D-25** um caixa aberto por vez na barbearia. **D-26** encaixe (atendimento
 > sem agendamento) permitido, com cliente cadastrado ou só nome e telefone. **D-27** produtos no atendimento:
 > venda (cobrada) e consumo (material, não cobrado), ambos baixando o estoque. **D-28** não existe "pagar
-> depois": só se conclui pago. **Pendentes (não bloqueiam; implementadas na forma mais conservadora):**
-> D-29 desconto manual pela recepção (hoje só proprietário e gerente) e limite de desconto por papel (hoje sem
-> limite além do valor dos serviços, com motivo obrigatório); D-30 estorno pelo gerente (hoje proprietário e
-> financeiro); D-31 repasse da gorjeta ao profissional (registrada por pagamento; repasse na Fase 7). Ver
-> [relatorio-fase-6.md](relatorio-fase-6.md#4-decisões).
+> depois": só se conclui pago. **Decididas na aprovação da Fase 6:** **D-29** desconto só por proprietário e
+> gerente, com motivo obrigatório e auditado; a recepção **não** dá desconto, sem permissão genérica que
+> contorne isso. **D-30** estorno só por proprietário e financeiro (gerente, recepção e profissional **não**);
+> estorno é movimentação nova, o pagamento original não é apagado nem editado. **D-31** repasse da gorjeta ao
+> profissional na Fase 7, junto de comissão e repasses, com os conceitos **separados** (gorjeta = valor que o
+> cliente destina ao profissional; comissão = remuneração por regra de comissão). **D-32** o encaixe ocupa a
+> agenda como um agendamento normal (origem `walk_in`, mesma regra de disponibilidade e conflito).
+> **Pendente (não bloqueia):** **D-33** um serviço incluído durante o atendimento deve estender a ocupação da
+> agenda? Hoje não estende (vale o que foi reservado). Ver
+> [relatorio-fase-6.md](relatorio-fase-6.md#4-decisões) e [§15](relatorio-fase-6.md#15-correção-antes-da-fase-7-o-encaixe-ocupa-a-agenda).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

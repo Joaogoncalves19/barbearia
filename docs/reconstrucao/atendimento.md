@@ -37,14 +37,42 @@ As telas (`Panel\Checkout\AttendanceController`) só leem a intenção, validam 
 - **Um atendimento em vigor por agendamento:** a sentinela `attendances.active_appointment_id` (única) vale o
   `appointment_id` enquanto o atendimento não é cancelado. Abrir de novo (duplo clique) devolve o mesmo
   atendimento. Cancelado, pode-se abrir outro.
-- **Encaixe (sem agendamento):** permitido (decisão do dono). Cliente cadastrado ou só nome e telefone, como a
-  agenda da Fase 5 já aceita no balcão. O encaixe **não reserva horário** na agenda: para reservar, crie um
-  agendamento (risco registrado no relatório).
+- **Encaixe (cliente sem hora marcada):** permitido (decisão do dono, D-26). Cliente cadastrado ou só nome e
+  telefone. **O encaixe ocupa a agenda** (correção da Fase 6, pedida pelo dono): ele é um **agendamento** com
+  origem `walk_in` (`AppointmentSource::WalkIn`, "Encaixe"), criado pelo **mesmo** `BookingService::book` da
+  agenda, canal equipe. Não existe uma segunda regra de conflito:
+
+  ```text
+  Agendamento
+  ├── origem: online   (site)
+  ├── origem: staff    (equipe, pela agenda)
+  └── origem: walk_in  (encaixe, pela tela de atendimento)
+  ```
+
+  - **Quando:** começa no próximo ponto da grade de 5 min depois de agora (`BusinessTime::nextStart`: 10:02
+    vira 10:05) e dura o tempo do serviço escolhido.
+  - **Regras:** as da [disponibilidade](disponibilidade.md) (`Availability::check`, dentro da transação, com a
+    agenda do profissional travada): serviço e profissional ativos e compatíveis, funcionamento da barbearia ∩
+    expediente do profissional, folga, pausa, bloqueio (do profissional ou da barbearia), outro agendamento
+    que ocupa horário, e o mesmo cliente em dois lugares. Recusado: nada é gravado e a tela diz o motivo e o
+    próximo horário livre do profissional hoje (para marcar pela agenda).
+  - **O atendimento nasce do agendamento de encaixe na mesma transação** (`source = walk_in`,
+    `appointment_id` preenchido). Se a agenda recusar, não há atendimento; se o atendimento falhar, não fica
+    agendamento.
+  - **Concorrência:** encaixe e reserva pelo site no mesmo horário disputam a mesma trava
+    (`professionals.schedule_version`); só um vence. Testado com processos reais.
 - **Conclusão:** conclui também o agendamento de origem (`BookingService::complete`, na mesma transação).
-- **Cancelamento do atendimento:** o agendamento não muda; a equipe decide na agenda se foi falta ou
-  cancelamento.
-- **Profissional:** o atendimento guarda quem **efetivamente** atendeu. Pode ser trocado enquanto aberto; o
-  agendamento continua mostrando quem estava reservado.
+- **Cancelamento do atendimento:** vindo de agendamento, o agendamento não muda (a equipe decide na agenda se
+  foi falta ou cancelamento). **Encaixe:** o agendamento de encaixe existia só por causa do atendimento e é
+  cancelado junto ("Encaixe cancelado: motivo"), liberando o horário.
+- **Com o cliente em atendimento, a agenda não se mexe por fora:** enquanto houver atendimento em vigor, o
+  agendamento não pode ser cancelado, remarcado nem marcado como falta pela agenda ou pelo site
+  (`BookingRuleViolation('in_attendance')`); senão o horário ficaria livre com o cliente na cadeira.
+- **Profissional:** o atendimento guarda quem **efetivamente** atendeu. Pode ser trocado enquanto aberto, e
+  **a agenda acompanha**: o agendamento de origem é remarcado para o novo profissional pelo
+  `BookingService::reschedule` (mesma regra), no horário combinado ou, se já passou, a partir do próximo ponto
+  da grade, com a duração fotografada. Novo profissional ocupado: a troca é recusada e nada muda. O histórico
+  do agendamento registra de quem para quem.
 
 ## 3. Snapshot: histórico × referência
 
@@ -128,6 +156,9 @@ O atendimento continua mostrando o valor do dia; o histórico mostra as correç�
 | Conclusão | atendimento → caixa aberto → produtos (id crescente) |
 | Estorno | atendimento → caixa aberto |
 | Devolução ao estoque | atendimento → produto |
+| Encaixe | agenda do profissional (`schedule_version`) → cria agendamento e atendimento |
+| Troca de profissional | atendimento → agendas envolvidas (id crescente) |
+| Cancelar encaixe | atendimento → agenda do profissional |
 
 Trava = primeira escrita da transação na linha (`version`/`stock_version` + 1), o mesmo padrão da agenda
 ([agendamento.md §5](agendamento.md#5-concorrência-dupla-reserva)). No SQLite, a transação `IMMEDIATE` já
@@ -136,6 +167,10 @@ serializa as escritas; no MySQL, é bloqueio de linha. Ordem fixa = sem impasse.
 **Teste de concorrência real** (`CheckoutConcurrencyTest`, processos PHP independentes num SQLite em arquivo):
 4 pessoas concluindo o mesmo atendimento ao mesmo tempo, cada uma com a sua chave → **1** conclusão,
 **1** pagamento, **1** entrada no caixa, **1** baixa; as outras 3 recebem "não pode mais ser alterado".
+
+**Encaixe × site** (`BookingConcurrencyTest::test_encaixe_e_site_disputando_o_mesmo_horario`): 3 encaixes e
+3 reservas pelo site, em horários que se sobrepõem, no mesmo profissional e ao mesmo tempo → **1** vence,
+5 recebem conflito; sem atendimento se o encaixe perdeu; verificador de integridade limpo.
 
 ## 8. Idempotência
 
@@ -156,7 +191,7 @@ Testes: `test_duplo_clique_em_concluir_nao_duplica_nada`, `test_repetir_o_envio_
 | Tela | URL | Permissão |
 |---|---|---|
 | Atendimentos do dia (em andamento; concluídos e cancelados) | `/painel/atendimentos?data=` | `attendances.view` (todos) ou `view_own` (só os próprios) |
-| Encaixe | `/painel/atendimentos/novo` | `attendances.manage` ou `manage_own` (só como ele mesmo) |
+| Encaixe (ocupa a agenda a partir de agora; recusado se o profissional não estiver livre) | `/painel/atendimentos/novo` | `attendances.manage` ou `manage_own` (só como ele mesmo) |
 | Abrir do agendamento | botão no detalhe do agendamento | `openFor` no profissional do agendamento |
 | Atendimento (itens, material, valores, pagamentos, estoque, histórico) | `/painel/atendimentos/{código}` | `view` da policy (alheio = 404) |
 | Iniciar, itens, material, profissional, observações | ações no atendimento | `update` da policy |

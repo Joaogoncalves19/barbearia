@@ -4,7 +4,6 @@ namespace Tests\Feature\Checkout;
 
 use App\Modules\Catalog\Enums\StockMovementKind;
 use App\Modules\Catalog\Exceptions\StockRuleViolation;
-use App\Modules\Catalog\Models\Service;
 use App\Modules\Catalog\Models\StockMovement;
 use App\Modules\Checkout\Enums\AttendanceSource;
 use App\Modules\Checkout\Enums\AttendanceStatus;
@@ -17,8 +16,10 @@ use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Exceptions\CashRuleViolation;
 use App\Modules\Finance\Models\CashMovement;
 use App\Modules\Finance\Models\Payment;
+use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Enums\PriceSource;
+use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Support\BookingPolicy;
 use App\Modules\Scheduling\Support\Channel;
 use App\Modules\Shared\Exceptions\DomainRuleViolation;
@@ -109,29 +110,27 @@ class AttendanceServiceTest extends TestCase
 
     public function test_encaixe_sem_agendamento_com_nome_e_telefone(): void
     {
+        $this->clockAt('09:02');
         $at = $this->attendances()->openWalkIn($this->corte, $this->joao, null, 'Visitante Fictício', '11 90000-0000', $this->recepcao);
 
         $this->assertSame(AttendanceSource::WalkIn, $at->source);
-        $this->assertNull($at->appointment_id);
-        $this->assertSame([5000, PriceSource::CatalogAtAttendance], [$at->items()->sole()->unit_price_cents, $at->items()->sole()->price_source]);
+        $ag = $at->appointment;
+        $this->assertNotNull($ag, 'o encaixe é um agendamento');
+        $this->assertSame([AppointmentSource::WalkIn, AppointmentStatus::Confirmed, 'Visitante Fictício', '11 90000-0000'], [$ag->source, $ag->status, $ag->customer_name, $ag->customer_phone]);
+        $this->assertSame([5000, PriceSource::CatalogAtBooking], [$at->items()->sole()->unit_price_cents, $at->items()->sole()->price_source]);
     }
 
-    public function test_encaixe_exige_contato_e_servico_que_o_profissional_faz(): void
+    public function test_encaixe_exige_contato(): void
     {
-        $outro = Service::factory()->create();
+        $this->clockAt('09:02');
 
-        foreach ([
-            fn () => $this->attendances()->openWalkIn($this->corte, $this->joao, null, ' ', null, $this->recepcao),
-            fn () => $this->attendances()->openWalkIn($outro, $this->joao, null, 'Visitante', null, $this->recepcao),
-        ] as $n => $tentativa) {
-            try {
-                $tentativa();
-                $this->fail("tentativa {$n} deveria falhar");
-            } catch (CheckoutRuleViolation $e) {
-                $this->assertContains($e->reason, ['contact_required', 'service_unavailable']);
-            }
+        try {
+            $this->attendances()->openWalkIn($this->corte, $this->joao, null, ' ', null, $this->recepcao);
+            $this->fail('deveria exigir o cliente');
+        } catch (CheckoutRuleViolation $e) {
+            $this->assertSame('contact_required', $e->reason);
         }
-        $this->assertSame(0, Attendance::query()->count());
+        $this->assertSame([0, 0], [Attendance::query()->count(), Appointment::query()->count()]);
     }
 
     // --- Estados ---------------------------------------------------------------------------------
@@ -245,6 +244,7 @@ class AttendanceServiceTest extends TestCase
     public function test_registra_o_profissional_que_efetivamente_atendeu(): void
     {
         $pedro = Professional::factory()->create(['display_name' => 'Pedro']);
+        $pedro->services()->attach($this->corte->id);
         $this->openCash();
         $at = $this->startedAttendance();
 
@@ -252,7 +252,8 @@ class AttendanceServiceTest extends TestCase
         $at = $this->attendances()->complete($at, $this->pay(5000), $this->key(), $this->recepcao);
 
         $this->assertSame([$pedro->id, 'Pedro'], [$at->professional_id, $at->professional_name]);
-        $this->assertSame('João', $at->appointment?->professional_name, 'a reserva continua mostrando quem estava agendado');
+        $this->assertSame([$pedro->id, 'Pedro'], [$at->appointment?->professional_id, $at->appointment?->professional_name], 'a agenda acompanha quem atende');
+        $this->assertSame(1, $at->appointment?->events()->where('type', 'rescheduled')->count(), 'a troca fica no histórico do agendamento');
     }
 
     public function test_pagamentos_precisam_fechar_exatamente_com_o_total(): void
@@ -459,7 +460,7 @@ class AttendanceServiceTest extends TestCase
     public function test_item_de_outro_atendimento_nao_pode_ser_retirado(): void
     {
         $a = $this->startedAttendance();
-        $b = $this->attendances()->openWalkIn($this->corte, $this->joao, null, 'Outro Visitante', null, $this->recepcao);
+        $b = $this->walkIn(name: 'Outro Visitante');
 
         $this->expectException(CheckoutRuleViolation::class);
         $this->attendances()->removeItem($a, $b->items()->sole(), $this->recepcao);

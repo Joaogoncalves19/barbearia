@@ -114,6 +114,7 @@ class CheckoutPanelTest extends TestCase
 
     public function test_encaixe_pelo_painel(): void
     {
+        $this->clockAt('09:02');
         $this->as($this->recepcao)->get(route('panel.attendances.create'))->assertOk()->assertSee('Encaixe');
         $this->as($this->recepcao)->post(route('panel.attendances.store'), [
             'service_id' => $this->corte->id, 'professional_id' => $this->joao->id, 'contact_name' => 'Visitante Fictício',
@@ -156,7 +157,7 @@ class CheckoutPanelTest extends TestCase
     {
         $this->openCash();
         $meu = $this->startedAttendance();
-        $daMaria = $this->attendances()->openWalkIn($this->corte, $this->maria, null, 'Cliente da Maria', null, $this->recepcao);
+        $daMaria = $this->walkIn($this->maria, name: 'Cliente da Maria');
 
         $this->as($this->barbeiroJoao)->get(route('panel.attendances.index'))->assertOk()->assertSee($meu->code)->assertDontSee($daMaria->code);
         $this->as($this->barbeiroJoao)->get(route('panel.attendances.show', $daMaria))->assertNotFound();
@@ -224,7 +225,7 @@ class CheckoutPanelTest extends TestCase
     {
         $this->openCash();
         $a = $this->startedAttendance();
-        $b = $this->attendances()->openWalkIn($this->corte, $this->maria, null, 'Outro Cliente', null, $this->recepcao);
+        $b = $this->walkIn($this->maria, name: 'Outro Cliente');
         $itemDoB = $b->items()->sole();
 
         $this->as($this->recepcao)->delete(route('panel.attendances.items.destroy', [$a, $itemDoB]))->assertNotFound();

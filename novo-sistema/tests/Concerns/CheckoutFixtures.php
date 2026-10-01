@@ -9,6 +9,7 @@ use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Services\AttendanceCorrections;
 use App\Modules\Checkout\Services\AttendanceService;
 use App\Modules\Checkout\Services\PaymentLine;
+use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Models\CashSession;
 use App\Modules\Finance\Services\CashRegister;
@@ -16,7 +17,9 @@ use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Services\BookingRequest;
+use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Scheduling\Support\Channel;
+use App\Modules\Team\Models\Professional;
 use Illuminate\Support\Str;
 
 /**
@@ -87,6 +90,25 @@ trait CheckoutFixtures
             source: AppointmentSource::Staff,
             customer: $this->cliente,
         ));
+    }
+
+    /**
+     * Relogio numa hora local de hoje (segunda), 20 s depois do minuto: o
+     * encaixe ocupa a agenda a partir do proximo ponto da grade.
+     */
+    protected function clockAt(string $time): void
+    {
+        $this->travelTo($this->at($this->segunda, $time)->addSeconds(20));
+    }
+
+    /** Encaixe (com a barbearia aberta: relogio nas 09:02 se ainda for antes). */
+    protected function walkIn(?Professional $pro = null, ?Service $service = null, string $name = 'Visitante Fictício', ?Customer $customer = null): Attendance
+    {
+        if (BusinessTime::now()->lt($this->at($this->segunda, '09:00'))) {
+            $this->clockAt('09:02');
+        }
+
+        return $this->attendances()->openWalkIn($service ?? $this->corte, $pro ?? $this->joao, $customer, $customer === null ? $name : null, null, $this->recepcao);
     }
 
     /** Atendimento aberto a partir do agendamento de hoje e ja iniciado. */

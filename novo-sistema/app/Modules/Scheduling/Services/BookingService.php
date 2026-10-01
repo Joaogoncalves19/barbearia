@@ -5,6 +5,7 @@ namespace App\Modules\Scheduling\Services;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
+use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Enums\AppointmentStatus;
 use App\Modules\Scheduling\Enums\CancelledBy;
 use App\Modules\Scheduling\Enums\ItemType;
@@ -132,8 +133,14 @@ final class BookingService
 
             app(AppointmentPricing::class)->refresh($a);
 
-            $this->event($a, 'created', 'Agendamento criado'.($pendente ? ' (aguardando confirmação da barbearia).' : '.'), $r->actor, [
+            $descricao = match (true) {
+                $r->source === AppointmentSource::WalkIn => 'Encaixe: cliente chegou sem hora marcada.',
+                $pendente => 'Agendamento criado (aguardando confirmação da barbearia).',
+                default => 'Agendamento criado.',
+            };
+            $this->event($a, 'created', $descricao, $r->actor, [
                 'canal' => $r->channel->value,
+                'origem' => $r->source->value,
                 'inicio' => BusinessTime::formatLocal($janela->start),
                 'servico' => $servico->name,
                 'preco_cents' => $servico->price_cents,
@@ -147,11 +154,15 @@ final class BookingService
      * Remarca (novo horario e/ou outro profissional). Mesmo servico, MESMO
      * preco e MESMA duracao fotografados; so muda quando e com quem.
      *
+     * Com o cliente em atendimento a agenda nao se mexe por fora: so o
+     * proprio atendimento (troca de profissional) remarca, passando
+     * $byAttendance = true.
+     *
      * @throws SlotUnavailable|BookingRuleViolation
      */
-    public function reschedule(Appointment $appointment, CarbonImmutable $newStart, ?Professional $newProfessional, Channel $channel, User|Customer|null $actor): Appointment
+    public function reschedule(Appointment $appointment, CarbonImmutable $newStart, ?Professional $newProfessional, Channel $channel, User|Customer|null $actor, bool $byAttendance = false): Appointment
     {
-        return DB::transaction(function () use ($appointment, $newStart, $newProfessional, $channel, $actor): Appointment {
+        return DB::transaction(function () use ($appointment, $newStart, $newProfessional, $channel, $actor, $byAttendance): Appointment {
             $a = Appointment::query()->with('items')->findOrFail($appointment->id);
             $destinoId = $newProfessional !== null ? $newProfessional->id : $a->professional_id;
 
@@ -165,6 +176,9 @@ final class BookingService
 
             if (! $a->status->isOpen()) {
                 throw new BookingRuleViolation('invalid_status');
+            }
+            if (! $byAttendance) {
+                $this->assertNotInAttendance($a);
             }
 
             $politica = BookingPolicy::current();
@@ -218,7 +232,8 @@ final class BookingService
 
     /**
      * Cancela (o registro fica; so muda o status). Cliente: so ate o prazo
-     * da BookingPolicy.
+     * da BookingPolicy. Com atendimento em vigor, cancela-se o atendimento
+     * primeiro (o horario continua ocupado enquanto o cliente esta la).
      *
      * @throws BookingRuleViolation
      */
@@ -233,6 +248,7 @@ final class BookingService
             if (! $a->status->canTransitionTo(AppointmentStatus::Cancelled)) {
                 throw new BookingRuleViolation('invalid_status');
             }
+            $this->assertNotInAttendance($a);
             if ($channel === Channel::Customer
                 && BusinessTime::now()->addMinutes(BookingPolicy::current()->int('customer_cancel_notice_minutes'))->gt(CarbonImmutable::instance($a->starts_at))) {
                 throw new BookingRuleViolation('cancel_deadline');
@@ -267,6 +283,7 @@ final class BookingService
             if (CarbonImmutable::instance($a->starts_at)->gt(BusinessTime::now())) {
                 throw new BookingRuleViolation('not_started');
             }
+            $this->assertNotInAttendance($a);
         });
     }
 
@@ -325,6 +342,18 @@ final class BookingService
         }
         if ($r->customer !== null && $r->channel === Channel::Customer && ($r->customer->needsProfileCompletion() || ! $r->customer->canSignIn())) {
             throw new BookingRuleViolation('customer_incomplete');
+        }
+    }
+
+    /**
+     * O cliente chegou (atendimento em vigor): o agendamento nao e cancelado,
+     * remarcado nem marcado como falta por fora do atendimento, senao o
+     * horario ficaria livre na agenda com o cliente na cadeira.
+     */
+    private function assertNotInAttendance(Appointment $a): void
+    {
+        if ($a->attendance()->exists()) {
+            throw new BookingRuleViolation('in_attendance');
         }
     }
 

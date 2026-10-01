@@ -259,3 +259,26 @@ test('estoque: cadastrar produto, entrada, saída, ajuste e estorno', async ({ p
 
     expect(erros, 'erros de console/CSP').toEqual([]);
 });
+
+// Correcao da Fase 6: o encaixe ocupa a agenda. Com o profissional ocupado
+// agora (dado de teste do e2e-accounts), o SERVIDOR recusa o encaixe e a tela
+// mostra o motivo sem perder o que foi digitado.
+test('encaixe: a agenda recusa quando o profissional está ocupado', async ({ page }, info) => {
+    const erros = observarErros(page);
+    const s = info.project.name;
+    await entrarNoPainel(page, `e2e-recepcao-${s}`);
+
+    await page.goto('/painel/atendimentos/novo');
+    await expect(page.getByRole('heading', { name: 'Encaixe' })).toBeVisible();
+    await page.getByLabel('Serviço').selectOption({ label: 'Corte E2E — R$ 50,00' });
+    await page.getByLabel('Profissional').selectOption({ label: `Ocupado E2E ${s}` });
+    await page.getByLabel('Nome do cliente').fill(`Visitante E2E ${s}`);
+    await page.getByRole('button', { name: 'Abrir atendimento' }).click();
+
+    await expect(page).toHaveURL(/\/painel\/atendimentos\/novo/);
+    await expect(page.getByText(/Encaixe não permitido/)).toBeVisible();
+    await expect(page.getByLabel('Nome do cliente')).toHaveValue(`Visitante E2E ${s}`);
+    await verificarTela(page, info, 'Encaixe recusado');
+
+    expect(erros, 'erros de console/CSP').toEqual([]);
+});

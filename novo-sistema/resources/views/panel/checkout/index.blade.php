@@ -13,7 +13,7 @@
             <p class="text-muted">{{ \Carbon\CarbonImmutable::parse($date)->locale('pt_BR')->translatedFormat('l, d \d\e F') }}@if ($date === $hoje) · hoje @endif</p>
         </div>
         @if ($canOpen)
-            <x-ui.button :href="route('panel.attendances.create')" icon="plus">Encaixe (sem agendamento)</x-ui.button>
+            <x-ui.button :href="route('panel.attendances.create')" icon="plus">Encaixe</x-ui.button>
         @endif
     </header>
 

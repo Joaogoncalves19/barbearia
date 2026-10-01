@@ -6,6 +6,9 @@ enum AppointmentSource: string
 {
     case Online = 'online';
     case Staff = 'staff';
+
+    /** Cliente chegou sem hora marcada: ocupa a agenda a partir de agora (atendimento.md §2). */
+    case WalkIn = 'walk_in';
     case Chatbot = 'chatbot';
     case Legacy = 'legacy';
 
@@ -14,6 +17,7 @@ enum AppointmentSource: string
         return match ($this) {
             self::Online => 'Site',
             self::Staff => 'Equipe',
+            self::WalkIn => 'Encaixe',
             self::Chatbot => 'Assistente',
             self::Legacy => 'Sistema antigo',
         };

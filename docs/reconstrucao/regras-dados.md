@@ -77,6 +77,7 @@ MarketingConsent), `tests/Feature/LegacyImport/*` (ImportRun, ImportScenarios) e
 | 61 | Pagamento e razão do caixa são só inclusão; estorno aponta o original e nunca passa do pago; todo pagamento novo gera uma movimentação | payments, cash_movements | `AppendOnly` + Models + `AttendanceCorrections` + Verificadores R30/R31 | `CorrectionsTest` |
 | 62 | Um caixa aberto por vez; fechado não muda; diferença registrada e justificada; sangria nunca maior que o dinheiro | cash_sessions | `open_marker` único + `CashRegister` + Model + Verificador R29 | `CashRegisterTest`, `CheckoutConcurrencyTest::test_fechamento_simultaneo_do_mesmo_caixa` |
 | 63 | Estoque = soma das movimentações; nunca negativo por lançamento novo; venda/consumo apontam o atendimento; estorno uma vez | stock_movements | `StockLedger` + Model + índice único `reverses_movement_id` + Verificador R32 | `StockLedgerTest`, `CheckoutConcurrencyTest::test_varios_tirando_as_ultimas_unidades_do_estoque` |
+| 64 | Encaixe ocupa a agenda: é agendamento de origem `walk_in` criado pelo mesmo `BookingService::book` (mesma disponibilidade, mesma trava); atendimento de encaixe sempre aponta esse agendamento; com atendimento em vigor a agenda não cancela, remarca nem marca falta; trocar o profissional remarca a agenda | appointments, attendances | `AttendanceService::openWalkIn/changeProfessional/cancel` + `BookingService` (`in_attendance`) + Verificador R33 | `WalkInAgendaTest`, `BookingConcurrencyTest::test_encaixe_e_site_disputando_o_mesmo_horario` |
 
 ## Regras do importador (resumo)
 

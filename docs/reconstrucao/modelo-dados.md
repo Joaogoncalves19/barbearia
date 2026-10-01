@@ -223,7 +223,7 @@ Duração do combo = soma das durações dos serviços (regra do sistema atual).
 `professional_id` (FK **restrict**, N), `professional_name` (snapshot), `customer_name`,
 `customer_email` (N), `customer_phone` (N) (snapshot do contato **no momento** do agendamento),
 `starts_at`, `ends_at` (UTC, `ends_at > starts_at`), `status` (enum abaixo), `source`
-(`online`|`staff`|`chatbot`|`legacy`), `notes` (N), `subtotal_cents`/`discount_cents`/`total_cents` (N:
+(`online`|`staff`|`walk_in`|`chatbot`|`legacy`; `walk_in` = encaixe, ocupa a agenda como qualquer outro), `notes` (N), `subtotal_cents`/`discount_cents`/`total_cents` (N:
 nulos quando algum preço é desconhecido), `cancelled_at`, `cancelled_by` (`customer`|`staff`|`system`),
 `cancellation_reason` (N), `confirmation_requested_at` (N), `confirmed_at` (N), `completed_at` (N),
 `payment_gateway` (N), `payment_gateway_reference` (N), `created_at`, `updated_at`. I(`professional_id`,`starts_at`),
@@ -253,7 +253,7 @@ catálogo sumir), `name` (snapshot), `quantity`, `unit_price_cents` (N), `total_
 ### 2.5a Checkout (Fase 6)
 
 **attendances** — `code` (U, ex.: `AT-9MX4RB`), `source` (`appointment`|`walk_in`|`legacy`), `appointment_id` (FK
-restrict, N), `active_appointment_id` (N, U: sentinela "um atendimento em vigor por agendamento"),
+restrict, N; preenchido também no encaixe, que aponta o agendamento de origem `walk_in`; verificador R33), `active_appointment_id` (N, U: sentinela "um atendimento em vigor por agendamento"),
 `customer_id` (FK null on delete, N), `customer_name`, `customer_phone` (N) (snapshots), `professional_id` (FK
 restrict; N só no legado), `professional_name` (snapshot), `status` (`open`|`in_progress`|`completed`|`cancelled`),
 `opened_at`, `started_at`/`completed_at`/`cancelled_at` (N), `cancellation_reason` (N), `subtotal_cents`/

@@ -12,7 +12,7 @@ enum AttendanceSource: string
     {
         return match ($this) {
             self::Appointment => 'Agendamento',
-            self::WalkIn => 'Encaixe (sem agendamento)',
+            self::WalkIn => 'Encaixe',
             self::Legacy => 'Sistema antigo',
         };
     }

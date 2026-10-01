@@ -97,6 +97,38 @@ class E2eAccounts extends Command
         $this->membro("e2e-operacao-{$s}", 'Gerente Operação E2E', StaffRole::Manager, $senha);
         $this->produto("Pomada E2E {$s}", $gerente);
         $this->chegadaDeHoje($s, $ana, $s === 'celular' ? $a : $b, $corte);
+
+        // Correcao da Fase 6 (encaixe ocupa a agenda): um profissional com a
+        // agenda ocupada AGORA, para o encaixe ser recusado pelo servidor a
+        // qualquer hora em que o teste rode.
+        $ocupado = $this->barbeiro("e2e-ocupado-{$s}", "Ocupado E2E {$s}", $senha);
+        $ocupado->services()->syncWithoutDetaching([$corte->id]);
+        $this->ocupadoAgora($s, $outra, $ocupado);
+    }
+
+    /**
+     * Agendamento confirmado cobrindo o instante atual (de 10 min atras a
+     * 2 h a frente). Gravado direto, como dado de teste: o objetivo e a
+     * agenda estar ocupada, nao testar a reserva.
+     */
+    private function ocupadoAgora(string $s, Customer $cliente, Professional $pro): void
+    {
+        Appointment::query()->where('professional_id', $pro->id)->where('customer_name', "Ocupando E2E {$s}")
+            ->whereIn('status', [AppointmentStatus::Confirmed->value, AppointmentStatus::Pending->value])->get()
+            ->each(fn (Appointment $velho) => $velho->forceFill(['status' => AppointmentStatus::Cancelled, 'cancelled_at' => now(), 'cancellation_reason' => 'Sobra de teste E2E'])->save());
+
+        $inicio = BusinessTime::now()->setSecond(0)->subMinutes(10);
+        Appointment::query()->create([
+            'code' => 'AG-E2E-OC-'.mb_substr($s, 0, 3).'-'.now()->format('ymdHis'),
+            'customer_id' => $cliente->id,
+            'customer_name' => "Ocupando E2E {$s}",
+            'professional_id' => $pro->id,
+            'professional_name' => $pro->display_name,
+            'starts_at' => $inicio,
+            'ends_at' => $inicio->addMinutes(130),
+            'status' => AppointmentStatus::Confirmed,
+            'source' => AppointmentSource::Staff,
+        ]);
     }
 
     /** Produto de teste com ao menos 20 no estoque (entrada pelo razao, nunca editando saldo). */
