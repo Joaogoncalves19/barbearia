@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 6 concluídas e aprovadas. Correção pedida na aprovação da Fase 6 (encaixe ocupa a
-> agenda) concluída; **início da Fase 7 aguardando aprovação** ([relatorio-fase-6.md](relatorio-fase-6.md)).
+> **Status:** Fases 0 a 6 concluídas e aprovadas ([relatorio-fase-6.md](relatorio-fase-6.md)). **Fase 7 em
+> andamento** (comissão, gorjeta e repasses).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 

@@ -61,6 +61,9 @@ As telas (`Panel\Checkout\AttendanceController`) só leem a intenção, validam 
     agendamento.
   - **Concorrência:** encaixe e reserva pelo site no mesmo horário disputam a mesma trava
     (`professionals.schedule_version`); só um vence. Testado com processos reais.
+- **Serviço a mais durante o atendimento (D-33):** entra e o valor é recalculado, mas o horário ocupado na
+  agenda **não** é estendido; vale a duração reservada no agendamento ou encaixe. Uma extensão futura teria de
+  passar pela regra única da agenda e ficar no histórico.
 - **Conclusão:** conclui também o agendamento de origem (`BookingService::complete`, na mesma transação).
 - **Cancelamento do atendimento:** vindo de agendamento, o agendamento não muda (a equipe decide na agenda se
   foi falta ou cancelamento). **Encaixe:** o agendamento de encaixe existia só por causa do atendimento e é

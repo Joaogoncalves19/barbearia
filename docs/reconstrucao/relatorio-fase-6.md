@@ -1,8 +1,7 @@
 # Relatório da Fase 6 — Atendimento, caixa, produtos e estoque
 
-> **Status: aprovada pelo dono em 2026-09-30, com D-29, D-30 e D-31 decididos e uma correção exigida antes da
-> Fase 7 (encaixe ocupa a agenda, §15). Correção concluída; aguardando aprovação explícita do dono para
-> iniciar a Fase 7.**
+> **Status: encerrada e aprovada pelo dono em 2026-10-01.** D-29 a D-33 decididos; a correção exigida antes
+> da Fase 7 (encaixe ocupa a agenda, §15) foi aprovada; início da Fase 7 autorizado.
 > Branch `claude/fase-6-atendimento-caixa`, criada a partir de `claude/fase-5-agenda` (as Fases 3 a 5 ainda não
 > estão na `main`). Só dados fictícios; nenhum banco de produção acessado; nenhuma migração real executada;
 > sistema antigo não alterado; nenhum segredo no repositório.
@@ -115,6 +114,7 @@ certo):
 | D-29 | **Desconto:** mantida a regra. Proprietário e gerente aplicam; recepção **não**; motivo obrigatório; auditado. Sem permissão genérica que deixe a recepção contornar a regra. |
 | D-30 | **Estorno:** mantida a regra. Proprietário e financeiro estornam; gerente, recepção e profissional **não**. Estorno continua sendo movimentação nova, sem apagar nem editar o pagamento original. |
 | D-31 | **Gorjeta:** repasse ao profissional na Fase 7, junto de comissão e repasses, **com os conceitos separados**: gorjeta é o valor que o cliente destina ao profissional; comissão é a remuneração calculada por uma regra de comissão. Gorjeta não é tratada como comissão. |
+| D-33 | **Serviço adicional no atendimento não estende a agenda** automaticamente (§15.6). |
 | D-32 | **Encaixe ocupa a agenda** como um agendamento normal, com a mesma infraestrutura de disponibilidade e conflito da Fase 5; origem diferente, mesma ocupação (§15). |
 
 ## 5. Permissões
@@ -210,7 +210,7 @@ O commit seguinte só atualiza este relatório (documentação).
 
 ## 11. Pendências
 
-1. ~~D-29, D-30, D-31~~ decididos (§4). **D-33** (§15.6) aberto, não bloqueia.
+1. ~~D-29 a D-33~~ decididos (§4, §15.6).
 2. **Comissão** (cálculo e gravação no fechamento): Fase 7, a partir do **atendimento** (valores congelados).
 3. **Rateio do desconto por item/profissional:** necessário para comissão; recomendação em
    [pagamentos.md §5](pagamentos.md#5-arredondamento).
@@ -232,7 +232,7 @@ tabelas), [regras-dados.md](regras-dados.md) (regras 52 a 63), [papeis-permissoe
 | Risco | Mitigação |
 |---|---|
 | ~~Encaixe não reserva horário: alguém agenda online por cima~~ | **Resolvido** (§15): o encaixe é agendamento de origem `walk_in` e ocupa a agenda |
-| Serviço incluído no atendimento não estica o horário na agenda | A reserva ocupa a duração do que foi reservado (no encaixe, o serviço escolhido). Já era assim para qualquer agendamento. Ver §15.6 (D-33) |
+| Serviço incluído no atendimento não estica o horário na agenda | **Decidido (D-33):** é a regra. A reserva ocupa a duração do que foi reservado; extensão do horário, se um dia existir, passa pela regra única da agenda (§15.6) |
 | Caixa esquecido aberto de um dia para o outro | O caixa mostra desde quando está aberto; relatório diário na Fase 7 deve olhar a sessão, não a data |
 | SQLite × MySQL | Trava por escrita na linha funciona nos dois; repetir o teste de concorrência no banco escolhido (D-02) |
 | Matriz de permissões proposta pela equipe técnica | Conservadora; dono revisa D-29/D-30 |
@@ -343,13 +343,20 @@ escritas. A trava de linha é o que protege no MySQL; lá a contraprova faz sent
 (regra 64), [modelo-dados.md](modelo-dados.md) (`appointments.source`, `attendances.appointment_id`),
 [decisoes-pendentes.md](decisoes-pendentes.md) (D-29 a D-33), [roadmap.md](roadmap.md), [README.md](README.md).
 
-### 15.6 Observação (não bloqueia)
+### 15.6 D-33: serviço adicional durante o atendimento
 
-O horário ocupado é o do que foi **reservado** (no encaixe, o serviço escolhido na tela). Se durante o
-atendimento a equipe incluir mais um serviço, a agenda **não** é esticada. Isso já valia para qualquer
-agendamento desde a Fase 5. Fazer um serviço a mais estender a ocupação (e ser recusado quando o horário
-seguinte estiver tomado) é uma decisão de negócio: **PRECISA DE DECISÃO (D-33)**, não implementado.
+**Decisão do dono (2026-10-01):** não estender automaticamente o horário ocupado na agenda. Regra mantida:
+
+- um serviço adicional pode ser incluído durante o atendimento;
+- o valor do atendimento é recalculado normalmente;
+- a duração originalmente reservada não muda automaticamente;
+- o horário ocupado continua o definido pelo agendamento ou encaixe.
+
+Não implementado: extensão automática. Se um dia existir uma função para estender o horário, ela deverá
+(1) verificar a disponibilidade pela mesma regra única da agenda, (2) considerar o profissional, (3) verificar
+conflito com o próximo compromisso, (4) só alterar o horário se houver disponibilidade e (5) registrar a
+alteração no histórico e na auditoria.
 
 ---
 
-**Aguardando aprovação explícita para iniciar a Fase 7.** Silêncio não é autorização.
+**Fase 6 encerrada e aprovada (2026-10-01). Fase 7 autorizada.**

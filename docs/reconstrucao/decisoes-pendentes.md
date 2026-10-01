@@ -40,8 +40,11 @@
 > profissional na Fase 7, junto de comissão e repasses, com os conceitos **separados** (gorjeta = valor que o
 > cliente destina ao profissional; comissão = remuneração por regra de comissão). **D-32** o encaixe ocupa a
 > agenda como um agendamento normal (origem `walk_in`, mesma regra de disponibilidade e conflito).
-> **Pendente (não bloqueia):** **D-33** um serviço incluído durante o atendimento deve estender a ocupação da
-> agenda? Hoje não estende (vale o que foi reservado). Ver
+> **D-33** (decidida na aprovação final da Fase 6): serviço incluído durante o atendimento **não** estende
+> automaticamente o horário ocupado na agenda; o valor é recalculado normalmente e a duração e o horário
+> reservados (agendamento ou encaixe) continuam os mesmos. Se um dia existir "estender o horário", ela deverá
+> usar a regra única da agenda, considerar o profissional, verificar o próximo compromisso, só alterar com
+> disponibilidade e registrar no histórico/auditoria. Ver
 > [relatorio-fase-6.md](relatorio-fase-6.md#4-decisões) e [§15](relatorio-fase-6.md#15-correção-antes-da-fase-7-o-encaixe-ocupa-a-agenda).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
