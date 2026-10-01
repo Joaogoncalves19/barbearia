@@ -333,7 +333,7 @@ escritas. A trava de linha é o que protege no MySQL; lá a contraprova faz sent
 | Pint | **PASSOU** |
 | Build (Vite) | **PASSOU** |
 | Playwright + axe | **PASSOU** — 87 passando (eram 85; +2 do encaixe, celular e desktop), 3 ignorados de propósito, em **duas execuções seguidas** num banco SQLite novo, como no CI. Antes delas, duas rodadas anteriores tiveram falhas de tempo esgotado sob carga (2 e 4 testes, de agenda, atendimento e o novo do encaixe), todas passando ao repetir; nenhum teste desativado nem com tempo aumentado. O banco local de desenvolvimento acumulou 129 categorias de execuções anteriores e deixava a tela de categorias lenta para o axe: por isso as rodadas usam banco novo |
-| CI | CI_RESULTADO |
+| CI | **PASSOU** — run nº 28 (commit `6ed03c4`, https://github.com/Joaogoncalves19/barbearia/actions/runs/36888097964), os dois jobs verdes em todos os passos (Pint, Larastan, auditoria, build, testes PHP com concorrência real, importador fictício, Playwright + axe; regressão S-01 a S-04 do sistema atual) |
 | Nenhuma regra de disponibilidade duplicada | **PASSOU** (§15.2) |
 
 ### 15.5 Documentação
