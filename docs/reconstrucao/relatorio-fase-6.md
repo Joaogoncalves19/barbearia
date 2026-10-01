@@ -27,7 +27,7 @@
 | Estoque: entradas, saídas, consumo, ajustes, histórico, saldo consistente | PASSOU | `StockLedgerTest` (10), concorrência real (saldos 3, 2, 1, 0), E2E |
 | Permissões / IDOR / concorrência / idempotência / auditoria | PASSOU | 20 habilidades, `AttendancePolicy`, `CheckoutPanelTest` (19), `CheckoutConcurrencyTest` (3) |
 | Testes passando / PHPStan sem erros / build | PASSOU | §8 |
-| CI verde | PENDENTE | §9 (preenchido após o push) |
+| CI verde | PASSOU | run nº 26, os dois jobs (§9) |
 | Nenhum secret / nenhum dado real | PASSOU | contas de teste com senha aleatória; só dados fictícios |
 | Desktop, celular, acessibilidade, sem rolagem horizontal | PASSOU | axe sem violação séria/crítica em 10 telas novas, nos dois tamanhos; teclado nos modais |
 | Documentação, roadmap, relatório | PASSOU | 5 documentos novos + atualizações (§12) |
@@ -173,7 +173,16 @@ simultânea de produto (`lock_version`).
 
 ## 9. CI
 
-**PENDENTE** — preenchido após o push.
+**PASSOU.** Run nº 26 (commit `f15018b`,
+https://github.com/Joaogoncalves19/barbearia/actions/runs/36795640201), PHP 8.4, os dois jobs verdes em todos
+os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais), importador com banco fictício (simulação,
+  importação e reexecução, já criando os atendimentos do legado) e Playwright + axe.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Problemas encontrados
 
