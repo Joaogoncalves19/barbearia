@@ -72,6 +72,14 @@
 > documentos, implementados nesta fase. Itens implementados de forma conservadora e marcados **PRECISA DE
 > DECISÃO** (P8-01 a P8-07): ver [relatorio-fase-8.md](relatorio-fase-8.md#4-decisões). **Aprovação da Fase 8
 > (2026-10-05):** P8-01 a P8-07 ficam **decididas como implementadas e documentadas**.
+>
+> **Fase 9 (decisões do dono, no início da fase):** **D-03** decidida: assinaturas **mantidas**, com Stripe.
+> **D-44** benefício como hoje: serviços incluídos no plano saem de graça, **sem limite**. **D-45** o benefício
+> entra no motor único: **um desconto só, vale o maior**. **D-46** comissão de serviço coberto **sobre o preço
+> de tabela**, com a regra de assinante do profissional (percentual, fixo por atendimento, sem comissão).
+> **D-47** adesão **como hoje, no agendamento**, pelo Stripe Checkout, e também por **link de pagamento** gerado
+> no painel; ativa quando o Stripe confirma. Pontos implementados de forma conservadora e marcados **PRECISA DE
+> DECISÃO** (P9-01 a P9-10): ver [assinaturas.md §10](assinaturas.md#10-precisa-de-decisão).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
@@ -81,7 +89,7 @@ que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
 | 🔴 D-01 | **Hospedagem e stack** | (a) Hospedagem PHP paga com SSH + cron (compartilhada de qualidade ou VPS gerenciada) com Laravel; (b) manter hospedagem gratuita e usar PHP sem framework | **(a)**. A hospedagem gratuita atual não oferece cron nem SSH e seu firewall já forçou gambiarras no código. Custo típico de uma hospedagem adequada é baixo perto do risco atual | Fase 1 |
 | 🔴 D-02 | **Banco de dados** | SQLite (WAL) ou MySQL/MariaDB | SQLite, salvo se a hospedagem escolhida oferecer MySQL gerenciado com backup ou houver plano de várias unidades | Fase 1 |
 | 🔴 D-07 | **Marca** | Logo, nome de exibição, cores, fontes, tom de voz | Fornecer o logo real (vetor) e referências de que o dono gosta. Paleta e fontes da proposta são ponto de partida | Fase 1 (tokens) / Fase 11 |
-| D-03 | **Assinaturas mensais** | Manter (Stripe), manter com outro meio (ex.: Pix recorrente), remover | Manter só se houver assinantes ativos ou interesse real. **Precisa de validação:** quantos assinantes existem hoje? | Fases 2 e 9 |
+| ~~D-03~~ | **Assinaturas mensais** — **decidida (Fase 9): manter, com Stripe** | Manter (Stripe), manter com outro meio (ex.: Pix recorrente), remover | Manter só se houver assinantes ativos ou interesse real. **Precisa de validação:** quantos assinantes existem hoje? | Fases 2 e 9 |
 | D-04 | **Chatbot / IA** | Manter o chatbot com IA, manter só por regras, remover; IA no painel sim/não | Adiar para a Fase 14. Se mantido, sem login pelo chat. Medir uso atual antes | Fase 14 |
 | D-05 | **Provedor de e-mail** | Gmail SMTP (atual), provedor transacional (ex.: Amazon SES, Brevo, Postmark) | Provedor transacional com domínio próprio (SPF/DKIM/DMARC): melhor entrega e campanhas sem limite do Gmail | Fase 10 |
 | D-06 | **Aprovação de agendamento** | Automática (atual) ou manual pela recepção | Manter automática; aprovação manual vira opção por serviço/profissional, se necessário | Fase 5 |

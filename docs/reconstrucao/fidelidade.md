@@ -10,7 +10,8 @@ indicação × manual) é do motor único: ver [promocoes.md](promocoes.md).
 - Modo **por atendimento**: N pontos fixos. Modo **por valor**: 1 ponto a cada R$ X do total cobrado
   (arredondado para baixo; produtos contam, descontos não).
 - Um lançamento de ganho por atendimento (`unique(attendance_id, kind)`): concluir de novo não duplica.
-- R-19 "assinante ativo não acumula": assinaturas são da Fase 9; a regra entra lá.
+- R-19 (Fase 9): assinante com direito ao benefício na data **não acumula** pontos; o bônus de indicação de
+  quem o indicou continua.
 
 ## 2. Resgate (R-18) e decisão do dono D-43
 

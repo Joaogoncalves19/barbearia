@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 8 concluídas e aprovadas ([relatorio-fase-8.md](relatorio-fase-8.md)). **Fase 9 em
-> andamento** (assinaturas).
+> **Status:** Fases 0 a 8 concluídas e aprovadas. **Fase 9 concluída, aguardando aprovação do dono**
+> (assinaturas: [relatorio-fase-9.md](relatorio-fase-9.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -111,6 +111,19 @@ plano para reconstruí-lo do zero, por etapas.
 | [vale-presente.md](vale-presente.md) | Vale-presente como forma de pagamento: venda no caixa, uso único, cancelamento |
 | [comprovantes.md](comprovantes.md) | Comprovantes impressos e por e-mail (atendimento, repasse, vale-presente, fechamento de caixa) |
 | [relatorio-fase-8.md](relatorio-fase-8.md) | Relatório final da Fase 8 |
+
+### Fase 9
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [assinaturas.md](assinaturas.md) | Estados, transições, direito ao benefício, adesão, rotina diária, telas, migração, pendências |
+| [planos.md](planos.md) | Planos e versões (preço e serviços incluídos) |
+| [beneficios.md](beneficios.md) | O que o assinante ganha, combinação com outros descontos, comissão e fidelidade |
+| [stripe.md](stripe.md) | Configuração segura, chamadas à API, idempotência, IDs preservados, modo teste |
+| [webhooks.md](webhooks.md) | Eventos, validação, replay, idempotência, transação, fora de ordem, reprocessamento |
+| [cancelamentos.md](cancelamentos.md) | Cancelar no fim do período, imediato, reativar, origem e data efetiva |
+| [reembolsos.md](reembolsos.md) | Reembolso parcial e total pelo Stripe, sem apagar a cobrança |
+| [relatorio-fase-9.md](relatorio-fase-9.md) | Relatório final da Fase 9 |
 
 ## Legenda usada em todos os documentos
 

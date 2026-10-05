@@ -291,7 +291,18 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 9 — Assinaturas (se aprovada, D-03)
+## Fase 9 — Assinaturas (se aprovada, D-03) ✅ (aguardando aprovação)
+
+> **Concluída em 2026-10-05, aguardando aprovação do dono.** Relatório: [relatorio-fase-9.md](relatorio-fase-9.md).
+> Branch `claude/fase-9-assinaturas` (a partir da Fase 8). Entregue: planos versionados, adesão no agendamento e
+> por link do painel (Stripe Checkout), webhooks assinados, idempotentes, transacionais e à prova de ordem,
+> estados e transições documentados, direito ao benefício separado do estado, cancelamento (fim do período e
+> imediato), reativação, reembolso parcial e total, benefício no motor único (vale o maior), comissão de
+> assinante sobre a tabela, R-19, MRR, 8 permissões, 4 regras novas no verificador (R43–R46), concorrência com
+> processos reais e continuidade das assinaturas importadas. **Pendente:** ciclo completo em modo teste do Stripe
+> (depende das chaves de teste do dono). Docs: [assinaturas.md](assinaturas.md), [planos.md](planos.md),
+> [beneficios.md](beneficios.md), [stripe.md](stripe.md), [webhooks.md](webhooks.md),
+> [cancelamentos.md](cancelamentos.md), [reembolsos.md](reembolsos.md).
 
 - **Objetivo:** planos mensais com cobrança recorrente confiável.
 - **Escopo:** planos e serviços inclusos; adesão com Stripe Checkout; webhooks idempotentes

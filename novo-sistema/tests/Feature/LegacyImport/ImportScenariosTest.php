@@ -7,10 +7,15 @@ use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
 use App\Modules\LegacyImport\Testing\FictitiousLegacyDatabase;
 use App\Modules\Loyalty\Services\LoyaltyLedger;
+use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Subscriptions\Gateway\StripeSignature;
+use App\Modules\Subscriptions\Models\Subscription;
+use App\Modules\System\Integrity\IntegrityChecker;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class ImportScenariosTest extends ImporterTestCase
 {
@@ -100,6 +105,49 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertNull(DB::table('subscription_payments')->where('id', $this->ref('assinatura_pagamentos', 'pag-2'))->value('gateway_payment_id'), 'referencia repetida nao e copiada duas vezes');
         $this->assertSame('cs_FICTICIO_0002', $this->appointment('AG-PAGNOVO')->payment_gateway_reference);
         $this->assertSame('AG-N000001', $this->appointment('AG-N000001')->code, 'codigo antigo do agendamento preservado');
+    }
+
+    /**
+     * Fase 9: a assinatura importada ganha a versao 1 do plano e um
+     * identificador publico, e um evento do Stripe da MESMA assinatura (ID
+     * preservado) e reconhecido depois da virada: a renovacao estende o
+     * direito e o pagamento entra uma vez. Evento ja processado pelo sistema
+     * antigo nao roda de novo.
+     */
+    public function test_assinatura_importada_e_reconhecida_pelos_eventos_do_stripe(): void
+    {
+        $sub = Subscription::query()->where('gateway_subscription_id', 'sub_FICTICIO_0001')->firstOrFail();
+        $this->assertSame(['import', 1, 'Clube do Corte'], [$sub->origin->value, $sub->planVersion?->version, $sub->planName()]);
+        $this->assertNotNull($sub->public_id);
+        $this->assertSame(9990, $sub->planVersion?->price_cents);
+        $this->assertSame('paid', DB::table('subscription_payments')->where('id', $this->ref('assinatura_pagamentos', 'pag-1'))->value('status'));
+
+        $segredo = 'whsec_teste_'.Str::random(24);
+        config(['services.stripe.webhook_secret' => $segredo]);
+        $fim = $sub->ends_on?->copy()->addMonth();
+        $evento = ['id' => 'evt_RENOVA_IMPORTADA', 'type' => 'invoice.paid', 'created' => now()->getTimestamp(), 'livemode' => false, 'data' => ['object' => [
+            'id' => 'in_RENOVA_1', 'object' => 'invoice', 'subscription' => 'sub_FICTICIO_0001', 'customer' => 'cus_FICTICIO_0001', 'amount_paid' => 9990, 'currency' => 'brl',
+            'billing_reason' => 'subscription_cycle', 'payment_intent' => 'pi_RENOVA_1', 'lines' => ['data' => [['period' => [
+                'start' => BusinessTime::at((string) $sub->ends_on?->toDateString(), '10:00')->getTimestamp(),
+                'end' => BusinessTime::at((string) $fim?->toDateString(), '10:00')->getTimestamp(),
+            ]]]],
+        ]]];
+        $corpo = (string) json_encode($evento);
+        $cab = StripeSignature::header($corpo, $segredo, now()->getTimestamp());
+        foreach ([1, 2] as $_) {
+            $this->call('POST', '/webhooks/stripe', [], [], [], ['HTTP_STRIPE_SIGNATURE' => $cab, 'CONTENT_TYPE' => 'application/json'], $corpo)->assertOk();
+        }
+
+        $this->assertSame($fim?->toDateString(), $sub->refresh()->ends_on?->toDateString());
+        $this->assertSame(1, DB::table('subscription_payments')->where('gateway_payment_id', 'in_RENOVA_1')->count());
+
+        // Evento que o sistema antigo ja processou: reconhecido, sem efeito.
+        $antigo = ['id' => 'evt_FICTICIO_0001', 'type' => 'invoice.paid', 'created' => now()->getTimestamp(), 'data' => ['object' => ['id' => 'in_X', 'object' => 'invoice', 'subscription' => 'sub_FICTICIO_0001', 'amount_paid' => 9990]]];
+        $c2 = (string) json_encode($antigo);
+        $this->call('POST', '/webhooks/stripe', [], [], [], ['HTTP_STRIPE_SIGNATURE' => StripeSignature::header($c2, $segredo, now()->getTimestamp()), 'CONTENT_TYPE' => 'application/json'], $c2)
+            ->assertOk()->assertJson(['result' => 'duplicate']);
+        $this->assertSame(0, DB::table('subscription_payments')->where('gateway_payment_id', 'in_X')->count());
+        $this->assertSame([], app(IntegrityChecker::class)->violations());
     }
 
     public function test_senhas_antigas_continuam_funcionando_e_sao_rehasheadas(): void

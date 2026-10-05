@@ -75,6 +75,13 @@ final class SubscriptionCheckout
             throw new SubscriptionRuleViolation('already_subscribed');
         }
 
+        // Duplo clique: o mesmo pedido (mesmo plano) em seguida devolve o link ja aberto.
+        $recente = Subscription::query()->where('customer_id', $customer->id)->where('status', SubscriptionStatus::Pending->value)
+            ->where('plan_version_id', $versao->id)->whereNotNull('checkout_url')->where('created_at', '>=', BusinessTime::now()->subMinutes(2))->first();
+        if ($recente !== null && ($appointment === null || $recente->signup_appointment_id === $appointment->id)) {
+            return $recente;
+        }
+
         $this->expireOpenLink($customer, $actor);
 
         // 1) Assinatura local aguardando pagamento.

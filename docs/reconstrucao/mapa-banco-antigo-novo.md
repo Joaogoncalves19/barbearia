@@ -27,7 +27,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `barbeiros_favoritos` | migra | `customer_favorite_professionals` | CustomersStep |
 | `notificacoes` | migra | `customer_notifications` (`lida`/`status` unificados) | CustomersStep |
 | `email_optout` | transforma | `email_suppressions` + `consent_records` + `customers.marketing_email_consent = revoked` | CustomersStep |
-| `planos` | transforma | `plans` + `plan_services` | SubscriptionsStep |
+| `planos` | transforma | `plans` + `plan_versions` (versão 1: preço) + `plan_version_services` (Fase 9) | SubscriptionsStep |
 | `clientes_assinaturas` | migra | `subscriptions` (IDs do Stripe preservados) | SubscriptionsStep |
 | `assinatura_pagamentos` | migra | `subscription_payments` (`referencia` → `gateway_payment_id`) | SubscriptionsStep |
 | `webhook_eventos_processados` | migra | `gateway_events` | SubscriptionsStep |

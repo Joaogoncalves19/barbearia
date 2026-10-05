@@ -1,4 +1,4 @@
-# Modelo de dados do novo sistema (Fases 2 a 8)
+# Modelo de dados do novo sistema (Fases 2 a 9)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
@@ -6,7 +6,8 @@
 > a Fase 5, `2026_10_01_000100_create_agenda_tables` (seções 2.3 e 2.5); a Fase 6,
 > `2026_10_02_000100_create_checkout_tables` (seções 2.4, 2.5a e 2.6); a Fase 7,
 > `2026_10_03_000100_create_commission_tables` (seções 2.3 e 2.6); a Fase 8,
-> `2026_10_04_000100_create_promotion_engine_tables` (seções 2.2, 2.5, 2.5a, 2.6, 2.7 e 2.9).
+> `2026_10_04_000100_create_promotion_engine_tables` (seções 2.2, 2.5, 2.5a, 2.6, 2.7 e 2.9); a Fase 9,
+> `2026_10_05_000100_create_subscription_engine_tables` (seções 2.3, 2.5a, 2.6 e 2.8).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -371,18 +372,39 @@ Vale-presente é **forma de pagamento**: `payments.gift_card_id` (U, N) e `cash_
 `receipt_id`, `email`, `requested_by_user_id` (N), `requested_by_customer_id` (N), `request_key` (U),
 `created_at`: envio de comprovante por e-mail ([comprovantes.md](comprovantes.md)).
 
-### 2.8 Subscriptions
+### 2.8 Subscriptions (Fase 9: ver [assinaturas.md](assinaturas.md))
 
-**plans** — `name`, `price_cents`, `is_active`, `gateway_price_id` (N), timestamps, SD.
-**plan_services** — PK (`plan_id`, `service_id`).
-**subscriptions** — `customer_id` (restrict), `plan_id` (restrict, N), `status`
-(`active`|`cancel_scheduled`|`expired`|`cancelled`), `starts_on`/`ends_on` (N), `cancelled_at` (N),
-`gateway` (`manual`|`stripe`), `gateway_customer_id` (N, I), `gateway_subscription_id` (U, N),
-`gateway_status` (N), `last_gateway_payment_id` (N), `active_customer_id` (U, N: sentinela de "uma ativa por cliente"), timestamps.
-**subscription_payments** (só inclusão) — `subscription_id` (N), `customer_id` (restrict), `plan_id` (N),
-`gateway`, `gateway_payment_id` (U, N), `gateway_subscription_id` (N), `amount_cents`, `currency`,
-`status`, `kind`, `paid_at` (N), `created_at`.
-**gateway_events** — `gateway`, `event_id`, `type` (N), `processed_at` (N). U(`gateway`,`event_id`).
+**plans** — `name`, `description` (N), `is_active` (aberto para adesões), `created_by_user_id` (N), timestamps, SD.
+**plan_versions** — `plan_id` (restrict), `version` (U com o plano), `price_cents`, `interval` (`month`),
+`gateway_price_id` (N), `current_plan_id` (U, N: sentinela da versão atual), `starts_at`, `ends_at` (N), `reason` (N),
+`created_by_user_id` (N), timestamps. Imutável (só encerra). **plan_version_services** — PK (`plan_version_id`, `service_id`).
+**subscriptions** — `public_id` (U, uuid: vai ao Stripe como metadado), `customer_id` (restrict), `plan_id` (N),
+`plan_version_id` (N, restrict: versão contratada), `status` (`pending`|`active`|`past_due`|`cancel_scheduled`|`cancelled`|`expired`),
+`origin` (`booking`|`panel`|`import`), `starts_on`/`ends_on` (N; **ends_on = direito até**), `activated_at` (N),
+`gateway` (`manual`|`stripe`), `gateway_customer_id` (N, I), `gateway_subscription_id` (U, N, nunca substituído),
+`gateway_status` (N), `gateway_period_end_at` (N), `gateway_synced_at` (N: fotografia mais nova aplicada),
+`last_gateway_payment_id` (N), `checkout_session_id` (U, N), `checkout_url` (N), `checkout_expires_at` (N),
+`signup_appointment_id` (N), `created_by_user_id` (N), `cancel_at_period_end`, `cancel_requested_at` (N),
+`cancel_source` (N), `cancel_reason` (N), `cancelled_by_user_id` (N), `cancel_effective_on` (N), `cancelled_at` (N),
+`version` (trava), `active_customer_id` (U, N: sentinela de "uma vigente por cliente": aguardando pagamento,
+ativa, em atraso ou cancelamento agendado), timestamps. Nunca apagada.
+**subscription_events** (só inclusão) — `subscription_id`, `kind`, `from_status`/`to_status` (N), `source`
+(`customer`|`staff`|`stripe`|`system`|`import`), `actor_user_id`/`actor_customer_id` (N), `reason` (N),
+`effective_at` (N), `gateway_event_id` (N), `data` (json, N), `created_at`.
+**subscription_payments** (só inclusão: pagamento **recebido**) — `subscription_id` (N), `customer_id` (restrict),
+`plan_id` (N), `plan_version_id` (N), `gateway`, `gateway_payment_id` (U, N: fatura), `gateway_subscription_id` (N),
+`payment_intent_id` (N, I), `charge_id` (N, I), `amount_cents`, `currency`, `status`, `kind`
+(`signup`|`renewal`|`other`; importados: `adesao`|`renovacao`|`mensalidade`), `period_start`/`period_end` (N), `paid_at` (N), `created_at`.
+**subscription_refunds** (só inclusão; muda só a situação) — `subscription_payment_id` (restrict), `subscription_id` (N),
+`customer_id`, `amount_cents`, `status` (`succeeded`|`pending`|`failed`), `reason` (N), `source` (`staff`|`stripe`),
+`gateway_refund_id` (U, N), `requested_by_user_id` (N), `request_key` (U, N), `refunded_at` (N), `created_at`.
+**gateway_events** — `gateway`, `event_id` (U com o gateway), `type` (N), `status` (`received`|`processed`|`failed`),
+`result` (N: `applied`|`stale`|`ignored`|`unmatched`|`legacy`), `object_type`/`object_id` (N),
+`event_created_at` (N), `livemode`, `payload` (N: o evento inteiro), `attempts`, `last_error` (N), `received_at` (N),
+`processed_at` (N), `subscription_id` (N).
+
+**Também na Fase 9:** `attendance_discounts.subscription_id` (benefício aplicado); `commission_rules.target`
+aceita `subscription`; as colunas `professionals.subscription_commission_*` viraram regras e saíram.
 
 ### 2.9 Reviews, Marketing, System
 
@@ -422,7 +444,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (62 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (65 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -566,6 +588,7 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `updated_at` | datetime | sim | | |
 | `coupon_redemption_id` | integer | sim | | coupon_redemptions.id (set null) |
 | `loyalty_redemption_id` | integer | sim | | loyalty_redemptions.id (set null) |
+| `subscription_id` | integer | sim | | subscriptions.id (set null) |
 ### `attendance_events`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -980,7 +1003,19 @@ Indices: (status, due_on)
 | `event_id` | varchar | nao | | |
 | `type` | varchar | sim | | |
 | `processed_at` | datetime | sim | | |
+| `status` | varchar | nao | `processed` | |
+| `result` | varchar | sim | | |
+| `object_type` | varchar | sim | | |
+| `object_id` | varchar | sim | | |
+| `event_created_at` | datetime | sim | | |
+| `livemode` | tinyint | nao | `0` | |
+| `payload` | text | sim | | |
+| `attempts` | integer | nao | `0` | |
+| `last_error` | text | sim | | |
+| `received_at` | datetime | sim | | |
+| `subscription_id` | integer | sim | | subscriptions.id (set null) |
 Unicos: (gateway, event_id)
+Indices: (object_id)
 ### `gift_cards`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1135,22 +1170,39 @@ Unicos: (package_id, service_id)
 | `gift_card_id` | integer | sim | | gift_cards.id (restrict) |
 Unicos: (gift_card_id) · (request_key)
 Indices: (attendance_id) · (paid_at)
-### `plan_services`
+### `plan_version_services`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
-| `plan_id` | integer | nao | | plans.id (cascade) |
+| `plan_version_id` | integer | nao | | plan_versions.id (cascade) |
 | `service_id` | integer | nao | | services.id (restrict) |
+### `plan_versions`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `plan_id` | integer | nao | | plans.id (restrict) |
+| `version` | integer | nao | | |
+| `price_cents` | integer | nao | | |
+| `interval` | varchar | nao | `month` | |
+| `gateway_price_id` | varchar | sim | | |
+| `current_plan_id` | integer | sim | | |
+| `starts_at` | datetime | nao | | |
+| `ends_at` | datetime | sim | | |
+| `reason` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (current_plan_id) · (plan_id, version)
 ### `plans`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
 | `id` | integer | nao | | |
 | `name` | varchar | nao | | |
-| `price_cents` | integer | nao | | |
 | `is_active` | tinyint | nao | `1` | |
-| `gateway_price_id` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `description` | varchar | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
 ### `products`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1190,9 +1242,6 @@ Unicos: (sku)
 | `is_active` | tinyint | nao | `1` | |
 | `is_bookable` | tinyint | nao | `1` | |
 | `sort_order` | integer | nao | `0` | |
-| `subscription_commission_mode` | varchar | nao | `default` | |
-| `subscription_commission_rate_bp` | integer | sim | | |
-| `subscription_commission_amount_cents` | integer | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
@@ -1319,6 +1368,23 @@ Unicos: (key)
 | `request_key` | varchar | sim | | |
 Unicos: (request_key) · (reverses_movement_id)
 Indices: (attendance_id) · (product_id, occurred_at)
+### `subscription_events`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `subscription_id` | integer | nao | | subscriptions.id (restrict) |
+| `kind` | varchar | nao | | |
+| `from_status` | varchar | sim | | |
+| `to_status` | varchar | sim | | |
+| `source` | varchar | nao | | |
+| `actor_user_id` | integer | sim | | users.id (set null) |
+| `actor_customer_id` | integer | sim | | customers.id (set null) |
+| `reason` | varchar | sim | | |
+| `effective_at` | datetime | sim | | |
+| `gateway_event_id` | integer | sim | | gateway_events.id (set null) |
+| `data` | text | sim | | |
+| `created_at` | datetime | sim | | |
+Indices: (subscription_id, id)
 ### `subscription_payments`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1335,8 +1401,30 @@ Indices: (attendance_id) · (product_id, occurred_at)
 | `kind` | varchar | nao | | |
 | `paid_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
+| `plan_version_id` | integer | sim | | plan_versions.id (restrict) |
+| `payment_intent_id` | varchar | sim | | |
+| `charge_id` | varchar | sim | | |
+| `period_start` | date | sim | | |
+| `period_end` | date | sim | | |
 Unicos: (gateway_payment_id)
-Indices: (customer_id, paid_at)
+Indices: (charge_id) · (customer_id, paid_at) · (payment_intent_id)
+### `subscription_refunds`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `subscription_payment_id` | integer | nao | | subscription_payments.id (restrict) |
+| `subscription_id` | integer | sim | | subscriptions.id (restrict) |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `amount_cents` | integer | nao | | |
+| `status` | varchar | nao | | |
+| `reason` | varchar | sim | | |
+| `source` | varchar | nao | | |
+| `gateway_refund_id` | varchar | sim | | |
+| `requested_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+| `refunded_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+Unicos: (gateway_refund_id) · (request_key)
 ### `subscriptions`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1355,7 +1443,25 @@ Indices: (customer_id, paid_at)
 | `active_customer_id` | integer | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-Unicos: (active_customer_id) · (gateway_subscription_id)
+| `public_id` | varchar | sim | | |
+| `plan_version_id` | integer | sim | | plan_versions.id (restrict) |
+| `origin` | varchar | nao | `import` | |
+| `signup_appointment_id` | integer | sim | | appointments.id (set null) |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `checkout_session_id` | varchar | sim | | |
+| `checkout_url` | text | sim | | |
+| `checkout_expires_at` | datetime | sim | | |
+| `activated_at` | datetime | sim | | |
+| `cancel_at_period_end` | tinyint | nao | `0` | |
+| `cancel_requested_at` | datetime | sim | | |
+| `cancel_source` | varchar | sim | | |
+| `cancel_reason` | varchar | sim | | |
+| `cancelled_by_user_id` | integer | sim | | users.id (set null) |
+| `cancel_effective_on` | date | sim | | |
+| `gateway_period_end_at` | datetime | sim | | |
+| `gateway_synced_at` | datetime | sim | | |
+| `version` | integer | nao | `0` | |
+Unicos: (active_customer_id) · (checkout_session_id) · (gateway_subscription_id) · (public_id)
 Indices: (customer_id, status) · (gateway_customer_id)
 ### `time_off`
 | Coluna | Tipo | Nulo | Padrao | FK |

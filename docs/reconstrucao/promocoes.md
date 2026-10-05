@@ -19,6 +19,7 @@ Documentos relacionados: [fidelidade.md](fidelidade.md), [vale-presente.md](vale
 | R-15 Indicação | Percentual no **primeiro** atendimento do indicado; quem indicou ganha pontos quando o indicado conclui o primeiro atendimento (uma vez só). Implementada (D-14 decidida: implementar) |
 | R-16 Nunca negativo | O desconto nunca passa da soma dos serviços; produto é sempre cobrado inteiro |
 | R-17 a R-19 Fidelidade | Ver [fidelidade.md](fidelidade.md). Pontos reservados ao agendar ou no balcão; **saem do saldo só na conclusão** (D-43) |
+| R-11 Assinatura (Fase 9) | O benefício da assinatura é mais um candidato do motor (D-45): vale o maior; empate, a assinatura (não gasta nada). Ver [beneficios.md](beneficios.md) |
 
 ### 1.1 Precedência ("vale o maior")
 

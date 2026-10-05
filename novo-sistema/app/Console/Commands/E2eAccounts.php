@@ -24,7 +24,14 @@ use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Models\BusinessHour;
 use App\Modules\Scheduling\Services\AppointmentPricing;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Subscriptions\Enums\Gateway;
+use App\Modules\Subscriptions\Enums\SubscriptionOrigin;
+use App\Modules\Subscriptions\Enums\SubscriptionStatus;
+use App\Modules\Subscriptions\Models\Plan;
+use App\Modules\Subscriptions\Models\Subscription;
+use App\Modules\Subscriptions\Services\Plans;
 use App\Modules\Team\Models\Professional;
+use Carbon\CarbonImmutable;
 use Database\Factories\CustomerFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -121,6 +128,34 @@ class E2eAccounts extends Command
         // novo; nada precisa ser reiniciado.
         $this->membro("e2e-promo-{$s}", 'Dono Promoções E2E', StaffRole::Owner, $senha);
         $this->cliente("e2e-promo-cliente-{$s}@exemplo.test", 'Cliente Promoções E2E', $senha);
+
+        // Assinaturas (Fase 9): dono proprio e um cliente com assinatura
+        // MANUAL ativa (ficticia, sem Stripe) no plano que inclui o corte de teste.
+        $donoAssina = $this->membro("e2e-assina-{$s}", 'Dono Assinaturas E2E', StaffRole::Owner, $senha);
+        $assinante = $this->cliente("e2e-assina-cliente-{$s}@exemplo.test", 'Cliente Assinante E2E', $senha);
+        $this->assinaturaAtiva($assinante, $corte, $donoAssina);
+    }
+
+    /**
+     * Plano "Clube E2E" (inclui o corte de teste) e assinatura manual ativa
+     * com direito por mais 30 dias. Assinatura vencendo e encerrada pela
+     * transicao permitida (expirada) e uma nova e criada; nada e apagado.
+     */
+    private function assinaturaAtiva(Customer $cliente, Service $corte, User $dono): void
+    {
+        $plano = Plan::query()->where('name', 'Clube E2E')->first()
+            ?? app(Plans::class)->create('Clube E2E', 'Plano dos testes de navegador', 9900, [$corte->id], $dono);
+        $hoje = BusinessTime::today();
+        $atual = Subscription::query()->where('customer_id', $cliente->id)->whereIn('status', SubscriptionStatus::currentValues())->first();
+        if ($atual !== null && $atual->ends_on !== null && $atual->ends_on->toDateString() >= CarbonImmutable::parse($hoje)->addDays(20)->toDateString()) {
+            return;
+        }
+        $atual?->forceFill(['status' => SubscriptionStatus::Expired])->save();
+        Subscription::query()->create([
+            'customer_id' => $cliente->id, 'plan_id' => $plano->id, 'plan_version_id' => $plano->currentVersion?->id,
+            'status' => SubscriptionStatus::Active, 'origin' => SubscriptionOrigin::Import, 'gateway' => Gateway::Manual,
+            'starts_on' => $hoje, 'ends_on' => CarbonImmutable::parse($hoje)->addDays(30)->toDateString(), 'activated_at' => now(),
+        ]);
     }
 
     /**

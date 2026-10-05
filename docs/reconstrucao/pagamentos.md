@@ -95,3 +95,10 @@ total e não item a item).
 Pagamentos importados do sistema antigo apontam o atendimento criado para o agendamento concluído
 (`attendances.source = legacy`), sem caixa (`cash_session_id` nulo), com `amount_source = legacy_estimated`
 quando o valor veio do catálogo antigo.
+
+## 8. Pagamentos de assinatura (Fase 9)
+
+Operação financeira **própria**, separada do atendimento: `subscription_payments` (um por fatura paga no
+Stripe; só inclusão) e `subscription_refunds` (reembolso aponta o pagamento). Não entram no caixa físico, na
+comissão nem na gorjeta. Tentativa recusada ou pendente não é pagamento: fica no histórico da assinatura.
+Ver [assinaturas.md](assinaturas.md) e [reembolsos.md](reembolsos.md).

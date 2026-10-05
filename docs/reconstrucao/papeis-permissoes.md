@@ -1,4 +1,4 @@
-# Papéis e permissões (Fases 3 a 8)
+# Papéis e permissões (Fases 3 a 9)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -80,6 +80,12 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `promotions.configure` | Configurar fidelidade, aniversário e indicação | **Fase 8** |
 | `loyalty.view` / `loyalty.adjust` | Ver pontos e extrato dos clientes / ajustar pontos (motivo obrigatório) | **Fase 8** |
 | `gift_cards.view` / `gift_cards.sell` / `gift_cards.cancel` | Ver vales-presente (e o comprovante) / vender / cancelar com devolução | **Fase 8** |
+| `subscriptions.view` / `subscriptions.payments` | Ver assinaturas / ver pagamentos e reembolsos | **Fase 9** |
+| `subscriptions.create` | Gerar link de pagamento de assinatura | **Fase 9** |
+| `subscriptions.cancel` / `subscriptions.reactivate` | Cancelar / reativar assinatura | **Fase 9** |
+| `subscriptions.refund` | Reembolsar pagamento de assinatura | **Fase 9** |
+| `subscriptions.history` | Histórico das assinaturas e eventos do Stripe | **Fase 9** |
+| `plans.manage` | Configurar planos e versões | **Fase 9** |
 | `marketing.manage` | Campanhas (cupons e fidelidade saíram para as habilidades acima) | Fase 10 |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
 | `account.access` *(cliente)* | Acessar a própria conta de cliente | **Fase 3** |
@@ -155,6 +161,14 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `gift_cards.view` | ✔ | ✔ | ✔ | ✔ | |
 | `gift_cards.sell` | ✔ | ✔ | ✔ | | |
 | `gift_cards.cancel` | ✔ | | | ✔ | |
+| `subscriptions.view` | ✔ | ✔ | ✔ | ✔ | |
+| `subscriptions.payments` | ✔ | ✔ | | ✔ | |
+| `subscriptions.create` | ✔ | ✔ | ✔ | | |
+| `subscriptions.cancel` | ✔ | ✔ | | | |
+| `subscriptions.reactivate` | ✔ | ✔ | | | |
+| `subscriptions.refund` | ✔ | | | ✔ | |
+| `subscriptions.history` | ✔ | ✔ | | ✔ | |
+| `plans.manage` | ✔ | | | | |
 | `marketing.manage` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
 
@@ -218,3 +232,13 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
 - Comprovantes usam a permissão (ou policy) da tela do próprio documento; o cliente só vê e envia os
   próprios, para o próprio e-mail ([comprovantes.md](comprovantes.md)).
 - Gravações com `throttle:money`; envio de comprovante com `throttle:receipts`.
+
+## Fase 9 — assinaturas
+
+- Oito habilidades por ação, sem acesso amplo. Planos só o proprietário (como as regras de comissão).
+  Reembolso: proprietário e financeiro (como o estorno, D-30). Cancelar e reativar: proprietário e gerente.
+- Ninguém vê as chaves do Stripe: ficam só em variáveis de ambiente; o painel mostra apenas se o pagamento
+  online está configurado.
+- O cliente vê e gerencia só a própria assinatura (cancelar a renovação, desfazer); cancelamento imediato,
+  reembolso e plano são só da equipe.
+- O webhook é público por natureza: a autenticidade é a assinatura do Stripe ([webhooks.md](webhooks.md)).

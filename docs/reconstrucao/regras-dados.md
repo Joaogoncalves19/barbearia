@@ -1,4 +1,4 @@
-# Regras de dados (Fases 2 a 8)
+# Regras de dados (Fases 2 a 9)
 
 Cada regra de integridade do modelo, **onde** ela é garantida e **qual teste** a prova.
 "Banco" = restrição física (FK, único, não nulo). "Model" = regra no model Eloquent (evento `saving`/`updating`).
@@ -92,6 +92,12 @@ MarketingConsent), `tests/Feature/LegacyImport/*` (ImportRun, ImportScenarios) e
 | 76 | Ganho de pontos uma vez por atendimento; bônus de indicação uma vez por indicado | loyalty_entries | Banco (`unique(attendance_id, kind)`, `referred_customer_id` único) + `LoyaltyLedger::recordCompletion` | `test_indicacao_desconto_no_primeiro_e_pontos_para_quem_indicou_uma_vez`, `DiscountCasesTest` (saldo) |
 | 77 | Vale-presente: venda e devolução pelo caixa com o valor do vale; uso único, valor = menor entre vale e total, um pagamento por vale, fora da gaveta; estorno de pagamento com vale bloqueado; vale imutável fora do serviço | gift_cards, payments, cash_movements | Banco (`payments.gift_card_id` único, `request_key`) + trava `gift_cards.version` + `GiftCards` + Model + Verificador R41 | `GiftCardsTest` (7) |
 | 78 | Comprovante enviado por e-mail fica registrado (documento, endereço, quem pediu), uma vez por chave; auditoria com endereço mascarado | receipt_deliveries | Banco (`request_key` único) + `Receipts::send` | `ReceiptsTest::test_envio_por_email_em_fila_registrado_auditado_e_idempotente` |
+| 79 | Plano: preço e serviços em versões imutáveis; uma versão atual por plano; assinatura aponta a versão contratada do próprio plano e nunca troca | plan_versions, subscriptions | Banco (`current_plan_id` único) + Model + `Plans` + Verificador R43 | `PlansTest` |
+| 80 | Uma assinatura vigente por cliente (aguardando pagamento, ativa, em atraso, cancelamento agendado); só transições permitidas; nunca apagada; ID do Stripe nunca substituído | subscriptions | Banco (`active_customer_id` único) + Model (`canTransitionTo`) + Verificador R19/R44 | `ConstraintsTest`, `PlansTest::test_transicao_direta_proibida_no_model`, `test_assinatura_e_pagamento_sao_historico` |
+| 81 | Direito ao benefício separado do estado: só fatura paga estende `ends_on` (máximo); só cancelamento imediato encurta; aguardando pagamento sem direito | subscriptions | `SubscriptionLifecycle` + `SubscriptionBenefits` + Verificador R44 | `SubscriptionLifecycleTest` |
+| 82 | Evento do Stripe guardado uma vez, processado numa transação, idempotente; fotografia mais antiga não sobrescreve; falha não aplica nada | gateway_events, subscriptions | Banco (único gateway + evento) + `StripeWebhook` + `gateway_synced_at` + Verificador R46 | `WebhookTest`, `WebhookConcurrencyTest` |
+| 83 | Pagamento de assinatura: um por fatura, só inclusão, fora do caixa, da comissão e da gorjeta; reembolso aponta o pagamento e nunca passa do pago | subscription_payments, subscription_refunds | Banco (únicos) + `AppendOnly` + `SubscriptionManager::refund` (reserva com trava) + Verificador R45 | `SubscriptionActionsTest`, `SubscriptionLifecycleTest::test_assinatura_nao_mexe_no_caixa_nem_na_comissao` |
+| 84 | Benefício da assinatura: um desconto só (o maior); serviço coberto com comissão sobre o preço de tabela; assinante não acumula pontos | attendance_discounts, commission_entries, loyalty_entries | `PromotionEngine` + `CommissionCalculator` + `LoyaltyLedger` | `SubscriptionBenefitTest` |
 
 ## Regras do importador (resumo)
 

@@ -63,7 +63,11 @@
             @if ($s->cancel_requested_at || $s->cancelled_at)
                 <div><dt>Cancelamento</dt><dd>
                     {{ $s->cancel_source?->label() ?? '—' }}{{ $s->cancel_requested_at ? ' em '.BusinessTime::formatLocal($s->cancel_requested_at) : '' }}{{ $s->cancel_reason ? ': '.$s->cancel_reason : '' }}
-                    @if ($s->cancel_effective_on)<br>Efetivo em {{ $s->cancel_effective_on->format('d/m/Y') }}@elseif ($s->cancel_at_period_end)<br>No fim do período pago@endif
+                    @if ($s->cancel_effective_on)
+                        <br>Efetivo em {{ $s->cancel_effective_on->format('d/m/Y') }}
+                    @elseif ($s->cancel_at_period_end)
+                        <br>No fim do período pago
+                    @endif
                 </dd></div>
             @endif
         </dl>

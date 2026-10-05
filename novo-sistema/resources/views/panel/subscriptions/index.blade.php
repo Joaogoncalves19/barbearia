@@ -50,7 +50,7 @@
         <x-ui.button type="submit" variant="secondary" icon="search">Buscar</x-ui.button>
     </form>
 
-    <x-ui.card title="Assinaturas">
+    <x-ui.card title="Lista de assinaturas">
         @if ($subscriptions->isEmpty())
             <x-ui.empty-state title="Nenhuma assinatura" icon="badge-check">Nenhuma assinatura encontrada com este filtro.</x-ui.empty-state>
         @else

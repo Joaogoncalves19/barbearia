@@ -123,7 +123,7 @@ final class StripeWebhook
     {
         $n = 0;
         $pendentes = GatewayEvent::query()->where('gateway', 'stripe')->where('result', 'unmatched')
-            ->where('payload', 'like', '%'.addcslashes($gatewaySubscriptionId, '%_').'%')->orderBy('event_created_at')->orderBy('id')->get();
+            ->where('payload', 'like', '%'.str_replace('%', '', $gatewaySubscriptionId).'%')->orderBy('event_created_at')->orderBy('id')->get();
         foreach ($pendentes as $e) {
             GatewayEvent::query()->whereKey($e->id)->update(['status' => 'received', 'result' => null]);
             try {

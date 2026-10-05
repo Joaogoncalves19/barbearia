@@ -9,13 +9,13 @@ use App\Modules\Subscriptions\Enums\EventSource;
 use App\Modules\Subscriptions\Enums\Gateway;
 use App\Modules\Subscriptions\Enums\SubscriptionOrigin;
 use App\Modules\Subscriptions\Enums\SubscriptionStatus;
+use Carbon\CarbonInterface;
 use Database\Factories\SubscriptionFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Carbon\CarbonInterface;
 use Illuminate\Support\Str;
 
 /**

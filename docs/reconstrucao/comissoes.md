@@ -19,8 +19,8 @@ Telas (`Panel\Finance\*Controller`) só leem a intenção e chamam esses serviç
 
 **Fonte única:** a tabela `commission_rules`. Os campos de comissão que existiam no cadastro do profissional
 (`commission_rate_bp`, `commission_on_products`) viraram regras na migration da Fase 7 e **deixaram de
-existir**: duas fontes da mesma regra divergiriam. (As colunas de comissão de **assinatura** continuam no
-profissional até a Fase 9, quando assinaturas forem implementadas; ver §9.)
+existir**: duas fontes da mesma regra divergiriam. As colunas de comissão de **assinatura** do profissional
+viraram regras (alvo "atendimento de assinante") na migration da Fase 9 e também saíram.
 
 **Sobre o que:**
 
@@ -28,12 +28,14 @@ profissional até a Fase 9, quando assinaturas forem implementadas; ver §9.)
 |---|---|---|
 | Serviços (e combos) | valor do item **depois** da sua parte do desconto (§3) | percentual, valor fixo por unidade, sem comissão |
 | Produtos vendidos | valor do item (desconto não incide em produto) | percentual, sem comissão |
+| Atendimento de assinante (Fase 9, D-46) | **preço de tabela** do serviço coberto pela assinatura (o cliente paga R$ 0) | percentual, valor fixo **por atendimento**, sem comissão |
 
 **Precedência** (a mais específica vence):
 
 ```text
 Serviço:  profissional + serviço  >  serviço (todos os profissionais)  >  profissional (todos os serviços)  >  padrão da barbearia  >  nenhuma
 Produto:  profissional  >  padrão da barbearia  >  nenhuma
+Assinante (serviço coberto):  profissional  >  padrão da barbearia  >  regra normal do serviço sobre o preço de tabela
 ```
 
 - "Sem comissão" é uma regra: vence as mais gerais (ex.: "Lavagem não paga comissão", mesmo que o
@@ -142,3 +144,14 @@ Nenhum acesso administrativo amplo: ver não dá direito a configurar, corrigir 
 - Meta diária do profissional, DRE, relatórios gerais: fases seguintes.
 - Taxa da maquininha descontada da comissão/gorjeta: não existe (o sistema antigo também não descontava);
   **PRECISA DE DECISÃO** se o dono quiser (relatório da Fase 7).
+
+## 10. Atendimento de assinante (Fase 9)
+
+Decisão do dono (D-46), como no sistema antigo: o serviço **coberto pela assinatura** (sai de graça para o
+cliente) tem comissão sobre o **preço de tabela** do item. Regra de assinante do profissional (ou padrão da
+barbearia): percentual sobre a tabela, valor fixo **por atendimento** (lançado no primeiro serviço coberto;
+os outros cobertos ficam com zero e a observação) ou sem comissão. Sem regra de assinante, vale a regra normal
+do serviço sobre o preço de tabela (o "padrão" do sistema antigo). O desconto da assinatura é atribuído só aos
+serviços cobertos; os outros itens do mesmo atendimento seguem a regra normal sobre o valor cobrado. A
+mensalidade da assinatura nunca gera comissão. O lançamento guarda a observação "Serviço coberto pela
+assinatura: comissão sobre o preço de tabela". Testes: `SubscriptionBenefitTest`.
