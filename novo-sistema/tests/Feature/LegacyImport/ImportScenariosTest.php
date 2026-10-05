@@ -217,6 +217,8 @@ class ImportScenariosTest extends ImporterTestCase
      * profissional (servicos); "comissao_produtos" = sim vira a regra de
      * produtos com o mesmo percentual. Vales antigos ficam como historico
      * (ja abatidos no sistema antigo) e nunca entram num repasse novo.
+     * Fase 9: "comissao_assinatura_tipo" vira a regra de atendimento de
+     * assinante ("padrao" = sem regra propria).
      */
     public function test_comissao_do_barbeiro_vira_regra_e_vales_antigos_sao_historico(): void
     {
@@ -226,7 +228,7 @@ class ImportScenariosTest extends ImporterTestCase
             ->orderBy('target')->get(['target', 'type', 'rate_bp'])->map(fn ($r) => [$r->target, $r->type, (int) $r->rate_bp])->all();
 
         $this->assertSame([['product', 'percent', 4000], ['service', 'percent', 4000]], $regras($carlos));
-        $this->assertSame([['service', 'percent', 3750]], $regras($rafael), 'sem comissao de produto');
+        $this->assertSame([['service', 'percent', 3750], ['subscription', 'percent', 2000]], $regras($rafael), 'sem comissao de produto; assinante 20%');
         $this->assertSame([], $regras($this->ref('barbeiros', 'br-4')), 'percentual invalido: sem regra (pendencia registrada)');
 
         $this->assertSame(0, DB::table('advances')->where('is_legacy', false)->count(), 'todo vale importado e historico');

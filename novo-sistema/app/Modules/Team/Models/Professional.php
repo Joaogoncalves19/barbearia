@@ -6,11 +6,9 @@ use App\Modules\Catalog\Models\Package;
 use App\Modules\Catalog\Models\Service;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
-use App\Modules\Shared\Exceptions\DomainRuleViolation;
 use App\Modules\Shared\Media\ImageStore;
 use App\Modules\Shared\Models\Concerns\Auditable;
 use App\Modules\Shared\Support\UniqueSlug;
-use App\Modules\Team\Enums\SubscriptionCommissionMode;
 use Database\Factories\ProfessionalFactory;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -52,8 +50,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $sort_order
  * @property int $lock_version
  * @property int $ledger_version
- * @property int|null $subscription_commission_rate_bp
- * @property SubscriptionCommissionMode|null $subscription_commission_mode
  */
 #[UseFactory(ProfessionalFactory::class)]
 class Professional extends Model
@@ -81,9 +77,6 @@ class Professional extends Model
             'sort_order' => 'integer',
             'lock_version' => 'integer',
             'ledger_version' => 'integer',
-            'subscription_commission_mode' => SubscriptionCommissionMode::class,
-            'subscription_commission_rate_bp' => 'integer',
-            'subscription_commission_amount_cents' => 'integer',
         ];
     }
 
@@ -91,14 +84,6 @@ class Professional extends Model
     {
         static::creating(function (self $p): void {
             $p->slug ??= UniqueSlug::for('professionals', $p->display_name);
-        });
-
-        static::saving(function (self $p): void {
-            foreach (['subscription_commission_rate_bp'] as $campo) {
-                if ($p->{$campo} !== null && ($p->{$campo} < 0 || $p->{$campo} > 10000)) {
-                    throw DomainRuleViolation::rule('R-COMISSAO', 'Percentual de comissao deve ficar entre 0% e 100%.');
-                }
-            }
         });
     }
 

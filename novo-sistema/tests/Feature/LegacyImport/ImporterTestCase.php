@@ -70,7 +70,7 @@ abstract class ImporterTestCase extends TestCase
             'customer_notifications', 'professionals', 'professional_service', 'professional_package', 'working_hours', 'schedule_breaks', 'time_off', 'blocked_slots',
             'service_categories', 'services', 'packages', 'package_items', 'products', 'stock_movements', 'appointments', 'appointment_items',
             'appointment_adjustments', 'appointment_events', 'appointment_reminders', 'payments', 'commission_payouts', 'advances', 'expenses',
-            'financial_goals', 'loyalty_entries', 'coupons', 'coupon_redemptions', 'gift_cards', 'plans', 'plan_services', 'subscriptions',
+            'financial_goals', 'loyalty_entries', 'coupons', 'coupon_redemptions', 'gift_cards', 'plans', 'plan_versions', 'plan_version_services', 'subscriptions',
             'subscription_payments', 'gateway_events', 'reviews', 'review_replies', 'campaigns', 'settings', 'audit_logs', 'import_runs', 'import_issues', 'legacy_references'];
     }
 }

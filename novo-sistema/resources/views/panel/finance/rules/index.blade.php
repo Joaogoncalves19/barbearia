@@ -21,7 +21,7 @@
             @csrf
             <div class="dashboard-grid">
                 <div class="stack">
-                    <x-ui.select name="target" label="Sobre" :options="['service' => 'Serviços', 'product' => 'Produtos vendidos']" value="service" />
+                    <x-ui.select name="target" label="Sobre" :options="['service' => 'Serviços', 'product' => 'Produtos vendidos', 'subscription' => 'Atendimento de assinante (serviço coberto)']" value="service" hint="Assinante: comissão sobre o preço de tabela do serviço coberto; valor fixo é por atendimento. Sem regra de assinante, vale a regra do serviço." />
                     <x-ui.select name="professional_id" label="Profissional" :options="$professionals->pluck('display_name', 'id')->all()" placeholder="Todos (padrão)" optional />
                     <x-ui.select name="service_id" label="Serviço" :options="$services->pluck('name', 'id')->all()" placeholder="Todos os serviços" optional hint="Só para regras sobre serviços." />
                 </div>

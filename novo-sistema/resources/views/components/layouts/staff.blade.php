@@ -70,6 +70,15 @@
         $promocoes[] = $item('Fidelidade e aniversário', 'sparkles', 'panel.promotions.settings', 'panel.promotions.*');
     }
 
+    // Assinaturas (Fase 9).
+    $assinaturas = [];
+    if ($user->can('subscriptions.view')) {
+        $assinaturas[] = $item('Assinaturas', 'badge-check', 'panel.subscriptions.index', 'panel.subscriptions.*');
+    }
+    if ($user->can('plans.manage')) {
+        $assinaturas[] = $item('Planos', 'list', 'panel.plans.index', 'panel.plans.*');
+    }
+
     $configAgenda = [];
     if ($user->can('schedule.settings')) {
         $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
@@ -95,6 +104,9 @@
     }
     if ($promocoes !== []) {
         $nav[] = ['group' => 'Promoções', 'items' => $promocoes];
+    }
+    if ($assinaturas !== []) {
+        $nav[] = ['group' => 'Assinaturas', 'items' => $assinaturas];
     }
     if ($configAgenda !== []) {
         $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];

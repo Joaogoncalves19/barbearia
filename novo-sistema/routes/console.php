@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\Schedule;
 // Batimento: permite saber se o cron esta configurado (app:diagnose).
 Schedule::command(SchedulerHeartbeat::class)->everyMinute();
 
+// Assinaturas (Fase 9): links vencidos e assinaturas manuais vencidas.
+Schedule::command('app:subscriptions-expire')->dailyAt('03:10')->withoutOverlapping(30);
+
 // Manutencao da fila.
 Schedule::command('queue:prune-failed --hours=720')->daily();
 Schedule::command('queue:prune-batches --hours=168')->daily();

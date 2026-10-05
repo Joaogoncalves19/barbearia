@@ -20,6 +20,7 @@ use App\Modules\Loyalty\Pricing\PromotionRequest;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Support\Money;
 use App\Modules\System\Services\AuditTrail;
 use Illuminate\Support\Facades\DB;
@@ -74,10 +75,60 @@ final class PromotionService
             'coupon_id' => $c->coupon?->id,
             'coupon_redemption_id' => $cupomUso?->id,
             'loyalty_redemption_id' => $resgate?->id,
+            'subscription_id' => $c->subscriptionId,
             'description' => $c->label,
         ]);
 
         return $q;
+    }
+
+    /**
+     * Fase 9: reavalia o desconto de um agendamento ja gravado (adesao a
+     * assinatura confirmada depois do agendamento). Vale o maior: se o
+     * beneficio da assinatura (ou outro automatico) for maior que o atual,
+     * substitui e libera a reserva do atual. Devolve o candidato aplicado, ou
+     * nulo se nada mudou. Dentro da transacao do chamador.
+     */
+    public function reapplyToAppointment(Appointment $appointment): ?PromotionCandidate
+    {
+        $cliente = $appointment->customer_id !== null ? Customer::query()->find($appointment->customer_id) : null;
+        if ($cliente === null || $appointment->starts_at === null) {
+            return null;
+        }
+        $linhas = PromotionEngine::linesFrom($appointment->items()->get());
+        $atuais = $appointment->adjustments()->get();
+        $atual = null;
+        if ($atuais->isNotEmpty()) {
+            $ultimo = $atuais->last();
+            $regra = $ultimo->discount_type !== null
+                ? Discount::of($ultimo->discount_type, (int) ($ultimo->discount_type === DiscountType::Percent ? $ultimo->percent_bp : $ultimo->fixed_cents))
+                : Discount::fixed(max(1, (int) $ultimo->amount_cents));
+            $atual = new PromotionCandidate($ultimo->kind, $regra, (int) $atuais->sum('amount_cents'), 'Desconto atual', isCurrent: true);
+        }
+        $q = $this->engine->quote($cliente, $linhas, BusinessTime::dateOf($appointment->starts_at), new PromotionRequest(null, false), $appointment->id, $atual);
+        $c = $q->chosen;
+        if ($c === null || $c->isCurrent) {
+            return null;
+        }
+        foreach ($atuais as $adj) {
+            $this->releaseFor($adj->coupon_redemption_id, $adj->loyalty_redemption_id, 'Substituído por desconto maior no agendamento '.$appointment->code);
+            $adj->delete();
+        }
+        [$cupomUso, $resgate] = $this->reserve($c, $cliente, $appointment->id);
+        $appointment->adjustments()->create([
+            'kind' => $c->kind,
+            'amount_cents' => $c->amountCents,
+            'discount_type' => $c->rule->type,
+            'percent_bp' => $c->rule->type === DiscountType::Percent ? $c->rule->value : null,
+            'fixed_cents' => $c->rule->type === DiscountType::Fixed ? $c->rule->value : null,
+            'coupon_id' => $c->coupon?->id,
+            'coupon_redemption_id' => $cupomUso?->id,
+            'loyalty_redemption_id' => $resgate?->id,
+            'subscription_id' => $c->subscriptionId,
+            'description' => $c->label,
+        ]);
+
+        return $c;
     }
 
     /**
@@ -121,6 +172,7 @@ final class PromotionService
             'applied_by_user_id' => $actorId,
             'coupon_redemption_id' => $cupomUso?->id,
             'loyalty_redemption_id' => $resgate?->id,
+            'subscription_id' => $c->subscriptionId,
         ]);
 
         return $c;
@@ -145,7 +197,7 @@ final class PromotionService
             return null;
         }
 
-        return new PromotionCandidate($atual->kind, $atual->rule(), $soma, 'Desconto atual ('.$atual->kind->label().')', isCurrent: true);
+        return new PromotionCandidate($atual->kind, $atual->rule(), $soma, 'Desconto atual ('.$atual->kind->label().')', isCurrent: true, subscriptionId: $atual->subscription_id);
     }
 
     /**

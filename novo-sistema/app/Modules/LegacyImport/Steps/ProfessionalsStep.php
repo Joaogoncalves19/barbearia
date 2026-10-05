@@ -96,9 +96,6 @@ final class ProfessionalsStep extends Step
                 'photo_path' => V::text($row['foto'] ?? null),
                 'is_active' => $ativo,
                 'is_bookable' => $ativo,
-                'subscription_commission_mode' => $modo,
-                'subscription_commission_rate_bp' => $modo === 'percent' ? V::percentBp($valorModo) : null,
-                'subscription_commission_amount_cents' => $modo === 'fixed' ? $this->money('barbeiros', $sid, 'comissao_assinatura_valor', $valorModo) : null,
                 ...$this->stamps(),
             ]);
             $this->ctx->remember('barbeiros', $sid, 'professional', $id, $row);
@@ -111,6 +108,15 @@ final class ProfessionalsStep extends Step
                 if (V::bool($row['comissao_produtos'] ?? null)) {
                     $this->commissionRule('product', $id, $comissao);
                 }
+            }
+            // Comissao em atendimento de assinante (Fase 9): "padrao" = sem regra
+            // propria (vale a do servico sobre o preco de tabela).
+            if ($modo === 'percent') {
+                $this->commissionRule('subscription', $id, min(10000, V::percentBp($valorModo) ?? 0));
+            } elseif ($modo === 'fixed') {
+                $this->commissionRule('subscription', $id, null, max(0, $this->money('barbeiros', $sid, 'comissao_assinatura_valor', $valorModo) ?? 0));
+            } elseif ($modo === 'none') {
+                $this->commissionRule('subscription', $id, null, null, 'none');
             }
 
             // Servicos e combos que realiza (CSV misturando os dois).
@@ -257,12 +263,13 @@ final class ProfessionalsStep extends Step
     }
 
     /** Regra de comissao do profissional (a mesma forma de CommissionRules::set). */
-    private function commissionRule(string $target, int $professionalId, int $rateBp): void
+    private function commissionRule(string $target, int $professionalId, ?int $rateBp, ?int $amountCents = null, ?string $type = null): void
     {
         $escopo = $target.'|p'.$professionalId.'|s*';
+        $tipo = $type ?? ($rateBp !== null ? 'percent' : 'fixed');
         $this->ctx->insert('commission_rules', [
             'target' => $target, 'professional_id' => $professionalId, 'service_id' => null,
-            'type' => 'percent', 'rate_bp' => $rateBp, 'amount_cents' => null,
+            'type' => $tipo, 'rate_bp' => $tipo === 'percent' ? $rateBp : null, 'amount_cents' => $tipo === 'fixed' ? $amountCents : null,
             'scope_key' => $escopo, 'current_scope' => $escopo, 'starts_at' => $this->ctx->now,
             'reason' => 'Importada do sistema antigo', ...$this->stamps(),
         ]);

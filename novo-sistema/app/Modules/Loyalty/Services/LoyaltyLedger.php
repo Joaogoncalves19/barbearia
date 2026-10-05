@@ -14,6 +14,7 @@ use App\Modules\Loyalty\Models\LoyaltyRedemption;
 use App\Modules\Loyalty\Support\PromotionPolicy;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Exceptions\DomainRuleViolation;
+use App\Modules\Subscriptions\Services\SubscriptionBenefits;
 use App\Modules\System\Services\AuditTrail;
 use Illuminate\Support\Facades\DB;
 
@@ -121,6 +122,8 @@ class LoyaltyLedger
     /**
      * Na conclusao do atendimento (dentro da transacao dela): pontos ganhos
      * (R-17, R-19) e bonus de indicacao para quem indicou (R-15), uma vez.
+     * R-19 (Fase 9): assinante com direito ao beneficio na data nao acumula
+     * pontos (o bonus de indicacao de quem o indicou continua valendo).
      */
     public function recordCompletion(Attendance $attendance): void
     {
@@ -134,9 +137,10 @@ class LoyaltyLedger
         }
         $this->lock($cliente->id);
 
-        $ganho = $politica->string('loyalty_earn_mode') === 'value'
+        $assinante = app(SubscriptionBenefits::class)->rightOn($cliente->id, BusinessTime::dateOf($attendance->completed_at ?? BusinessTime::now())) !== null;
+        $ganho = $assinante ? 0 : ($politica->string('loyalty_earn_mode') === 'value'
             ? intdiv(max(0, (int) $attendance->total_cents), max(1, $politica->int('loyalty_cents_per_point')))
-            : $politica->int('loyalty_points_per_visit');
+            : $politica->int('loyalty_points_per_visit'));
         if ($ganho > 0) {
             $this->record($cliente->id, $ganho, LoyaltyEntryKind::Earned, 'Atendimento '.$attendance->code, [
                 'attendance_id' => $attendance->id, 'appointment_id' => $attendance->appointment_id,

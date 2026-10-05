@@ -161,6 +161,15 @@ class PermissionMatrixTest extends TestCase
             'gift_cards.view' => ['owner', 'manager', 'reception', 'finance'],
             'gift_cards.sell' => ['owner', 'manager', 'reception'],
             'gift_cards.cancel' => ['owner', 'finance'],
+            // Fase 9: assinaturas
+            'subscriptions.view' => ['owner', 'manager', 'reception', 'finance'],
+            'subscriptions.payments' => ['owner', 'manager', 'finance'],
+            'subscriptions.create' => ['owner', 'manager', 'reception'],
+            'subscriptions.cancel' => ['owner', 'manager'],
+            'subscriptions.reactivate' => ['owner', 'manager'],
+            'subscriptions.refund' => ['owner', 'finance'],
+            'subscriptions.history' => ['owner', 'manager', 'finance'],
+            'plans.manage' => ['owner'],
             'marketing.manage' => ['owner', 'manager'],
             'settings.manage' => ['owner'],
         ];

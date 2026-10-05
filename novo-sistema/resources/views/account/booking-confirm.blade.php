@@ -50,6 +50,21 @@
         @if ($promotion->couponCode && ! isset($q->problems['coupon']))<input type="hidden" name="cupom" value="{{ $promotion->couponCode }}">@endif
         @if ($promotion->useLoyalty && ! isset($q->problems['loyalty']))<input type="hidden" name="pontos" value="1">@endif
         <input type="hidden" name="expected_total" value="{{ (int) $q->totalCents() }}">
+        @if ($plans !== [])
+            {{-- Fase 9: adesao a assinatura no agendamento (como no sistema antigo). --}}
+            <x-ui.card title="Assinatura">
+                <fieldset class="check-group stack stack-sm">
+                    <legend>Quer assinar um plano?</legend>
+                    <x-ui.radio name="plano" value="" label="Não, só agendar" :checked="$chosenPlan === null" id="plano-nenhum" />
+                    @foreach ($plans as $opcao)
+                        <x-ui.radio name="plano" :value="(string) $opcao['plan']->id" :id="'plano-'.$opcao['plan']->id" :label="$opcao['plan']->name.' · '.$opcao['price']"
+                            :hint="($opcao['covers'] ? $service->name.' sai de graça para assinante.' : $service->name.' não está incluído neste plano.').' Pagamento mensal pelo Stripe; o benefício entra neste agendamento quando o pagamento for confirmado.'"
+                            :checked="$chosenPlan === $opcao['plan']->id" />
+                    @endforeach
+                </fieldset>
+                <p class="text-sm text-muted">O agendamento fica feito pelo valor acima. Depois de confirmar, você vai para a página da assinatura para pagar com segurança no Stripe.</p>
+            </x-ui.card>
+        @endif
         <x-ui.textarea name="notes" label="Observação para a barbearia" rows="2" optional />
         <p class="text-sm text-muted">O valor fica registrado agora: se o preço mudar depois, o seu não muda. Pagamento na barbearia.</p>
         <x-ui.button type="submit" variant="accent" block>Confirmar agendamento</x-ui.button>

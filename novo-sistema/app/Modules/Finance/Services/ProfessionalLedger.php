@@ -65,7 +65,7 @@ final class ProfessionalLedger
                 'base_cents' => $linha['base'],
                 'rate_bp' => $regra?->rate_bp,
                 'amount_cents' => $linha['amount'],
-                'rule' => $regra !== null ? $regra->snapshot() : ['tipo' => 'none', 'descricao' => 'Sem regra de comissão para este item'],
+                'rule' => [...($regra !== null ? $regra->snapshot() : ['tipo' => 'none', 'descricao' => 'Sem regra de comissão para este item']), ...($linha['note'] !== null ? ['observacao' => $linha['note']] : [])],
                 'occurred_at' => $quando,
             ]);
         }

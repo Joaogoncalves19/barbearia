@@ -8,6 +8,7 @@ use App\Http\Controllers\Account\CompleteProfileController;
 use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
 use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
+use App\Http\Controllers\Account\SubscriptionController as AccountSubscriptionController;
 use App\Http\Controllers\Auth\Customer\EmailVerificationController;
 use App\Http\Controllers\Auth\Customer\ForgotPasswordController as CustomerForgotPasswordController;
 use App\Http\Controllers\Auth\Customer\LoginController as CustomerLoginController;
@@ -43,6 +44,8 @@ use App\Http\Controllers\Panel\Promotions\CustomerLoyaltyController;
 use App\Http\Controllers\Panel\Promotions\GiftCardController;
 use App\Http\Controllers\Panel\Promotions\PromotionSettingsController;
 use App\Http\Controllers\Panel\ReceiptController as PanelReceiptController;
+use App\Http\Controllers\Panel\Subscriptions\PlanController;
+use App\Http\Controllers\Panel\Subscriptions\SubscriptionController as PanelSubscriptionController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
@@ -156,6 +159,10 @@ Route::prefix('minha-conta')
             // Fidelidade e indicacao (Fase 8): saldo, extrato, regras e o proprio codigo.
             Route::get('/fidelidade', [AccountLoyaltyController::class, 'show'])->name('loyalty');
             Route::post('/fidelidade/codigo', [AccountLoyaltyController::class, 'generateCode'])->middleware('throttle:booking')->name('loyalty.code');
+            // Assinatura (Fase 9): so a propria; cancelar a renovacao e desfazer.
+            Route::get('/assinatura', [AccountSubscriptionController::class, 'show'])->name('subscription');
+            Route::post('/assinatura/cancelar', [AccountSubscriptionController::class, 'cancel'])->middleware('throttle:booking')->name('subscription.cancel');
+            Route::post('/assinatura/reativar', [AccountSubscriptionController::class, 'reactivate'])->middleware('throttle:booking')->name('subscription.reactivate');
         });
     });
 
@@ -356,6 +363,22 @@ Route::prefix('painel')
         Route::post('/vales-presente', [GiftCardController::class, 'store'])->middleware(['can:gift_cards.sell', 'throttle:money'])->name('gift-cards.store');
         Route::get('/vales-presente/{giftCard}', [GiftCardController::class, 'show'])->middleware('can:gift_cards.view')->name('gift-cards.show');
         Route::post('/vales-presente/{giftCard}/cancelar', [GiftCardController::class, 'cancel'])->middleware(['can:gift_cards.cancel', 'throttle:money'])->name('gift-cards.cancel');
+
+        // Assinaturas (Fase 9). Uma permissao por acao; o estado so muda pelos servicos.
+        Route::get('/assinaturas', [PanelSubscriptionController::class, 'index'])->middleware('can:subscriptions.view')->name('subscriptions.index');
+        Route::get('/assinaturas/link', [PanelSubscriptionController::class, 'newLink'])->middleware('can:subscriptions.create')->name('subscriptions.link');
+        Route::post('/assinaturas/link', [PanelSubscriptionController::class, 'storeLink'])->middleware(['can:subscriptions.create', 'throttle:money'])->name('subscriptions.link.store');
+        Route::get('/assinaturas/eventos', [PanelSubscriptionController::class, 'events'])->middleware('can:subscriptions.history')->name('subscriptions.events');
+        Route::post('/assinaturas/pagamentos/{payment}/reembolso', [PanelSubscriptionController::class, 'refund'])->middleware(['can:subscriptions.refund', 'throttle:money'])->name('subscriptions.refund');
+        Route::get('/assinaturas/{subscription}', [PanelSubscriptionController::class, 'show'])->middleware('can:subscriptions.view')->name('subscriptions.show');
+        Route::post('/assinaturas/{subscription}/cancelar', [PanelSubscriptionController::class, 'cancel'])->middleware(['can:subscriptions.cancel', 'throttle:money'])->name('subscriptions.cancel');
+        Route::post('/assinaturas/{subscription}/reativar', [PanelSubscriptionController::class, 'reactivate'])->middleware(['can:subscriptions.reactivate', 'throttle:money'])->name('subscriptions.reactivate');
+        Route::get('/planos', [PlanController::class, 'index'])->middleware('can:plans.manage')->name('plans.index');
+        Route::get('/planos/novo', [PlanController::class, 'create'])->middleware('can:plans.manage')->name('plans.create');
+        Route::post('/planos', [PlanController::class, 'store'])->middleware(['can:plans.manage', 'throttle:money'])->name('plans.store');
+        Route::get('/planos/{plan}', [PlanController::class, 'edit'])->middleware('can:plans.manage')->name('plans.edit');
+        Route::post('/planos/{plan}/versoes', [PlanController::class, 'storeVersion'])->middleware(['can:plans.manage', 'throttle:money'])->name('plans.versions.store');
+        Route::post('/planos/{plan}/situacao', [PlanController::class, 'setStatus'])->middleware(['can:plans.manage', 'throttle:money'])->name('plans.status');
 
         // --- Comprovantes impressos e por e-mail (Fase 8) ---
         // Mesmo acesso da tela do documento; envio com limite proprio.

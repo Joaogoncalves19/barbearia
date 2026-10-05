@@ -15,6 +15,7 @@ use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Pricing\PriceBreakdown;
 use App\Modules\Shared\Support\Money;
+use App\Modules\Subscriptions\Services\SubscriptionBenefits;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
@@ -40,10 +41,16 @@ use Illuminate\Support\Facades\DB;
  *   no mes (o primeiro agendamento/atendimento que usar).
  * - Indicacao (R-15): cliente indicado, ainda sem atendimento concluido e
  *   sem outro agendamento em aberto com o desconto de indicacao.
+ * - Assinatura (Fase 9, D-44/D-45): com direito na data (SubscriptionBenefits),
+ *   os servicos incluidos na versao contratada saem de graca; e mais um
+ *   candidato (vale o maior) e nao gasta nada.
  */
 final class PromotionEngine
 {
-    public function __construct(private readonly LoyaltyLedger $ledger) {}
+    public function __construct(
+        private readonly LoyaltyLedger $ledger,
+        private readonly SubscriptionBenefits $benefits,
+    ) {}
 
     /**
      * @param  iterable<array{total: ?int, discountable: bool, unit: ?int}>  $lines
@@ -82,6 +89,9 @@ final class PromotionEngine
             if (($i = $this->referralCandidate($customer, $linhas, $appointmentId, $politica)) !== null) {
                 $candidatos[] = $i;
             }
+            if (($s = $this->subscriptionCandidate($customer, $linhas, $localDate)) !== null) {
+                $candidatos[] = $s;
+            }
         }
 
         $validos = array_values(array_filter($candidatos, fn (PromotionCandidate $c) => $c->amountCents > 0));
@@ -108,8 +118,8 @@ final class PromotionEngine
     /**
      * Linhas para o motor a partir dos itens (agendamento ou atendimento).
      *
-     * @param  iterable<object>  $items  com item_type, total_cents, unit_price_cents
-     * @return list<array{total: ?int, discountable: bool, unit: ?int}>
+     * @param  iterable<object>  $items  com item_type, total_cents, unit_price_cents, service_id
+     * @return list<array{total: ?int, discountable: bool, unit: ?int, service: ?int}>
      */
     public static function linesFrom(iterable $items): array
     {
@@ -119,10 +129,30 @@ final class PromotionEngine
                 'total' => $i->total_cents !== null ? (int) $i->total_cents : null,
                 'discountable' => $i->item_type !== ItemType::Product,
                 'unit' => $i->unit_price_cents !== null ? (int) $i->unit_price_cents : null,
+                'service' => isset($i->service_id) ? (int) $i->service_id : null,
             ];
         }
 
         return $linhas;
+    }
+
+    /**
+     * Beneficio da assinatura: soma dos servicos incluidos (ou nulo).
+     *
+     * @param  list<array{total: ?int, discountable: bool, unit: ?int, service?: ?int}>  $lines
+     */
+    private function subscriptionCandidate(Customer $customer, array $lines, string $localDate): ?PromotionCandidate
+    {
+        $assinatura = $this->benefits->rightOn($customer->id, $localDate);
+        if ($assinatura === null) {
+            return null;
+        }
+        $valor = $this->benefits->coveredAmount($assinatura, $lines);
+        if ($valor <= 0) {
+            return null;
+        }
+
+        return new PromotionCandidate(AdjustmentKind::Subscription, Discount::fixed($valor), $valor, 'Assinatura ('.$assinatura->planName().')', subscriptionId: $assinatura->id);
     }
 
     /**

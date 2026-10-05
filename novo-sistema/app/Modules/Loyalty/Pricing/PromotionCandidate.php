@@ -23,9 +23,10 @@ final class PromotionCandidate
         public readonly ?Coupon $coupon = null,
         public readonly ?array $loyaltyReward = null,
         public readonly bool $isCurrent = false,
+        public readonly ?int $subscriptionId = null,
     ) {}
 
-    /** Desempate (mesmo valor): o que ja esta aplicado; depois o que nao gasta nada (aniversario, indicacao); depois cupom, pontos, manual. */
+    /** Desempate (mesmo valor): o que ja esta aplicado; depois o que nao gasta nada (assinatura, aniversario, indicacao); depois cupom, pontos, manual. */
     public function priority(): int
     {
         if ($this->isCurrent) {
@@ -33,11 +34,12 @@ final class PromotionCandidate
         }
 
         return match ($this->kind) {
-            AdjustmentKind::Birthday => 1,
-            AdjustmentKind::Referral => 2,
-            AdjustmentKind::Coupon => 3,
-            AdjustmentKind::Loyalty => 4,
-            default => 5,
+            AdjustmentKind::Subscription => 1,
+            AdjustmentKind::Birthday => 2,
+            AdjustmentKind::Referral => 3,
+            AdjustmentKind::Coupon => 4,
+            AdjustmentKind::Loyalty => 5,
+            default => 6,
         };
     }
 

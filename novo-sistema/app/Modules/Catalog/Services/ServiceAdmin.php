@@ -98,7 +98,7 @@ final class ServiceAdmin
     {
         return ! DB::table('appointment_items')->where('service_id', $service->id)->exists()
             && ! DB::table('package_items')->where('service_id', $service->id)->exists()
-            && ! DB::table('plan_services')->where('service_id', $service->id)->exists();
+            && ! DB::table('plan_version_services')->where('service_id', $service->id)->exists();
     }
 
     public function delete(Service $service): void

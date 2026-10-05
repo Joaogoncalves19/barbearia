@@ -28,6 +28,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $amount_cents
  * @property string|null $reason
  * @property int|null $applied_by_user_id
+ * @property int|null $coupon_redemption_id
+ * @property int|null $loyalty_redemption_id
+ * @property int|null $subscription_id
  */
 class AttendanceDiscount extends Model
 {

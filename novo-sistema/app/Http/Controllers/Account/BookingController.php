@@ -18,6 +18,12 @@ use App\Modules\Scheduling\Services\BookingRequest;
 use App\Modules\Scheduling\Services\BookingService;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Scheduling\Support\Channel;
+use App\Modules\Subscriptions\Enums\SubscriptionOrigin;
+use App\Modules\Subscriptions\Enums\SubscriptionStatus;
+use App\Modules\Subscriptions\Exceptions\SubscriptionRuleViolation;
+use App\Modules\Subscriptions\Models\Plan;
+use App\Modules\Subscriptions\Models\Subscription;
+use App\Modules\Subscriptions\Services\SubscriptionCheckout;
 use App\Modules\Team\Models\Professional;
 use App\Modules\Team\Services\ProfessionalDirectory;
 use Carbon\CarbonImmutable;
@@ -53,7 +59,7 @@ class BookingController extends Controller
         $cliente = $request->user('customer');
         $pedido = $this->promotionRequest($request);
         $preco = (int) $servico->price_cents;
-        $quote = $promotions->quote($cliente, [['total' => $preco, 'discountable' => true, 'unit' => $preco]], BusinessTime::dateOf($inicio), $pedido);
+        $quote = $promotions->quote($cliente, [['total' => $preco, 'discountable' => true, 'unit' => $preco, 'service' => $servico->id]], BusinessTime::dateOf($inicio), $pedido);
 
         return view('account.booking-confirm', [
             'quote' => $quote,
@@ -66,7 +72,29 @@ class BookingController extends Controller
             'start' => $inicio,
             'end' => $inicio->addMinutes($servico->duration_minutes),
             'query' => $request->only(['servico', 'profissional', 'data', 'hora']),
+            'plans' => $this->signupPlans($cliente, $servico),
+            'chosenPlan' => $request->integer('plano') ?: null,
         ]);
+    }
+
+    /**
+     * Fase 9 (D-47, como no sistema antigo): planos que o cliente pode assinar
+     * ao agendar. So com pagamento online configurado (R-25), sem assinatura
+     * vigente, com e-mail. Cada um diz se este servico sai de graca.
+     *
+     * @return list<array{plan: Plan, price: string, covers: bool}>
+     */
+    private function signupPlans(Customer $customer, Service $service): array
+    {
+        if (! app(SubscriptionCheckout::class)->available() || $customer->email === null
+            || Subscription::query()->where('customer_id', $customer->id)->whereIn('status', [SubscriptionStatus::Active->value, SubscriptionStatus::PastDue->value, SubscriptionStatus::CancelScheduled->value])->exists()) {
+            return [];
+        }
+
+        return Plan::query()->with('currentVersion.services')->where('is_active', true)->orderBy('name')->get()
+            ->filter(fn (Plan $p) => $p->currentVersion !== null)
+            ->map(fn (Plan $p) => ['plan' => $p, 'price' => $p->currentVersion?->priceLabel() ?? '', 'covers' => in_array($service->id, $p->currentVersion?->serviceIds() ?? [], true)])
+            ->values()->all();
     }
 
     public function store(Request $request, ProfessionalDirectory $directory, BookingService $booking): RedirectResponse
@@ -99,6 +127,24 @@ class BookingController extends Controller
                 ->withErrors(['promotion' => $e->getMessage()]);
         }
 
+        // Adesao no agendamento (Fase 9): o agendamento ja esta feito pelo valor
+        // normal; o beneficio entra quando o Stripe confirmar o pagamento.
+        if ($request->filled('plano')) {
+            $plano = Plan::query()->find($request->integer('plano'));
+            try {
+                if ($plano === null) {
+                    throw new SubscriptionRuleViolation('plan_unavailable');
+                }
+                app(SubscriptionCheckout::class)->start($cliente, $plano, SubscriptionOrigin::Booking, $a, null);
+            } catch (SubscriptionRuleViolation $e) {
+                return redirect()->route('account.appointments.show', $a)
+                    ->with('status', 'Agendamento feito! Código '.$a->code.'.')
+                    ->withErrors(['appointment' => 'A assinatura não foi iniciada: '.$e->getMessage().' O agendamento vale pelo valor normal.']);
+            }
+
+            return redirect()->route('account.subscription')->with('status', 'Agendamento feito! Código '.$a->code.'. Agora conclua o pagamento da assinatura: quando o Stripe confirmar, o benefício entra neste agendamento.');
+        }
+
         return redirect()->route('account.appointments.show', $a)->with('status', 'Agendamento feito! Código '.$a->code.'.');
     }
 
@@ -119,6 +165,7 @@ class BookingController extends Controller
             'cupom' => ['nullable', 'string', 'max:64'],
             'pontos' => ['nullable', 'boolean'],
             'expected_total' => ['nullable', 'integer', 'min:0'],
+            'plano' => ['nullable', 'integer'],
         ]);
 
         abort_unless(BusinessTime::isValidDate($dados['data']) && BusinessTime::isValidTime($dados['hora']), 404);

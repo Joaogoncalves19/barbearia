@@ -81,11 +81,11 @@ class CommissionRule extends Model
         static::saving(function (self $r): void {
             $ok = match ($r->type) {
                 CommissionRuleType::Percent => $r->rate_bp !== null && $r->rate_bp >= 0 && $r->rate_bp <= 10000 && $r->amount_cents === null,
-                CommissionRuleType::Fixed => $r->amount_cents !== null && $r->amount_cents >= 0 && $r->amount_cents <= self::MAX_FIXED_CENTS && $r->rate_bp === null && $r->target === CommissionTarget::Service,
+                CommissionRuleType::Fixed => $r->amount_cents !== null && $r->amount_cents >= 0 && $r->amount_cents <= self::MAX_FIXED_CENTS && $r->rate_bp === null && $r->target !== CommissionTarget::Product,
                 CommissionRuleType::None => $r->rate_bp === null && $r->amount_cents === null,
             };
-            if (! $ok || ($r->target === CommissionTarget::Product && $r->service_id !== null)) {
-                throw DomainRuleViolation::rule('R-COMISSAO', 'Regra de comissao: percentual entre 0% e 100%, valor fixo so para servico, produto sem servico.');
+            if (! $ok || ($r->target !== CommissionTarget::Service && $r->service_id !== null)) {
+                throw DomainRuleViolation::rule('R-COMISSAO', 'Regra de comissao: percentual entre 0% e 100%, valor fixo so para servico ou assinatura, produto e assinatura sem servico.');
             }
             if ($r->scope_key !== self::scopeKey($r->target, $r->professional_id, $r->service_id)
                 || ($r->current_scope !== null && $r->current_scope !== $r->scope_key)) {
@@ -120,7 +120,7 @@ class CommissionRule extends Model
     {
         return match ($this->type) {
             CommissionRuleType::Percent => self::percentLabel((int) $this->rate_bp),
-            CommissionRuleType::Fixed => Money::fromCents((int) $this->amount_cents)->format().' por unidade',
+            CommissionRuleType::Fixed => Money::fromCents((int) $this->amount_cents)->format().($this->target === CommissionTarget::Subscription ? ' por atendimento' : ' por unidade'),
             CommissionRuleType::None => 'Sem comissão',
         };
     }
@@ -133,8 +133,17 @@ class CommissionRule extends Model
         return match (true) {
             $pro !== null && $srv !== null => $pro.' · '.$srv,
             $srv !== null => 'Todos · '.$srv,
-            $pro !== null => $pro.' · '.($this->target === CommissionTarget::Product ? 'produtos' : 'todos os serviços'),
-            default => 'Padrão da barbearia · '.($this->target === CommissionTarget::Product ? 'produtos' : 'serviços'),
+            $pro !== null => $pro.' · '.self::targetScope($this->target),
+            default => 'Padrão da barbearia · '.($this->target === CommissionTarget::Service ? 'serviços' : self::targetScope($this->target)),
+        };
+    }
+
+    private static function targetScope(CommissionTarget $target): string
+    {
+        return match ($target) {
+            CommissionTarget::Product => 'produtos',
+            CommissionTarget::Subscription => 'atendimento de assinante',
+            CommissionTarget::Service => 'todos os serviços',
         };
     }
 

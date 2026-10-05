@@ -70,7 +70,8 @@
 > balcão. **D-43** resgate de pontos escolhido ao agendar ou no balcão; os pontos ficam reservados e **só saem
 > do saldo na conclusão** do atendimento. **D-40 revista:** comprovantes impressos e por e-mail dos quatro
 > documentos, implementados nesta fase. Itens implementados de forma conservadora e marcados **PRECISA DE
-> DECISÃO** (P8-01 a P8-07): ver [relatorio-fase-8.md](relatorio-fase-8.md#4-decisões).
+> DECISÃO** (P8-01 a P8-07): ver [relatorio-fase-8.md](relatorio-fase-8.md#4-decisões). **Aprovação da Fase 8
+> (2026-10-05):** P8-01 a P8-07 ficam **decididas como implementadas e documentadas**.
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

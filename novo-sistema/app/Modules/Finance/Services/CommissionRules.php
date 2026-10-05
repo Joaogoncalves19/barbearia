@@ -23,7 +23,9 @@ use Illuminate\Support\Facades\DB;
  * Precedencia (a mais especifica vence):
  *  servico: profissional + servico > servico (todos) > profissional (todos
  *           os servicos) > padrao da barbearia > nenhuma (sem comissao);
- *  produto: profissional > padrao da barbearia > nenhuma.
+ *  produto: profissional > padrao da barbearia > nenhuma;
+ *  assinatura (servico coberto, Fase 9): profissional > padrao da barbearia >
+ *           nenhuma (sem regra de assinatura = vale a regra do servico).
  * "Sem comissao" (tipo none) e uma regra: vence as mais gerais.
  *
  * Mudar = encerrar a regra em vigor e criar outra, na mesma transacao. A
@@ -73,14 +75,14 @@ final class CommissionRules
      */
     public function set(CommissionTarget $target, ?Professional $professional, ?Service $service, CommissionRuleType $type, ?int $rateBp, ?int $amountCents, ?string $reason, User $actor): CommissionRule
     {
-        if ($target === CommissionTarget::Product) {
+        if ($target !== CommissionTarget::Service) {
             $service = null;
         }
         $rateBp = $type === CommissionRuleType::Percent ? $rateBp : null;
         $amountCents = $type === CommissionRuleType::Fixed ? $amountCents : null;
         $valido = match ($type) {
             CommissionRuleType::Percent => $rateBp !== null && $rateBp >= 0 && $rateBp <= 10000,
-            CommissionRuleType::Fixed => $target === CommissionTarget::Service && $amountCents !== null && $amountCents >= 0 && $amountCents <= CommissionRule::MAX_FIXED_CENTS,
+            CommissionRuleType::Fixed => $target !== CommissionTarget::Product && $amountCents !== null && $amountCents >= 0 && $amountCents <= CommissionRule::MAX_FIXED_CENTS,
             CommissionRuleType::None => true,
         };
         if (! $valido) {
@@ -127,7 +129,7 @@ final class CommissionRules
     public function clear(CommissionTarget $target, ?Professional $professional, ?Service $service, User $actor): void
     {
         $this->guard(fn () => DB::transaction(function () use ($target, $professional, $service, $actor): void {
-            $atual = $this->current($target, $professional?->id, $target === CommissionTarget::Product ? null : $service?->id);
+            $atual = $this->current($target, $professional?->id, $target === CommissionTarget::Service ? $service?->id : null);
             if ($atual === null) {
                 throw new CommissionRuleViolation('no_rule');
             }

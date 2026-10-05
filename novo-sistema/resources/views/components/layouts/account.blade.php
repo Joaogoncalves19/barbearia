@@ -8,6 +8,7 @@
         ['label' => 'Minha conta', 'route' => 'account.home', 'pattern' => 'account.home'],
         ['label' => 'Meus dados', 'route' => 'account.profile.edit', 'pattern' => 'account.profile.*'],
         ['label' => 'Fidelidade', 'route' => 'account.loyalty', 'pattern' => 'account.loyalty*'],
+        ['label' => 'Assinatura', 'route' => 'account.subscription', 'pattern' => 'account.subscription*'],
         ['label' => 'Senha', 'route' => 'account.password.edit', 'pattern' => 'account.password.*'],
     ];
     $completo = ! auth('customer')->user()?->needsProfileCompletion();

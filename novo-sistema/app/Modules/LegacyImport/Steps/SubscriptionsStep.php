@@ -6,6 +6,7 @@ use App\Modules\LegacyImport\Enums\IssueClassification as C;
 use App\Modules\LegacyImport\Enums\IssueSeverity as S;
 use App\Modules\LegacyImport\Support\LegacyValue as V;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * planos, clientes_assinaturas, assinatura_pagamentos e
@@ -14,6 +15,11 @@ use Illuminate\Support\Facades\DB;
  * IDs do Stripe (cliente, assinatura, pagamento, evento) sao copiados
  * exatamente como estao: a cobranca recorrente continua apos a virada e o
  * webhook novo reconhece eventos ja processados.
+ *
+ * Fase 9: o preco e os servicos do plano viram a VERSAO 1 do plano; cada
+ * assinatura importada aponta essa versao, ganha um identificador publico e
+ * a origem "importada". Pagamento "confirmado" vira "paid" (recebido);
+ * eventos ja processados pelo sistema antigo ficam como "legacy".
  */
 final class SubscriptionsStep extends Step
 {
@@ -47,10 +53,17 @@ final class SubscriptionsStep extends Step
 
                 continue;
             }
-            $id = $this->ctx->insert('plans', ['name' => $this->text('planos', $row['nome']) ?? '(sem nome)', 'price_cents' => $preco, 'is_active' => true, ...$this->stamps()]);
+            $id = $this->ctx->insert('plans', ['name' => $this->text('planos', $row['nome']) ?? '(sem nome)', 'is_active' => true, ...$this->stamps()]);
+            $versao = $this->ctx->insert('plan_versions', [
+                'plan_id' => $id, 'version' => 1, 'price_cents' => max(1, $preco), 'interval' => 'month', 'current_plan_id' => $id,
+                'starts_at' => $this->ctx->now, 'reason' => 'Importado do sistema antigo', ...$this->stamps(),
+            ]);
+            if ($preco < 1) {
+                $this->ctx->issue('planos', $sid, C::Inconsistent, S::Warning, 'plan_zero_price', 'Plano com preço zero no sistema antigo: importado com R$ 0,01 (revisar antes de novas adesões).', ['valor' => $row['valor'] ?? null], true);
+            }
             foreach (array_unique(V::csv($row['servicos_ids'] ?? null)) as $servicoAntigo) {
                 if ($servico = $this->ctx->ref('servicos', $servicoAntigo)) {
-                    DB::table('plan_services')->insert(['plan_id' => $id, 'service_id' => $servico]);
+                    DB::table('plan_version_services')->insert(['plan_version_id' => $versao, 'service_id' => $servico]);
                 } else {
                     $this->ctx->issue('planos', $sid, C::Orphan, S::Warning, 'plan_unknown_service', "Plano inclui servico inexistente {$servicoAntigo}.", ['servico_id' => $servicoAntigo], true);
                 }
@@ -96,8 +109,11 @@ final class SubscriptionsStep extends Step
             }
             $gatewayNome = V::text($row['gateway'] ?? null) ?? 'manual';
             $id = $this->ctx->insert('subscriptions', [
+                'public_id' => (string) Str::uuid(),
                 'customer_id' => $cliente,
                 'plan_id' => $plano,
+                'plan_version_id' => $plano !== null ? DB::table('plan_versions')->where('plan_id', $plano)->where('version', 1)->value('id') : null,
+                'origin' => 'import',
                 'status' => $status,
                 'starts_on' => V::date($row['data_inicio'] ?? null),
                 'ends_on' => $fim,
@@ -131,16 +147,19 @@ final class SubscriptionsStep extends Step
                 $referencia = null;
             }
             $assinatura = $this->ctx->ref('clientes_assinaturas', $row['cliente_id'] ?? null);
+            $planoPg = $this->ctx->ref('planos', $row['plano_id'] ?? null);
+            $statusPg = V::text($row['status'] ?? null) ?? 'confirmado';
             $id = $this->ctx->insert('subscription_payments', [
                 'subscription_id' => $assinatura,
                 'customer_id' => $cliente,
-                'plan_id' => $this->ctx->ref('planos', $row['plano_id'] ?? null),
+                'plan_id' => $planoPg,
+                'plan_version_id' => $planoPg !== null ? DB::table('plan_versions')->where('plan_id', $planoPg)->where('version', 1)->value('id') : null,
                 'gateway' => V::text($row['gateway'] ?? null) ?? 'manual',
                 'gateway_payment_id' => $referencia,
                 'gateway_subscription_id' => V::text($row['gateway_subscription_id'] ?? null),
                 'amount_cents' => $valor,
                 'currency' => strtoupper(V::text($row['moeda'] ?? null) ?? 'BRL'),
-                'status' => V::text($row['status'] ?? null) ?? 'confirmado',
+                'status' => $statusPg === 'confirmado' ? 'paid' : $statusPg,
                 'kind' => V::text($row['tipo'] ?? null) ?? 'mensalidade',
                 'paid_at' => $this->local($row['data_pagamento'] ?? null),
                 'created_at' => $this->local($row['created_at'] ?? null) ?? $this->ctx->now,
@@ -158,6 +177,8 @@ final class SubscriptionsStep extends Step
                 'event_id' => (string) $row['evento_id'],
                 'type' => V::text($row['tipo'] ?? null),
                 'processed_at' => $this->local($row['processado_em'] ?? null),
+                'status' => 'processed',
+                'result' => 'legacy',
             ]);
             $this->ctx->remember('webhook_eventos_processados', $sid, 'gateway_event', $id, $row);
         }

@@ -55,6 +55,10 @@ class RouteAuthorizationTest extends TestCase
         'booking.services' => 'lista de servicos agendaveis',
         'booking.professional' => 'profissionais que fazem o servico',
         'booking.slots' => 'dias e horarios livres (calculados no servidor)',
+        // Webhooks (Fase 9): quem chama e o Stripe, sem sessao; a autenticidade
+        // e a assinatura HMAC do corpo (StripeSignature), com janela de 5 min.
+        'webhooks.stripe' => 'webhook do Stripe (assinatura conferida, throttle:webhooks)',
+        'webhooks.stripe.legacy' => 'endereco antigo do webhook ate trocar no Stripe (mesma conferencia)',
     ];
 
     /** Rotas que so exigem estar logado (sem permissao especifica). */
@@ -202,6 +206,8 @@ class RouteAuthorizationTest extends TestCase
             'customer.password.update' => 'throttle:token-use',
             'customer.magic.consume' => 'throttle:token-use',
             'customer.verification.verify' => 'throttle:token-use',
+            'webhooks.stripe' => 'throttle:webhooks',
+            'webhooks.stripe.legacy' => 'throttle:webhooks',
             'panel.password.update' => 'throttle:password-check',
             'panel.password.confirm.store' => 'throttle:password-check',
             'account.password.update' => 'throttle:password-check',

@@ -45,7 +45,7 @@ class CommissionRuleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $dados = $request->validate([
-            'target' => ['required', Rule::in(['service', 'product'])],
+            'target' => ['required', Rule::in(['service', 'product', 'subscription'])],
             'professional_id' => ['nullable', 'integer'],
             'service_id' => ['nullable', 'integer'],
             'type' => ['required', Rule::in(['percent', 'fixed', 'none'])],

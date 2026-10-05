@@ -157,6 +157,10 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(60)->by('receipts-h|'.$request->user()?->getAuthIdentifier()),
         ]);
 
+        // Webhooks do Stripe (Fase 9): folga para o reenvio em lote do Stripe,
+        // trava inundacao por IP. A autenticidade vem da assinatura.
+        RateLimiter::for('webhooks', fn (Request $request) => Limit::perMinute(600)->by('webhook|'.$request->ip()));
+
         // Previa com cupom na confirmacao do agendamento (Fase 8): impede testar
         // codigos de cupom em serie. Sem cupom no pedido, nao conta.
         RateLimiter::for('coupon-check', fn (Request $request) => $request->filled('cupom') ? [

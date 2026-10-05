@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /** Area da equipe? (decide para qual login mandar quem nao esta logado) */
 $isPanel = fn (Request $request): bool => $request->is('painel', 'painel/*');
@@ -20,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Webhooks (Fase 9): sem sessao, cookie ou CSRF; limite proprio.
+        then: function (): void {
+            Route::middleware('throttle:webhooks')->group(__DIR__.'/../routes/webhooks.php');
+        },
     )
     ->withMiddleware(function (Middleware $middleware) use ($isPanel): void {
         $middleware->web(append: [SecurityHeaders::class]);

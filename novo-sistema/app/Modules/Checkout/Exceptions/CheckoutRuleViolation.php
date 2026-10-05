@@ -30,6 +30,7 @@ final class CheckoutRuleViolation extends RuntimeException
         'promotion' => '',
         'invalid_gift_card_line' => 'Vale-presente: informe o código do vale e não lance gorjeta nele.',
         'customer_required' => 'Cupom e pontos exigem cliente cadastrado no atendimento.',
+        'subscription_lapsed' => 'A assinatura do cliente não dá direito hoje (cancelada ou vencida): retire o desconto da assinatura e confira o novo total.',
     ];
 
     public function __construct(public readonly string $reason, ?string $detail = null)

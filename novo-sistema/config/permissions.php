@@ -135,6 +135,17 @@ return [
         'gift_cards.view' => 'Ver vales-presente',
         'gift_cards.sell' => 'Vender vale-presente (entra no caixa)',
         'gift_cards.cancel' => 'Cancelar vale-presente (devolve o valor pelo caixa)',
+
+        // Assinaturas (Fase 9). Cada acao tem a sua habilidade; ninguem ve as
+        // chaves do Stripe (ficam so em variaveis de ambiente).
+        'subscriptions.view' => 'Ver assinaturas e assinantes',
+        'subscriptions.payments' => 'Ver pagamentos e reembolsos de assinatura',
+        'subscriptions.create' => 'Gerar link de pagamento de assinatura para um cliente',
+        'subscriptions.cancel' => 'Cancelar assinatura (no fim do período ou imediatamente)',
+        'subscriptions.reactivate' => 'Reativar assinatura com cancelamento agendado',
+        'subscriptions.refund' => 'Reembolsar pagamento de assinatura (pelo Stripe)',
+        'subscriptions.history' => 'Consultar histórico das assinaturas e eventos do Stripe',
+        'plans.manage' => 'Configurar planos (preço, serviços incluídos, versões)',
         // Campanhas e configuracoes (Fases 10 e seguintes)
         'marketing.manage' => 'Gerenciar campanhas',
         'settings.manage' => 'Alterar configurações do estabelecimento',
@@ -163,6 +174,8 @@ return [
             'reports.view',
             'coupons.view', 'coupons.manage', 'promotions.apply', 'promotions.configure', 'loyalty.view', 'loyalty.adjust',
             'gift_cards.view', 'gift_cards.sell', 'gift_cards.cancel',
+            'subscriptions.view', 'subscriptions.payments', 'subscriptions.create', 'subscriptions.cancel', 'subscriptions.reactivate',
+            'subscriptions.refund', 'subscriptions.history', 'plans.manage',
             'marketing.manage', 'settings.manage',
         ],
 
@@ -184,6 +197,7 @@ return [
             'reports.view',
             'coupons.view', 'coupons.manage', 'promotions.apply', 'loyalty.view', 'loyalty.adjust',
             'gift_cards.view', 'gift_cards.sell',
+            'subscriptions.view', 'subscriptions.payments', 'subscriptions.create', 'subscriptions.cancel', 'subscriptions.reactivate', 'subscriptions.history',
             'marketing.manage',
         ],
 
@@ -200,6 +214,7 @@ return [
             'payments.receive', 'cash.view', 'cash.open', 'cash.move', 'cash.close',
             'products.view', 'stock.view', 'stock.receive', 'stock.issue',
             'coupons.view', 'promotions.apply', 'loyalty.view', 'gift_cards.view', 'gift_cards.sell',
+            'subscriptions.view', 'subscriptions.create',
         ],
 
         // Financeiro: numeros, sem agenda e sem clientes. Consulta
@@ -213,6 +228,7 @@ return [
             'payouts.view', 'payouts.create', 'payouts.reverse', 'advances.create', 'advances.reverse',
             'reports.view',
             'coupons.view', 'loyalty.view', 'gift_cards.view', 'gift_cards.cancel',
+            'subscriptions.view', 'subscriptions.payments', 'subscriptions.refund', 'subscriptions.history',
         ],
 
         // Profissional: so o que e dele (Policies conferem o registro).

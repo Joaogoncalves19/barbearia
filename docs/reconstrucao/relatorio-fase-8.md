@@ -1,6 +1,6 @@
 # Relatório da Fase 8 — Promoções, fidelidade, vale-presente e comprovantes
 
-> **Status: concluída, aguardando aprovação do dono para a Fase 9.** Branch `claude/fase-8-promocoes-fidelidade`,
+> **Status: concluída e aprovada pelo dono em 2026-10-05** (P8-01 a P8-07 ficam como implementados e documentados; Fase 9 autorizada). Branch `claude/fase-8-promocoes-fidelidade`,
 > criada a partir de `claude/fase-7-comissao-repasses`. Só dados fictícios; nenhum banco de produção ou dado
 > real acessado; nenhuma migração real executada; sistema antigo não alterado; nenhum segredo no repositório.
 >
@@ -239,4 +239,4 @@ Novos: [promocoes.md](promocoes.md), [fidelidade.md](fidelidade.md), [vale-prese
 
 ---
 
-**Aguardando aprovação explícita do dono para a Fase 9.**
+**Fase 8 aprovada (2026-10-05). P8-01 a P8-07 registradas conforme implementadas. Fase 9 autorizada.**

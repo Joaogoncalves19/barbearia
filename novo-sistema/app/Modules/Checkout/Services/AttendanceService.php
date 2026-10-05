@@ -50,6 +50,8 @@ use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Scheduling\Support\Channel;
 use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Support\Money;
+use App\Modules\Subscriptions\Models\Subscription;
+use App\Modules\Subscriptions\Services\SubscriptionBenefits;
 use App\Modules\Team\Models\Professional;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -94,6 +96,7 @@ final class AttendanceService
         private readonly PromotionService $promotions,
         private readonly LoyaltyLedger $loyalty,
         private readonly GiftCards $giftCards,
+        private readonly SubscriptionBenefits $benefits,
     ) {}
 
     /**
@@ -229,9 +232,22 @@ final class AttendanceService
                 'reason' => $adj->description ?? 'Desconto do agendamento',
                 'coupon_redemption_id' => $adj->coupon_redemption_id,
                 'loyalty_redemption_id' => $adj->loyalty_redemption_id,
+                'subscription_id' => $adj->subscription_id,
             ]);
         }
+        $this->dropLapsedSubscriptionBenefit($at, $actor);
         $this->pricing->refreshDiscounts($at);
+
+        // Fase 9: o direito a assinatura pode ter comecado depois do agendamento
+        // (adesao, renovacao): vale o maior, reavaliado na abertura.
+        if ($at->customer_id !== null) {
+            try {
+                $this->promotions->applyToAttendance($at, new PromotionRequest(null, false), null, $actor->id);
+                $this->pricing->refreshDiscounts($at);
+            } catch (PromotionRejected) {
+                // nada maior que o atual
+            }
+        }
 
         $this->event($at, 'opened', $description, $actor);
 
@@ -540,7 +556,17 @@ final class AttendanceService
                 throw new CheckoutRuleViolation('no_items');
             }
 
-            // 1) Valores: descontos recalculados e congelados.
+            // 1) Valores: descontos recalculados e congelados. Beneficio de
+            //    assinatura sem direito hoje nao e cobrado em silencio: recusa
+            //    e a equipe retira o desconto (o cliente ve o novo total).
+            foreach ($at->discounts()->get() as $d) {
+                if ($d->kind === AdjustmentKind::Subscription && $d->subscription_id !== null) {
+                    $assinatura = Subscription::query()->find($d->subscription_id);
+                    if ($assinatura === null || ! $this->benefits->validOn($assinatura, BusinessTime::today())) {
+                        throw new CheckoutRuleViolation('subscription_lapsed');
+                    }
+                }
+            }
             $b = $this->pricing->refreshDiscounts($at);
             if ($b->total === null || $b->subtotal === null || $b->discount === null) {
                 throw new CheckoutRuleViolation('unknown_price');
@@ -719,6 +745,24 @@ final class AttendanceService
     }
 
     /** A reserva (cupom/pontos) que deu origem ao desconto ja foi liberada? */
+    /**
+     * Beneficio de assinatura sem direito HOJE (cancelada na hora, vencida):
+     * sai do atendimento aberto, com registro no historico.
+     */
+    private function dropLapsedSubscriptionBenefit(Attendance $at, User $actor): void
+    {
+        foreach ($at->discounts()->get() as $d) {
+            if ($d->kind !== AdjustmentKind::Subscription || $d->subscription_id === null) {
+                continue;
+            }
+            $assinatura = Subscription::query()->find($d->subscription_id);
+            if ($assinatura === null || ! $this->benefits->validOn($assinatura, BusinessTime::today())) {
+                $d->delete();
+                $this->event($at, 'discount_removed', 'Benefício da assinatura retirado: a assinatura não dá direito hoje.', $actor);
+            }
+        }
+    }
+
     private function promotionReleased(?int $couponRedemptionId, ?int $loyaltyRedemptionId): bool
     {
         return ($couponRedemptionId !== null && CouponRedemption::query()->whereKey($couponRedemptionId)->where('status', RedemptionStatus::Released)->exists())

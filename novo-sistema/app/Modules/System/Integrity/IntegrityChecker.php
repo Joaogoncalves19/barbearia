@@ -2,6 +2,7 @@
 
 namespace App\Modules\System\Integrity;
 
+use App\Modules\Subscriptions\Enums\SubscriptionStatus;
 use App\Modules\System\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
@@ -41,7 +42,7 @@ class IntegrityChecker
      */
     private function definitions(): array
     {
-        $atuais = ['active', 'cancel_scheduled'];
+        $atuais = SubscriptionStatus::currentValues();
 
         return [
             'R01_fk' => ['Chaves estrangeiras validas', fn () => DB::connection()->getDriverName() === 'sqlite' ? count(DB::select('PRAGMA foreign_key_check')) : 0],
@@ -61,8 +62,7 @@ class IntegrityChecker
             'R15_avaliacao_nota' => ['Nota de avaliacao de 1 a 5', fn () => DB::table('reviews')->where(fn ($q) => $q->where('rating', '<', 1)->orWhere('rating', '>', 5))->count()],
             'R16_cupom' => ['Cupom coerente com o tipo de desconto', fn () => DB::table('coupons')->where(fn ($q) => $q->where(fn ($p) => $p->where('discount_type', 'percent')->where(fn ($x) => $x->whereNull('percent_bp')->orWhere('percent_bp', '<', 1)->orWhere('percent_bp', '>', 10000)->orWhereNotNull('amount_cents')))->orWhere(fn ($f) => $f->where('discount_type', 'fixed')->where(fn ($x) => $x->whereNull('amount_cents')->orWhere('amount_cents', '<=', 0)->orWhereNotNull('percent_bp')))->orWhereNotIn('discount_type', ['percent', 'fixed']))->count()],
             'R17_cupom_codigo' => ['Codigo de cupom em maiusculas', fn () => DB::table('coupons')->whereRaw('code <> UPPER(code)')->count()],
-            'R18_comissao_percentual' => ['Comissao entre 0% e 100% (regras e assinatura)', fn () => DB::table('professionals')->where('subscription_commission_rate_bp', '>', 10000)->count()
-                + DB::table('commission_rules')->where(fn ($q) => $q->where('rate_bp', '>', 10000)->orWhere('rate_bp', '<', 0)->orWhere('amount_cents', '<', 0))->count()],
+            'R18_comissao_percentual' => ['Comissao entre 0% e 100% (regras, inclusive de assinante)', fn () => DB::table('commission_rules')->where(fn ($q) => $q->where('rate_bp', '>', 10000)->orWhere('rate_bp', '<', 0)->orWhere('amount_cents', '<', 0))->count()],
             'R19_assinatura_vigente' => ['Sentinela de assinatura vigente coerente', fn () => DB::table('subscriptions')->where(fn ($q) => $q->where(fn ($a) => $a->whereIn('status', $atuais)->where(fn ($x) => $x->whereNull('active_customer_id')->orWhereColumn('active_customer_id', '<>', 'customer_id')))->orWhere(fn ($b) => $b->whereNotIn('status', $atuais)->whereNotNull('active_customer_id')))->count()],
             'R20_expediente' => ['Expediente valido (dia 0-6, fim > inicio)', fn () => DB::table('working_hours')->where(fn ($q) => $q->where('weekday', '>', 6)->orWhereColumn('ends_at', '<=', 'starts_at'))->count()],
             'R21_ausencia' => ['Ausencia termina depois de comecar', fn () => DB::table('time_off')->whereColumn('ends_on', '<', 'starts_on')->count()],
@@ -149,6 +149,23 @@ class IntegrityChecker
                 + DB::table('attendance_discounts')->join('attendances', 'attendances.id', '=', 'attendance_discounts.attendance_id')->where('attendances.status', 'completed')
                     ->where(fn ($q) => $q->where(fn ($a) => $a->whereNotNull('attendance_discounts.coupon_redemption_id')->whereNotExists(fn ($e) => $e->from('coupon_redemptions')->whereColumn('coupon_redemptions.id', 'attendance_discounts.coupon_redemption_id')->where('coupon_redemptions.status', 'redeemed')))
                         ->orWhere(fn ($b) => $b->whereNotNull('attendance_discounts.loyalty_redemption_id')->whereNotExists(fn ($e) => $e->from('loyalty_redemptions')->whereColumn('loyalty_redemptions.id', 'attendance_discounts.loyalty_redemption_id')->where('loyalty_redemptions.status', 'redeemed'))))->count()],
+            // Fase 9: assinaturas.
+            'R43_plano_versao' => ['Plano: uma versao atual (sentinela coerente) e preco positivo; assinatura aponta versao do proprio plano', fn () => DB::table('plan_versions')
+                ->where(fn ($q) => $q->where('price_cents', '<', 1)->orWhere(fn ($a) => $a->whereNotNull('current_plan_id')->whereColumn('current_plan_id', '<>', 'plan_id'))
+                    ->orWhere(fn ($b) => $b->whereNull('current_plan_id')->whereNull('ends_at')))->count()
+                + DB::table('plans')->whereNull('deleted_at')->whereNotExists(fn ($e) => $e->from('plan_versions')->whereColumn('plan_versions.current_plan_id', 'plans.id'))->count()
+                + DB::table('subscriptions')->join('plan_versions', 'plan_versions.id', '=', 'subscriptions.plan_version_id')->whereColumn('plan_versions.plan_id', '<>', 'subscriptions.plan_id')->count()],
+            'R44_assinatura_direito' => ['Assinatura: aguardando pagamento sem direito nem pagamento; cancelada tem data de cancelamento; nao manual sempre com identificador publico', fn () => DB::table('subscriptions')
+                ->where(fn ($q) => $q->where(fn ($a) => $a->where('status', 'pending')->where(fn ($x) => $x->whereNotNull('ends_on')->orWhereExists(fn ($e) => $e->from('subscription_payments')->whereColumn('subscription_payments.subscription_id', 'subscriptions.id'))))
+                    ->orWhere(fn ($b) => $b->where('status', 'cancelled')->whereNull('cancelled_at')->where('origin', '<>', 'import'))
+                    ->orWhereNull('public_id'))->count()],
+            'R45_pagamento_assinatura' => ['Pagamento de assinatura positivo; reembolsos (concluidos ou em andamento) nunca passam do pago; reembolso positivo', fn () => DB::table('subscription_payments')->where('amount_cents', '<=', 0)->count()
+                + DB::table('subscription_refunds')->where('amount_cents', '<=', 0)->count()
+                + DB::table('subscription_payments')->whereRaw("amount_cents < (SELECT COALESCE(SUM(r.amount_cents), 0) FROM subscription_refunds r WHERE r.subscription_payment_id = subscription_payments.id AND r.status IN ('succeeded', 'pending'))")->count()],
+            'R46_evento_gateway' => ['Evento do Stripe: processado tem data de processamento; falho tem o erro; situacao conhecida', fn () => DB::table('gateway_events')
+                ->where(fn ($q) => $q->where(fn ($a) => $a->where('status', 'processed')->whereNull('processed_at')->where(fn ($x) => $x->whereNull('result')->orWhere('result', '<>', 'legacy')))
+                    ->orWhere(fn ($b) => $b->where('status', 'failed')->whereNull('last_error'))
+                    ->orWhereNotIn('status', ['received', 'processed', 'failed']))->count()],
         ];
     }
 }
