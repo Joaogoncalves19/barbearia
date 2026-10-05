@@ -4,6 +4,7 @@ namespace Tests\Feature\Communication;
 
 use App\Modules\Communication\Enums\MessageCategory;
 use App\Modules\Communication\Enums\MessageStatus;
+use App\Modules\Communication\Exceptions\EmailDeliveryFailed;
 use App\Modules\Communication\Jobs\SendEmailMessage;
 use App\Modules\Communication\Mail\CommunicationMail;
 use App\Modules\Communication\Models\EmailMessage;
@@ -17,7 +18,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
-use Symfony\Component\Mailer\Exception\TransportException;
 use Tests\Concerns\CommunicationFixtures;
 use Tests\TestCase;
 
@@ -105,7 +105,9 @@ class OutboxTest extends TestCase
         try {
             (new SendEmailMessage($m->id))->handle($this->outbox());
             $this->fail('deveria lançar o erro para o worker tentar de novo');
-        } catch (TransportException $e) {
+        } catch (EmailDeliveryFailed $e) {
+            $this->assertNull($e->getPrevious(), 'a exceção original (com a senha) não vai para o worker');
+            $this->assertStringNotContainsString('segredo-ficticio-123', $e->getMessage());
         }
         $m->refresh();
         $this->assertSame([MessageStatus::Queued, 1], [$m->status, $m->attempts]);

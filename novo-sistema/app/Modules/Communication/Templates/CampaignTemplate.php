@@ -6,6 +6,7 @@ use App\Modules\Communication\Enums\MessageCategory;
 use App\Modules\Communication\Models\EmailMessage;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Marketing\Models\Campaign;
+use App\Modules\Marketing\Services\Campaigns;
 use App\Modules\Receipts\Services\Receipts;
 use Illuminate\Support\Facades\URL;
 
@@ -66,7 +67,9 @@ final class CampaignTemplate extends BaseTemplate
         $texto = strtr(str_replace("\r\n", "\n", $body), $marcadores);
         $paragrafos = array_values(array_filter(array_map('trim', preg_split('/\n\s*\n/', $texto) ?: []), fn ($p) => $p !== ''));
 
-        return $this->message(strtr($subject, $marcadores), strtr($subject, $marcadores), $paragrafos, [],
+        $assunto = Campaigns::oneLine(strtr($subject, $marcadores));
+
+        return $this->message($assunto, $assunto, $paragrafos, [],
             ['label' => 'Agendar meu horário', 'url' => route('booking.services')], [], $unsubscribeUrl);
     }
 

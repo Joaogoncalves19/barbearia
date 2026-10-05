@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 9 concluídas e aprovadas ([relatorio-fase-9.md](relatorio-fase-9.md)). **Fase 10 em
-> andamento** (comunicação e avaliações).
+> **Status:** Fases 0 a 9 concluídas e aprovadas ([relatorio-fase-9.md](relatorio-fase-9.md)). **Fase 10
+> concluída, aguardando aprovação do dono** ([relatorio-fase-10.md](relatorio-fase-10.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -124,6 +124,19 @@ plano para reconstruí-lo do zero, por etapas.
 | [cancelamentos.md](cancelamentos.md) | Cancelar no fim do período, imediato, reativar, origem e data efetiva |
 | [reembolsos.md](reembolsos.md) | Reembolso parcial e total pelo Stripe, sem apagar a cobrança |
 | [relatorio-fase-9.md](relatorio-fase-9.md) | Relatório final da Fase 9 |
+
+### Fase 10
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [emails.md](emails.md) | O caminho de um e-mail, o que o domínio comunica, transacional × marketing, avisos, registro, provedor |
+| [templates.md](templates.md) | Modelos, contrato, layout da identidade, quando cada um desiste |
+| [fila.md](fila.md) | Fila, novas tentativas, falha definitiva, reenvio, idempotência, concorrência |
+| [lembretes.md](lembretes.md) | Véspera e horas antes (D-51), um por horário, cancelado/remarcado, confirmação de presença |
+| [campanhas.md](campanhas.md) | Rascunho, teste, disparo, públicos, ritmo, descadastro, cancelamento |
+| [avaliacoes.md](avaliacoes.md) | Base válida, moderação (D-48), pedido (D-49), comentário como texto (S-02) |
+| [consentimento.md](consentimento.md) | Preferências, prova, descadastro (link e um clique), LGPD e retenção |
+| [relatorio-fase-10.md](relatorio-fase-10.md) | Relatório final da Fase 10 |
 
 ## Legenda usada em todos os documentos
 

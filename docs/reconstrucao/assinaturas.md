@@ -130,7 +130,7 @@ nesta fase.
 | P9-05 | Reembolso não encerra o benefício | O benefício continua até a data paga; a equipe cancela se for o caso |
 | P9-06 | Valor fixo de comissão de assinante | Um valor por atendimento; serviços não incluídos no mesmo atendimento seguem a regra normal (o antigo trocava a comissão de todos os serviços) |
 | P9-07 | Tolerância de 1 dia | Vale para o benefício da assinatura ativa (o antigo usava só para expirar a situação) |
-| P9-08 | Envio do link | Cópia na tela e conta do cliente; e-mail/WhatsApp dependem da Fase 10 (D-05) |
+| P9-08 | Envio do link | Cópia na tela e conta do cliente. Fase 10: os e-mails de assinatura ficaram só em ativação, falha e cancelamento (D-50); **enviar o link por e-mail não foi pedido** e continua dependendo de decisão (P10-04) |
 | P9-09 | Pausar assinatura | Não oferecido; `paused` vindo do Stripe é tratado como em atraso (sem benefício novo) |
 | ~~P9-10~~ | Retenção dos eventos do Stripe — **decidida (aprovação da Fase 9): 12 meses** | Ver §11 |
 

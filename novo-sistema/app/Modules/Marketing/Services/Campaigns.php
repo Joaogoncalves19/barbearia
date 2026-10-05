@@ -51,7 +51,8 @@ final class Campaigns
             throw new CampaignRejected('Público inválido.');
         }
         $dados = [
-            'name' => mb_substr(trim($name), 0, 255), 'subject' => mb_substr(trim($subject), 0, 200), 'body' => mb_substr(trim($body), 0, 10000),
+            // Nome e assunto em uma linha (o assunto vai para o cabecalho do e-mail).
+            'name' => mb_substr(self::oneLine($name), 0, 255), 'subject' => mb_substr(self::oneLine($subject), 0, 200), 'body' => mb_substr(trim($body), 0, 10000),
             'segment' => $segment, 'segment_params' => array_filter($params, fn ($v) => $v !== null && $v !== ''),
         ];
         if ($dados['name'] === '' || $dados['subject'] === '' || $dados['body'] === '') {
@@ -179,6 +180,11 @@ final class Campaigns
             'failed_count' => (int) ($porSituacao['failed'] ?? 0),
             'skipped_count' => CampaignRecipient::query()->where('campaign_id', $c->id)->where('status', 'skipped')->count() + (int) ($porSituacao['suppressed'] ?? 0) + (int) ($porSituacao['skipped'] ?? 0),
         ])->save();
+    }
+
+    public static function oneLine(string $text): string
+    {
+        return trim((string) preg_replace('/[\x00-\x1F\x7F]+/u', ' ', $text));
     }
 
     private function blockReason(?Customer $customer, string $email): ?string

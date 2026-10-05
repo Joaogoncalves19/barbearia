@@ -11,6 +11,7 @@ use App\Modules\Communication\Templates\CampaignTemplate;
 use App\Modules\Customers\Enums\CustomerStatus;
 use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Models\ConsentRecord;
+use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Models\EmailSuppression;
 use App\Modules\Customers\Services\MarketingConsentService;
 use App\Modules\Identity\Enums\StaffRole;
@@ -179,6 +180,24 @@ class CampaignsTest extends TestCase
         $this->post(route('unsubscribe.store', ['customer' => $vitima->public_id]))->assertForbidden();
         $this->post(route('unsubscribe.one-click', ['customer' => $vitima->public_id]))->assertForbidden();
         $this->assertSame(MarketingConsent::Granted, $vitima->refresh()->marketing_email_consent);
+    }
+
+    public function test_assunto_em_uma_linha_e_texto_nunca_vira_html(): void
+    {
+        $this->marketingCustomer(['name' => 'Ana <b>Teste</b>']);
+        $c = $this->campaigns()->saveDraft(null, "Nome\nquebrado", "Oi\r\nBcc: intruso@exemplo.test", "<script>alert(1)</script>\n\nOi, {primeiro_nome}", 'todos', [], $this->gerente);
+        $this->assertSame(['Nome quebrado', 'Oi Bcc: intruso@exemplo.test'], [$c->name, $c->subject]);
+
+        $this->campaigns()->processBatch(); // ainda rascunho: nada sai
+        $this->campaigns()->start($c, $this->gerente, (string) Str::uuid());
+        $this->campaigns()->processBatch();
+
+        Mail::assertSent(CommunicationMail::class, function (CommunicationMail $m) {
+            $html = $m->render();
+
+            return ! str_contains($html, '<script>') && str_contains($html, '&lt;script&gt;') && str_contains($html, 'Oi, Ana')
+                && ! str_contains($m->email->subject, "\n") && $m->hasTo((string) Customer::query()->where('name', 'Ana <b>Teste</b>')->value('email'));
+        });
     }
 
     public function test_teste_vai_so_para_a_equipe_e_nao_para_clientes(): void

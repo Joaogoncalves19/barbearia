@@ -8,6 +8,7 @@ use App\Modules\Catalog\Policies\ServiceCategoryPolicy;
 use App\Modules\Catalog\Policies\ServicePolicy;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Policies\AttendancePolicy;
+use App\Modules\Communication\Services\Outbox;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Policies\CustomerPolicy;
 use App\Modules\Finance\Models\CommissionPayout;
@@ -202,7 +203,8 @@ class AppServiceProvider extends ServiceProvider
             Log::channel('jobs')->error('Falha na fila', [
                 'conexao' => $event->connectionName,
                 'job' => $event->job->resolveName(),
-                'erro' => get_class($event->exception).': '.$event->exception->getMessage(),
+                // Fase 10: mensagem sem credenciais (senha/token/chave mascarados).
+                'erro' => Outbox::safeError($event->exception),
             ]);
         });
     }

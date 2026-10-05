@@ -10,7 +10,7 @@
         @endcan
     </header>
 
-    <x-ui.card title="Campanhas">
+    <x-ui.card title="Lista de campanhas">
         @if ($campaigns->isEmpty())
             <x-ui.empty-state title="Nenhuma campanha" icon="mail">Crie um rascunho, envie um teste e dispare quando estiver pronto.</x-ui.empty-state>
         @else

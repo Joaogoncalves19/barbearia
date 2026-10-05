@@ -8,7 +8,9 @@ use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
+use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Customers\Models\EmailSuppression;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Models\CommissionRule;
 use App\Modules\Finance\Services\CommissionRules;
@@ -134,6 +136,39 @@ class E2eAccounts extends Command
         $donoAssina = $this->membro("e2e-assina-{$s}", 'Dono Assinaturas E2E', StaffRole::Owner, $senha);
         $assinante = $this->cliente("e2e-assina-cliente-{$s}@exemplo.test", 'Cliente Assinante E2E', $senha);
         $this->assinaturaAtiva($assinante, $corte, $donoAssina);
+
+        // Comunicacao e avaliacoes (Fase 10): dono proprio (limite de login
+        // separado) e um cliente com um atendimento concluido ontem, sem
+        // avaliacao (novo a cada execucao), e preferencias de e-mail do zero
+        // ("desconhecido" so volta para o estado inicial nesta conta ficticia).
+        $this->membro("e2e-comunica-{$s}", 'Dono Comunicação E2E', StaffRole::Owner, $senha);
+        $avaliador = $this->cliente("e2e-comunica-cliente-{$s}@exemplo.test", 'Cliente Avaliador E2E', $senha);
+        $avaliador->forceFill(['marketing_email_consent' => MarketingConsent::Unknown, 'email_reminders_enabled' => true])->save();
+        EmailSuppression::query()->where('email', $avaliador->email)->where('reason', 'marketing_opt_out')->delete();
+        $this->atendimentoConcluidoOntem($s, $avaliador, $s === 'celular' ? $a : $b, $corte);
+    }
+
+    /**
+     * Atendimento ficticio concluido ontem (historico de teste, sem caixa):
+     * base valida para avaliar. Um novo a cada execucao.
+     */
+    private function atendimentoConcluidoOntem(string $s, Customer $cliente, Professional $pro, Service $servico): void
+    {
+        $ontem = now()->subDay();
+        $at = Attendance::query()->create([
+            'source' => 'walk_in', 'customer_id' => $cliente->id, 'customer_name' => $cliente->name,
+            'professional_id' => $pro->id, 'professional_name' => $pro->display_name,
+            'status' => AttendanceStatus::InProgress, 'opened_at' => $ontem, 'started_at' => $ontem,
+            'subtotal_cents' => $servico->price_cents, 'discount_cents' => 0, 'total_cents' => $servico->price_cents, 'tip_cents' => 0,
+            'completion_key' => 'e2e-'.$s.'-'.Str::uuid(),
+        ]);
+        $at->items()->create([
+            'item_type' => 'service', 'service_id' => $servico->id, 'name' => $servico->name, 'quantity' => 1,
+            'unit_price_cents' => $servico->price_cents, 'total_cents' => $servico->price_cents,
+            'duration_minutes' => $servico->duration_minutes, 'price_source' => 'catalog_at_booking',
+        ]);
+        // Itens primeiro: depois de concluido, o atendimento nao muda mais.
+        $at->forceFill(['status' => AttendanceStatus::Completed, 'completed_at' => $ontem->copy()->addMinutes(30)])->save();
     }
 
     /**

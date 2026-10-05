@@ -82,6 +82,14 @@
 > DECISÃO** (P9-01 a P9-10): ver [assinaturas.md §10](assinaturas.md#10-precisa-de-decisão). **Aprovação da
 > Fase 9 (2026-10-05):** **P9-10** decidida: eventos do Stripe guardados por **12 meses**; depois, rotina
 > auditável remove os dados pessoais e preserva só o necessário (inclusive o ID, para não reprocessar).
+>
+> **Fase 10 (decisões do dono, no início da fase):** **D-48** avaliação **só publicada depois da aprovação** da
+> equipe. **D-49** pedido de avaliação por **e-mail + aviso na conta**, prazo de **30 dias**. **D-50** e-mails de
+> assinatura só na **ativação, falha de pagamento e cancelamento**; renovação só como aviso na conta. **D-51**
+> lembretes **como hoje**: véspera a partir das 9h e 2 h antes, configuráveis, link de confirmar presença,
+> e-mail + aviso. **D-05 (provedor de e-mail) continua pendente**: sem ele, a entrega real e a aprovação visual
+> no provedor ficam PENDENTES. Pontos implementados de forma conservadora e marcados **PRECISA DE DECISÃO**
+> (P10-01 a P10-03): ver [relatorio-fase-10.md](relatorio-fase-10.md#2-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
@@ -93,7 +101,7 @@ que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
 | 🔴 D-07 | **Marca** | Logo, nome de exibição, cores, fontes, tom de voz | Fornecer o logo real (vetor) e referências de que o dono gosta. Paleta e fontes da proposta são ponto de partida | Fase 1 (tokens) / Fase 11 |
 | ~~D-03~~ | **Assinaturas mensais** — **decidida (Fase 9): manter, com Stripe** | Manter (Stripe), manter com outro meio (ex.: Pix recorrente), remover | Manter só se houver assinantes ativos ou interesse real. **Precisa de validação:** quantos assinantes existem hoje? | Fases 2 e 9 |
 | D-04 | **Chatbot / IA** | Manter o chatbot com IA, manter só por regras, remover; IA no painel sim/não | Adiar para a Fase 14. Se mantido, sem login pelo chat. Medir uso atual antes | Fase 14 |
-| D-05 | **Provedor de e-mail** | Gmail SMTP (atual), provedor transacional (ex.: Amazon SES, Brevo, Postmark) | Provedor transacional com domínio próprio (SPF/DKIM/DMARC): melhor entrega e campanhas sem limite do Gmail | Fase 10 |
+| D-05 | **Provedor de e-mail** | Gmail SMTP (atual), provedor transacional (ex.: Amazon SES, Brevo, Postmark) | Provedor transacional com domínio próprio (SPF/DKIM/DMARC): melhor entrega e campanhas sem limite do Gmail | Entrega real da Fase 10 (o sistema já está pronto, falta o provedor) |
 | D-06 | **Aprovação de agendamento** | Automática (atual) ou manual pela recepção | Manter automática; aprovação manual vira opção por serviço/profissional, se necessário | Fase 5 |
 | D-08 | **Fotografia** | Sessão profissional, fotos próprias da equipe, sem fotos (versão tipográfica) | Sessão profissional curta (ambiente, equipe, trabalhos). É o maior ganho visual possível | Fase 11 |
 | D-09 | **"Barbeiro em destaque"** por nota no site | Manter, remover, destaque editorial escolhido pelo dono | Remover a comparação por nota; se desejar, destaque editorial | Fase 11 |

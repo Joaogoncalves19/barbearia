@@ -1,4 +1,4 @@
-# Modelo de dados do novo sistema (Fases 2 a 9)
+# Modelo de dados do novo sistema (Fases 2 a 10)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
@@ -7,7 +7,8 @@
 > `2026_10_02_000100_create_checkout_tables` (seções 2.4, 2.5a e 2.6); a Fase 7,
 > `2026_10_03_000100_create_commission_tables` (seções 2.3 e 2.6); a Fase 8,
 > `2026_10_04_000100_create_promotion_engine_tables` (seções 2.2, 2.5, 2.5a, 2.6, 2.7 e 2.9); a Fase 9,
-> `2026_10_05_000100_create_subscription_engine_tables` (seções 2.3, 2.5a, 2.6 e 2.8).
+> `2026_10_05_000100_create_subscription_engine_tables` (seções 2.3, 2.5a, 2.6 e 2.8); a Fase 10,
+> `2026_10_06_000100_create_communication_tables` (seções 2.2, 2.5, 2.8 e 2.9).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -408,12 +409,30 @@ aceita `subscription`; as colunas `professionals.subscription_commission_*` vira
 
 ### 2.9 Reviews, Marketing, System
 
-**reviews** — `appointment_id` (U, N), `customer_id` (N), `professional_id` (N), `rating` (1–5), `comment` (N),
-`is_featured`, `reviewed_at` (N), timestamps. **review_replies** — `review_id` (cascade), `author_user_id` (N), `body`, `replied_at` (N).
+**reviews** — `appointment_id` (U, N), `attendance_id` (U, N; Fase 10: base da avaliação), `customer_id` (N),
+`professional_id` (N), `rating` (1–5), `comment` (N, texto), `status` (pending/approved/rejected; Fase 10),
+`moderated_by_user_id`/`moderated_at`/`moderation_reason` (N), `is_featured`, `featured_by_user_id` (N),
+`is_legacy`, `reviewed_at` (N), timestamps. Nota e comentário imutáveis; nunca apagada ([avaliacoes.md](avaliacoes.md)).
+**review_replies** — `review_id` (U desde a Fase 10, cascade), `author_user_id` (N), `body`, `replied_at` (N).
 
-**campaigns** — `channel`, `template` (N), `subject` (N), `segment` (N), `status`, `total_recipients`,
-`sent_count`, `failed_count`, `created_by_label` (N), `started_at` (N), `completed_at` (N), timestamps.
-Só o **resumo** (D-20). Destinatários ficam no arquivo morto do importador.
+**campaigns** — `name` (N), `channel`, `template` (N), `subject` (N), `body` (N, texto simples), `segment` (N),
+`segment_params` (json, N), `status` (draft/sending/completed/cancelled), `total_recipients`, `sent_count`,
+`failed_count`, `skipped_count`, `created_by_label` (N), `created_by_user_id`/`sent_by_user_id` (N),
+`request_key` (U, N), `is_legacy`, `started_at`/`completed_at`/`cancelled_at` (N), timestamps. As do sistema
+antigo são só o **resumo** (D-20, `is_legacy`). **campaign_recipients** (Fase 10) — `campaign_id`, `customer_id`
+(N), `email`, `status` (queued/dispatching/dispatched/skipped), `skip_reason` (N), `email_message_id` (N),
+timestamps; único (campanha, cliente) ([campanhas.md](campanhas.md)).
+
+**email_messages** (Fase 10, registro central; [emails.md](emails.md)) — `public_id` (U), `category`
+(transactional/marketing), `template`, `to_email`, `to_name` (N), `customer_id` (N), `subject` (N), `params`
+(json: só identificadores), `dedupe_key` (U, N), `related_type`/`related_id` (N), `campaign_id` (N), `status`
+(queued/sending/sent/failed/suppressed/skipped), `skip_reason` (N), `attempts`, `last_error` (N, sem
+credenciais), `queued_at`/`sent_at`/`failed_at` (N), timestamps. Só a situação muda; nunca apagado.
+
+**Também na Fase 10:** `appointment_reminders` passou a ser único por (agendamento, tipo, **horário lembrado**)
+com `scheduled_for`, `email_message_id` e `notified_in_app` ([lembretes.md](lembretes.md));
+`appointments.presence_confirmed_at`; `customers.email_reminders_enabled`; `customer_notifications.kind`,
+`link` e `dedupe_key` (U); `gateway_events.payload_purged_at` (retenção P9-10).
 
 **settings** — `key` (U), `value` (json), timestamps. **Nunca** guarda segredo (teste de varredura).
 
@@ -444,7 +463,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (65 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (67 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -525,7 +544,10 @@ Indices: (appointment_id, occurred_at)
 | `sent_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-Unicos: (appointment_id, kind)
+| `scheduled_for` | datetime | sim | | |
+| `email_message_id` | integer | sim | | email_messages.id (set null) |
+| `notified_in_app` | tinyint | nao | `0` | |
+Unicos: (appointment_id, kind, scheduled_for)
 ### `appointments`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -557,6 +579,7 @@ Unicos: (appointment_id, kind)
 | `updated_at` | datetime | sim | | |
 | `customer_reschedules` | integer | nao | `0` | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
+| `presence_confirmed_at` | datetime | sim | | |
 Unicos: (code)
 Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professional_id, starts_at) · (status, starts_at)
 ### `attendance_consumptions`
@@ -691,6 +714,20 @@ Indices: (starts_at, ends_at)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 Unicos: (weekday, starts_at)
+### `campaign_recipients`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `campaign_id` | integer | nao | | campaigns.id (restrict) |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `email` | varchar | nao | | |
+| `status` | varchar | nao | | |
+| `skip_reason` | varchar | sim | | |
+| `email_message_id` | integer | sim | | email_messages.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (campaign_id, customer_id)
+Indices: (campaign_id, status)
 ### `campaigns`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -708,6 +745,16 @@ Unicos: (weekday, starts_at)
 | `completed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `name` | varchar | sim | | |
+| `body` | text | sim | | |
+| `segment_params` | text | sim | | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `sent_by_user_id` | integer | sim | | users.id (set null) |
+| `skipped_count` | integer | nao | `0` | |
+| `cancelled_at` | datetime | sim | | |
+| `request_key` | varchar | sim | | |
+| `is_legacy` | tinyint | nao | `0` | |
+Unicos: (request_key)
 ### `cash_movements`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -928,6 +975,10 @@ Indices: (status)
 | `read_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `kind` | varchar | sim | | |
+| `link` | varchar | sim | | |
+| `dedupe_key` | varchar | sim | | |
+Unicos: (dedupe_key)
 Indices: (customer_id, read_at)
 ### `customers`
 | Coluna | Tipo | Nulo | Padrao | FK |
@@ -956,8 +1007,36 @@ Indices: (customer_id, read_at)
 | `password_changed_at` | datetime | sim | | |
 | `last_login_at` | datetime | sim | | |
 | `loyalty_version` | integer | nao | `0` | |
+| `email_reminders_enabled` | tinyint | nao | `1` | |
 Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
 Indices: (name)
+### `email_messages`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `public_id` | varchar | nao | | |
+| `category` | varchar | nao | | |
+| `template` | varchar | nao | | |
+| `to_email` | varchar | nao | | |
+| `to_name` | varchar | sim | | |
+| `customer_id` | integer | sim | | customers.id (set null) |
+| `subject` | varchar | sim | | |
+| `params` | text | sim | | |
+| `dedupe_key` | varchar | sim | | |
+| `related_type` | varchar | sim | | |
+| `related_id` | integer | sim | | |
+| `campaign_id` | integer | sim | | |
+| `status` | varchar | nao | | |
+| `skip_reason` | varchar | sim | | |
+| `attempts` | integer | nao | `0` | |
+| `last_error` | text | sim | | |
+| `queued_at` | datetime | sim | | |
+| `sent_at` | datetime | sim | | |
+| `failed_at` | datetime | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (dedupe_key) · (public_id)
+Indices: (customer_id, created_at) · (related_type, related_id) · (status, queued_at)
 ### `email_suppressions`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1014,6 +1093,7 @@ Indices: (status, due_on)
 | `last_error` | text | sim | | |
 | `received_at` | datetime | sim | | |
 | `subscription_id` | integer | sim | | subscriptions.id (set null) |
+| `payload_purged_at` | datetime | sim | | |
 Unicos: (gateway, event_id)
 Indices: (object_id)
 ### `gift_cards`
@@ -1278,6 +1358,7 @@ Indices: (receipt_type, receipt_id)
 | `replied_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+Unicos: (review_id)
 ### `reviews`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1291,8 +1372,15 @@ Indices: (receipt_type, receipt_id)
 | `reviewed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
-Unicos: (appointment_id)
-Indices: (professional_id, reviewed_at)
+| `attendance_id` | integer | sim | | attendances.id (set null) |
+| `status` | varchar | nao | `approved` | |
+| `moderated_by_user_id` | integer | sim | | users.id (set null) |
+| `moderated_at` | datetime | sim | | |
+| `moderation_reason` | varchar | sim | | |
+| `featured_by_user_id` | integer | sim | | users.id (set null) |
+| `is_legacy` | tinyint | nao | `0` | |
+Unicos: (appointment_id) · (attendance_id)
+Indices: (professional_id, reviewed_at) · (status, reviewed_at)
 ### `schedule_breaks`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|

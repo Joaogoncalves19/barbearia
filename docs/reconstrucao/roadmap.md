@@ -319,6 +319,18 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ## Fase 10 — Comunicação e avaliações
 
+> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-10.md](relatorio-fase-10.md)). Fila
+> central de e-mails (registro, unicidade, envio depois do commit, 4 tentativas com espera crescente, falha
+> definitiva, reenvio, log sem credenciais), modelos com a nova identidade e prévia no painel, confirmação /
+> remarcação / cancelamento, lembretes (D-51) com confirmação de presença por link assinado, avisos na conta,
+> e-mails de assinatura pelo estado consolidado (D-50), campanhas por segmento com fila, ritmo, cancelamento,
+> descadastro de um clique e consentimento conferido três vezes, avaliações com moderação auditada (D-48) e
+> pedido de avaliação (D-49), preferências do cliente com prova, retenção dos eventos do Stripe (P9-10), 10
+> habilidades, 5 regras novas no verificador (R47–R51) e concorrência com processos reais. **Pendente:** D-05
+> (provedor): entrega real a uma lista-semente e aprovação visual no provedor. Docs: [emails.md](emails.md),
+> [templates.md](templates.md), [fila.md](fila.md), [lembretes.md](lembretes.md), [campanhas.md](campanhas.md),
+> [avaliacoes.md](avaliacoes.md), [consentimento.md](consentimento.md).
+
 - **Escopo:** modelos de e-mail com a nova identidade; campanhas por segmento via fila com
   opt-out; notificações no app; avaliações (pedido, resposta, moderação, destaque).
 - **Dependências:** Fase 9 (ou 8, se não houver assinatura); D-05 (provedor de e-mail).

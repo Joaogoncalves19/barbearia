@@ -4,6 +4,7 @@ namespace App\Modules\Communication\Services;
 
 use App\Modules\Communication\Enums\MessageCategory;
 use App\Modules\Communication\Enums\MessageStatus;
+use App\Modules\Communication\Exceptions\EmailDeliveryFailed;
 use App\Modules\Communication\Jobs\SendEmailMessage;
 use App\Modules\Communication\Mail\CommunicationMail;
 use App\Modules\Communication\Models\EmailMessage;
@@ -84,7 +85,7 @@ final class Outbox
      * Entrega um registro (chamado pelo job). Devolve a situacao final ou
      * "queued" quando deve tentar de novo.
      *
-     * @throws Throwable erro de entrega (o job tenta de novo)
+     * @throws EmailDeliveryFailed erro de entrega, sem credenciais (o job tenta de novo)
      */
     public function deliver(int $messageId): MessageStatus
     {
@@ -112,8 +113,10 @@ final class Outbox
         try {
             Mail::to($m->to_email, $m->to_name)->send(new CommunicationMail($montado, $m->public_id));
         } catch (Throwable $e) {
-            $m->forceFill(['status' => MessageStatus::Queued, 'last_error' => self::safeError($e)])->save();
-            throw $e;
+            $erro = self::safeError($e);
+            $m->forceFill(['status' => MessageStatus::Queued, 'last_error' => $erro])->save();
+            // Para o worker sai so a mensagem limpa (sem a excecao original encadeada).
+            throw new EmailDeliveryFailed($erro);
         }
         $m->forceFill(['status' => MessageStatus::Sent, 'sent_at' => BusinessTime::now(), 'subject' => mb_substr($montado->subject, 0, 255), 'last_error' => null])->save();
 

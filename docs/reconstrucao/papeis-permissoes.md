@@ -86,7 +86,12 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `subscriptions.refund` | Reembolsar pagamento de assinatura | **Fase 9** |
 | `subscriptions.history` | Histórico das assinaturas e eventos do Stripe | **Fase 9** |
 | `plans.manage` | Configurar planos e versões | **Fase 9** |
-| `marketing.manage` | Campanhas (cupons e fidelidade saíram para as habilidades acima) | Fase 10 |
+| `communications.view` | Registro de e-mails (endereço mascarado) e prévia dos modelos | **Fase 10** |
+| `communications.retry` | Reenviar e-mail que falhou | **Fase 10** |
+| `communications.settings` | Configurar lembretes, pedido de avaliação e ritmo das campanhas | **Fase 10** |
+| `campaigns.view` / `campaigns.manage` / `campaigns.send` | Ver campanhas / rascunho e teste / disparar e cancelar | **Fase 10** |
+| `reviews.view` / `reviews.view_own` | Ver todas as avaliações / só as publicadas dos próprios atendimentos | **Fase 10** |
+| `reviews.moderate` / `reviews.reply` | Aprovar, recusar (com motivo) e destacar / responder | **Fase 10** |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
 | `account.access` *(cliente)* | Acessar a própria conta de cliente | **Fase 3** |
 
@@ -169,7 +174,16 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `subscriptions.refund` | ✔ | | | ✔ | |
 | `subscriptions.history` | ✔ | ✔ | | ✔ | |
 | `plans.manage` | ✔ | | | | |
-| `marketing.manage` | ✔ | ✔ | | | |
+| `communications.view` | ✔ | ✔ | | | |
+| `communications.retry` | ✔ | ✔ | | | |
+| `communications.settings` | ✔ | | | | |
+| `campaigns.view` | ✔ | ✔ | | | |
+| `campaigns.manage` | ✔ | ✔ | | | |
+| `campaigns.send` | ✔ | ✔ | | | |
+| `reviews.view` | ✔ | ✔ | ✔ | | |
+| `reviews.view_own` | | | | | ✔ |
+| `reviews.moderate` | ✔ | ✔ | | | |
+| `reviews.reply` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
 
 A distribuição acima é uma **proposta técnica conservadora** (menor privilégio) baseada nos perfis do
@@ -242,3 +256,18 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
 - O cliente vê e gerencia só a própria assinatura (cancelar a renovação, desfazer); cancelamento imediato,
   reembolso e plano são só da equipe.
 - O webhook é público por natureza: a autenticidade é a assinatura do Stripe ([webhooks.md](webhooks.md)).
+
+## Fase 10 — comunicação e avaliações
+
+- `marketing.manage` (declarada na Fase 3, sem tela) foi substituída por habilidades por ação: ver,
+  rascunho/teste e **disparo** de campanha são separados; ver o registro de e-mails não dá direito a reenviar;
+  configurar lembretes e ritmo é só do proprietário (como as demais configurações).
+- Avaliações: recepção consulta; moderar e responder, proprietário e gerente; o profissional vê só as
+  **publicadas** dos próprios atendimentos (`ReviewPolicy::viewAny` + filtro no controller), com o primeiro
+  nome do cliente.
+- Cliente: avalia só o próprio atendimento concluído (Policy do atendimento; alheio = 404); preferências e
+  avisos só os próprios (a consulta parte do cliente logado).
+- Links dos e-mails (confirmar presença, descadastro, um clique) são públicos por natureza: a garantia é a
+  **assinatura da URL** (`signed`), testada em `RouteAuthorizationTest::test_links_dos_emails_exigem_assinatura`.
+- Limites: `throttle:email-links` (links públicos), `throttle:email-actions` (teste de campanha e reenvio),
+  `throttle:account-actions` (avaliação e preferências), `throttle:money` (moderação, campanha, configuração).
