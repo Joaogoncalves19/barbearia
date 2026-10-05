@@ -151,7 +151,15 @@ Contraprova no MySQL: **NÃO EXECUTADO** (D-02).
 
 ## 9. CI
 
-RESULTADO_CI
+**PASSOU.** Run nº 39 (commit `4baedcd`, https://github.com/Joaogoncalves19/barbearia/actions/runs/37381954030),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais: agenda, caixa, promoções, webhooks e comunicação),
+  importador com banco fictício e Playwright + axe. Nenhum provedor de e-mail nem chave do Stripe no CI.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Problemas encontrados
 
