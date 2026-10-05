@@ -156,7 +156,15 @@ Contraprova no MySQL: **NÃO EXECUTADO** (D-02).
 
 ## 9. CI
 
-**PENDENTE** — preenchido depois do push (ver o commit seguinte).
+**PASSOU.** Run nº 37 (commit `25685ff`, https://github.com/Joaogoncalves19/barbearia/actions/runs/37351493986),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais: agenda, caixa, promoções e webhooks), importador com
+  banco fictício e Playwright + axe. Nenhuma chave do Stripe no CI: tudo simulado.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 10. Problemas encontrados
 
