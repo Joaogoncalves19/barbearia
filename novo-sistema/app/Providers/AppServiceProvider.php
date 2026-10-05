@@ -16,6 +16,8 @@ use App\Modules\Identity\Authorization\PermissionMatrix;
 use App\Modules\Identity\Models\User;
 use App\Modules\Identity\Policies\UserPolicy;
 use App\Modules\Identity\Rules\MaxBytes;
+use App\Modules\Reviews\Models\Review;
+use App\Modules\Reviews\Policies\ReviewPolicy;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Policies\AppointmentPolicy;
 use App\Modules\Team\Models\Professional;
@@ -105,6 +107,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ServiceCategory::class, ServiceCategoryPolicy::class);
         Gate::policy(Attendance::class, AttendancePolicy::class);
         Gate::policy(CommissionPayout::class, CommissionPayoutPolicy::class);
+        Gate::policy(Review::class, ReviewPolicy::class);
     }
 
     /**
@@ -167,6 +170,22 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(10)->by('coupon|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()),
             Limit::perHour(60)->by('coupon-h|'.$request->user()?->getAuthIdentifier()),
         ] : Limit::none());
+
+        // Fase 10: links publicos dos e-mails (confirmar presenca, descadastro).
+        // A autenticidade vem da assinatura; o limite segura a forca bruta.
+        RateLimiter::for('email-links', fn (Request $request) => Limit::perMinute(20)->by('email-link|'.$request->ip()));
+
+        // Fase 10: envio de teste de campanha e reenvio manual de e-mail:
+        // nao vira atalho para disparar e-mails em serie.
+        RateLimiter::for('email-actions', fn (Request $request) => [
+            Limit::perMinute(10)->by('email-act|'.$request->user()?->getAuthIdentifier()),
+            Limit::perHour(60)->by('email-act-h|'.$request->user()?->getAuthIdentifier()),
+        ]);
+
+        // Fase 10: avaliacao e preferencias do cliente.
+        RateLimiter::for('account-actions', fn (Request $request) => Limit::perMinute(10)->by(
+            'acct|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
+        ));
 
         // Troca/confirmacao de senha logado: segura quem tenta adivinhar a
         // senha atual numa sessao roubada.

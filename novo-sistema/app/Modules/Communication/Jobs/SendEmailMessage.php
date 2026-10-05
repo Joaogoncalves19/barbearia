@@ -4,6 +4,7 @@ namespace App\Modules\Communication\Jobs;
 
 use App\Modules\Communication\Services\Outbox;
 use App\Modules\Shared\Jobs\BaseJob;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -11,7 +12,7 @@ use Throwable;
  * espera crescente (1, 5, 15 e 60 min). Idempotente: o Outbox so entrega um
  * registro ainda "na fila" (o mesmo job rodando duas vezes nao reenvia).
  * Falha definitiva: o registro vira "falhou", com o erro, e pode ser
- * reenviado (app:email-retry).
+ * reenviado (app:communication retry).
  */
 class SendEmailMessage extends BaseJob
 {
@@ -40,6 +41,10 @@ class SendEmailMessage extends BaseJob
     public function failed(?Throwable $exception): void
     {
         app(Outbox::class)->markFailed($this->messageId, $exception);
-        parent::failed($exception);
+        // Sem a mensagem crua do provedor (pode trazer dados da conexao).
+        Log::channel('jobs')->error('E-mail falhou definitivamente', [
+            'registro' => $this->messageId,
+            'erro' => $exception !== null ? Outbox::safeError($exception) : null,
+        ]);
     }
 }

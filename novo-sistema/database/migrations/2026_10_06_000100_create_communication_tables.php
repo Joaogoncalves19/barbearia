@@ -90,6 +90,10 @@ return new class extends Migration
             $table->boolean('notified_in_app')->default(false);
             $table->unique(['appointment_id', 'kind', 'scheduled_for']);
         });
+        // Lembretes ja enviados ficam presos ao horario atual do agendamento.
+        DB::table('appointment_reminders')->whereNull('scheduled_for')->update([
+            'scheduled_for' => DB::raw('(select starts_at from appointments where appointments.id = appointment_reminders.appointment_id)'),
+        ]);
 
         Schema::table('appointments', function (Blueprint $table) {
             $table->timestamp('presence_confirmed_at')->nullable();

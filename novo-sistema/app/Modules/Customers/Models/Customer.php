@@ -48,6 +48,7 @@ use Illuminate\Support\Str;
  * @property ?string $email
  * @property CustomerStatus $status
  * @property MarketingConsent $marketing_email_consent
+ * @property bool $email_reminders_enabled
  * @property Carbon|null $birth_date
  * @property ?string $cpf
  * @property ?string $phone
@@ -86,6 +87,7 @@ class Customer extends Authenticatable implements MustVerifyEmail
             'birth_date' => 'date',
             'status' => CustomerStatus::class,
             'marketing_email_consent' => MarketingConsent::class,
+            'email_reminders_enabled' => 'boolean',
             'marketing_consent_updated_at' => 'datetime',
             'anonymized_at' => 'datetime',
             'last_login_at' => 'datetime',

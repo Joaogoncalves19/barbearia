@@ -79,6 +79,21 @@
         $assinaturas[] = $item('Planos', 'list', 'panel.plans.index', 'panel.plans.*');
     }
 
+    // Comunicacao e avaliacoes (Fase 10).
+    $comunicacao = [];
+    if ($user->can('viewAny', \App\Modules\Reviews\Models\Review::class)) {
+        $comunicacao[] = $item('Avaliações', 'star', 'panel.reviews.index', 'panel.reviews.*');
+    }
+    if ($user->can('campaigns.view')) {
+        $comunicacao[] = $item('Campanhas', 'mail', 'panel.campaigns.index', 'panel.campaigns.*');
+    }
+    if ($user->can('communications.view')) {
+        $comunicacao[] = $item('E-mails enviados', 'history', 'panel.emails.index', 'panel.emails.*');
+    }
+    if ($user->can('communications.settings')) {
+        $comunicacao[] = $item('Lembretes e avisos', 'bell', 'panel.communication.settings', 'panel.communication.*');
+    }
+
     $configAgenda = [];
     if ($user->can('schedule.settings')) {
         $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
@@ -107,6 +122,9 @@
     }
     if ($assinaturas !== []) {
         $nav[] = ['group' => 'Assinaturas', 'items' => $assinaturas];
+    }
+    if ($comunicacao !== []) {
+        $nav[] = ['group' => 'Comunicação', 'items' => $comunicacao];
     }
     if ($configAgenda !== []) {
         $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];

@@ -146,8 +146,20 @@ return [
         'subscriptions.refund' => 'Reembolsar pagamento de assinatura (pelo Stripe)',
         'subscriptions.history' => 'Consultar histórico das assinaturas e eventos do Stripe',
         'plans.manage' => 'Configurar planos (preço, serviços incluídos, versões)',
-        // Campanhas e configuracoes (Fases 10 e seguintes)
-        'marketing.manage' => 'Gerenciar campanhas',
+        // Comunicacao e avaliacoes (Fase 10). Campanha e marketing: criar
+        // rascunho nao da direito a disparar; ver o registro de e-mails nao da
+        // direito a reenviar nem a configurar.
+        'communications.view' => 'Ver o registro de e-mails (endereço mascarado) e pré-visualizar os modelos',
+        'communications.retry' => 'Reenviar e-mail que falhou',
+        'communications.settings' => 'Configurar lembretes, pedido de avaliação e ritmo das campanhas',
+        'campaigns.view' => 'Ver campanhas e seus resultados',
+        'campaigns.manage' => 'Criar e editar rascunho de campanha e enviar teste para a equipe',
+        'campaigns.send' => 'Disparar e cancelar campanha',
+        'reviews.view' => 'Ver todas as avaliações (inclusive as aguardando revisão)',
+        'reviews.view_own' => 'Ver as avaliações publicadas dos próprios atendimentos',
+        'reviews.moderate' => 'Aprovar, recusar (com motivo) e destacar avaliações',
+        'reviews.reply' => 'Responder avaliações em nome da barbearia',
+        // Configuracoes gerais (fases seguintes)
         'settings.manage' => 'Alterar configurações do estabelecimento',
     ],
 
@@ -176,7 +188,10 @@ return [
             'gift_cards.view', 'gift_cards.sell', 'gift_cards.cancel',
             'subscriptions.view', 'subscriptions.payments', 'subscriptions.create', 'subscriptions.cancel', 'subscriptions.reactivate',
             'subscriptions.refund', 'subscriptions.history', 'plans.manage',
-            'marketing.manage', 'settings.manage',
+            'communications.view', 'communications.retry', 'communications.settings',
+            'campaigns.view', 'campaigns.manage', 'campaigns.send',
+            'reviews.view', 'reviews.moderate', 'reviews.reply',
+            'settings.manage',
         ],
 
         // Gerente: opera a barbearia; nao mexe em usuarios, auditoria,
@@ -198,7 +213,9 @@ return [
             'coupons.view', 'coupons.manage', 'promotions.apply', 'loyalty.view', 'loyalty.adjust',
             'gift_cards.view', 'gift_cards.sell',
             'subscriptions.view', 'subscriptions.payments', 'subscriptions.create', 'subscriptions.cancel', 'subscriptions.reactivate', 'subscriptions.history',
-            'marketing.manage',
+            'communications.view', 'communications.retry',
+            'campaigns.view', 'campaigns.manage', 'campaigns.send',
+            'reviews.view', 'reviews.moderate', 'reviews.reply',
         ],
 
         // Recepcao: agenda, clientes, atendimento e caixa do dia. Catalogo,
@@ -215,6 +232,7 @@ return [
             'products.view', 'stock.view', 'stock.receive', 'stock.issue',
             'coupons.view', 'promotions.apply', 'loyalty.view', 'gift_cards.view', 'gift_cards.sell',
             'subscriptions.view', 'subscriptions.create',
+            'reviews.view',
         ],
 
         // Financeiro: numeros, sem agenda e sem clientes. Consulta
@@ -240,6 +258,7 @@ return [
             'appointments.view_own', 'appointments.manage_own',
             'attendances.view_own', 'attendances.manage_own', 'payments.receive',
             'commissions.view_own', 'promotions.apply',
+            'reviews.view_own',
         ],
     ],
 

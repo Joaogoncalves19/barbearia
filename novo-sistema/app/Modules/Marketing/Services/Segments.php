@@ -7,6 +7,7 @@ use App\Modules\Customers\Enums\CustomerStatus;
 use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Subscriptions\Models\Subscription;
 use App\Modules\Subscriptions\Services\SubscriptionBenefits;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -49,7 +50,7 @@ final class Segments
                 ->whereNotExists(fn ($s) => $concluidos($s)->where('attendances.completed_at', '>=', BusinessTime::now()->subDays(max(1, (int) ($params['dias'] ?? 60))))),
             'novos' => $q->whereNotExists($concluidos),
             'aniversariantes' => $q->whereNotNull('birth_date')->whereRaw(
-                $q->getConnection()->getDriverName() === 'sqlite' ? "CAST(strftime('%m', birth_date) AS INTEGER) = ?" : 'MONTH(birth_date) = ?',
+                $q->getModel()->getConnection()->getDriverName() === 'sqlite' ? "CAST(strftime('%m', birth_date) AS INTEGER) = ?" : 'MONTH(birth_date) = ?',
                 [(int) BusinessTime::local(BusinessTime::now())->format('n')],
             ),
             'assinantes' => $q->whereIn('id', $this->subscriberIds()),
@@ -66,7 +67,7 @@ final class Segments
         $b = app(SubscriptionBenefits::class);
         $hoje = BusinessTime::today();
 
-        return \App\Modules\Subscriptions\Models\Subscription::query()->whereNotNull('ends_on')->where('ends_on', '>=', $hoje)->get()
+        return Subscription::query()->whereNotNull('ends_on')->where('ends_on', '>=', $hoje)->get()
             ->filter(fn ($s) => $b->validOn($s, $hoje))->pluck('customer_id')->map(fn ($v) => (int) $v)->unique()->values()->all();
     }
 }

@@ -15,6 +15,26 @@
         </form>
     </x-ui.card>
 
+    {{-- Fase 10: preferencias de e-mail. Marketing so com escolha explicita; lembretes sao opcionais. --}}
+    @php $consent = $customer->marketing_email_consent; @endphp
+    <x-ui.card title="E-mails que você recebe">
+        <form method="POST" action="{{ route('account.preferences.update') }}" class="stack" data-preferences>
+            @csrf
+            @method('PUT')
+            <p class="text-sm text-muted">Confirmação, remarcação e cancelamento do seu horário, comprovantes e avisos da assinatura sempre chegam: são necessários ao serviço.</p>
+            <x-ui.switch name="reminders" label="Lembretes do meu horário por e-mail (véspera e algumas horas antes)" :checked="$customer->email_reminders_enabled" />
+            <fieldset class="stack stack-sm">
+                <legend>Novidades e promoções por e-mail</legend>
+                @if ($consent === \App\Modules\Customers\Enums\MarketingConsent::Unknown)
+                    <p class="text-sm text-muted">Você ainda não escolheu. Enquanto não escolher, não enviamos novidades.</p>
+                @endif
+                <x-ui.radio name="marketing" value="sim" label="Quero receber" :checked="$consent === \App\Modules\Customers\Enums\MarketingConsent::Granted" />
+                <x-ui.radio name="marketing" value="nao" label="Não quero receber" :checked="$consent === \App\Modules\Customers\Enums\MarketingConsent::Revoked" />
+            </fieldset>
+            <div><x-ui.button type="submit" variant="secondary">Salvar preferências</x-ui.button></div>
+        </form>
+    </x-ui.card>
+
     <x-ui.card title="E-mail e CPF">
         <dl class="summary-list">
             <div><dt>E-mail</dt><dd>{{ $customer->email }}</dd></div>

@@ -127,6 +127,7 @@ final class Reviews
      */
     public function feature(Review $review, bool $featured, User $actor): Review
     {
+        $review->refresh();
         if ($featured && $review->status !== ReviewStatus::Approved) {
             throw new ReviewRejected('Só avaliação publicada pode ser destacada.');
         }
@@ -150,6 +151,10 @@ final class Reviews
         }
 
         return DB::transaction(function () use ($review, $texto, $actor): ReviewReply {
+            // Situacao ATUAL (outra pessoa pode ter recusado agora ha pouco).
+            if (Review::query()->whereKey($review->id)->first()?->status !== ReviewStatus::Approved) {
+                throw new ReviewRejected('Só avaliação publicada pode ser respondida.');
+            }
             $atual = ReviewReply::query()->where('review_id', $review->id)->lockForUpdate()->first();
             $antes = $atual?->body;
             $resp = $atual ?? new ReviewReply(['review_id' => $review->id]);

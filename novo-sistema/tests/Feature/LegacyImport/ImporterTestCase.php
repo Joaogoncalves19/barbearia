@@ -71,6 +71,6 @@ abstract class ImporterTestCase extends TestCase
             'service_categories', 'services', 'packages', 'package_items', 'products', 'stock_movements', 'appointments', 'appointment_items',
             'appointment_adjustments', 'appointment_events', 'appointment_reminders', 'payments', 'commission_payouts', 'advances', 'expenses',
             'financial_goals', 'loyalty_entries', 'coupons', 'coupon_redemptions', 'gift_cards', 'plans', 'plan_versions', 'plan_version_services', 'subscriptions',
-            'subscription_payments', 'gateway_events', 'reviews', 'review_replies', 'campaigns', 'settings', 'audit_logs', 'import_runs', 'import_issues', 'legacy_references'];
+            'subscription_payments', 'gateway_events', 'reviews', 'review_replies', 'campaigns', 'campaign_recipients', 'email_messages', 'settings', 'audit_logs', 'import_runs', 'import_issues', 'legacy_references'];
     }
 }

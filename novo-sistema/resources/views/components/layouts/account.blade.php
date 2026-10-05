@@ -9,6 +9,8 @@
         ['label' => 'Meus dados', 'route' => 'account.profile.edit', 'pattern' => 'account.profile.*'],
         ['label' => 'Fidelidade', 'route' => 'account.loyalty', 'pattern' => 'account.loyalty*'],
         ['label' => 'Assinatura', 'route' => 'account.subscription', 'pattern' => 'account.subscription*'],
+        ['label' => 'Avaliações', 'route' => 'account.reviews.index', 'pattern' => 'account.reviews.*'],
+        ['label' => 'Avisos'.(($naoLidos = \App\Modules\Customers\Models\CustomerNotification::query()->where('customer_id', auth('customer')->id())->whereNull('read_at')->count()) > 0 ? ' ('.$naoLidos.')' : ''), 'route' => 'account.notifications', 'pattern' => 'account.notifications*'],
         ['label' => 'Senha', 'route' => 'account.password.edit', 'pattern' => 'account.password.*'],
     ];
     $completo = ! auth('customer')->user()?->needsProfileCompletion();

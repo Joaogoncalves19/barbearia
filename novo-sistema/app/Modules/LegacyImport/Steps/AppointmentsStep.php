@@ -297,7 +297,7 @@ final class AppointmentsStep extends Step
                 $desconto > 0 ? ['kind' => self::DISCOUNT_MAP[(string) $tipoDesconto] ?? 'legacy_unknown', 'amount' => $desconto, 'applied' => $descontoEfetivo, 'base' => $servicos, 'type' => $tipoDesconto] : null);
             $this->payment($sid, $row, $atendimento, $clienteId, $total, $gorjeta, $itens);
         }
-        $this->reminders($row, $id);
+        $this->reminders($row, $id, $inicio);
         $this->events($sid, $id, $row);
     }
 
@@ -395,17 +395,18 @@ final class AppointmentsStep extends Step
     /**
      * lembrete_data = data do atendimento cujo lembrete de vespera ja foi
      * enviado (sem a hora do envio); lembrete_hora_em = instante do envio do
-     * lembrete "horas antes".
+     * lembrete "horas antes". Fase 10: o lembrete fica preso ao HORARIO
+     * importado (scheduled_for), assim o agendador nao lembra de novo.
      *
      * @param  array<string, ?string>  $row
      */
-    private function reminders(array $row, int $appointmentId): void
+    private function reminders(array $row, int $appointmentId, mixed $startsAt): void
     {
         if (V::text($row['lembrete_data'] ?? null) !== null) {
-            $this->ctx->insert('appointment_reminders', ['appointment_id' => $appointmentId, 'kind' => 'day_before', 'status' => 'sent', 'sent_at' => null, ...$this->stamps()]);
+            $this->ctx->insert('appointment_reminders', ['appointment_id' => $appointmentId, 'kind' => 'day_before', 'scheduled_for' => $startsAt, 'status' => 'sent', 'sent_at' => null, ...$this->stamps()]);
         }
         if (V::text($row['lembrete_hora_em'] ?? null) !== null) {
-            $this->ctx->insert('appointment_reminders', ['appointment_id' => $appointmentId, 'kind' => 'hours_before', 'status' => 'sent', 'sent_at' => $this->local($row['lembrete_hora_em']), ...$this->stamps()]);
+            $this->ctx->insert('appointment_reminders', ['appointment_id' => $appointmentId, 'kind' => 'hours_before', 'scheduled_for' => $startsAt, 'status' => 'sent', 'sent_at' => $this->local($row['lembrete_hora_em']), ...$this->stamps()]);
         }
     }
 

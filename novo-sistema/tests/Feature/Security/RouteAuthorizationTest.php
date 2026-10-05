@@ -8,6 +8,7 @@ use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Models\CommissionPayout;
 use App\Modules\Identity\Models\User;
+use App\Modules\Reviews\Models\Review;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Team\Models\Professional;
 use Illuminate\Routing\Route;
@@ -59,6 +60,13 @@ class RouteAuthorizationTest extends TestCase
         // e a assinatura HMAC do corpo (StripeSignature), com janela de 5 min.
         'webhooks.stripe' => 'webhook do Stripe (assinatura conferida, throttle:webhooks)',
         'webhooks.stripe.legacy' => 'endereco antigo do webhook ate trocar no Stripe (mesma conferencia)',
+        // Links dos e-mails (Fase 10): URL ASSINADA (middleware signed, conferido
+        // em test_links_dos_emails_exigem_assinatura), throttle:email-links.
+        'presence.show' => 'tela de confirmar presenca do lembrete (so mostra; validade ate o horario)',
+        'presence.store' => 'confirma a presenca (POST com CSRF, link assinado)',
+        'unsubscribe.show' => 'tela de descadastro do marketing (so mostra)',
+        'unsubscribe.store' => 'descadastro do marketing (POST com CSRF, link assinado)',
+        'unsubscribe.one-click' => 'descadastro de um clique do leitor de e-mail (RFC 8058; fora do grupo web, link assinado)',
     ];
 
     /** Rotas que so exigem estar logado (sem permissao especifica). */
@@ -117,6 +125,18 @@ class RouteAuthorizationTest extends TestCase
         $this->assertSame([], $problemas, "Rotas sem protecao:\n".implode("\n", $problemas));
     }
 
+    public function test_links_dos_emails_exigem_assinatura(): void
+    {
+        foreach (['presence.show', 'presence.store', 'unsubscribe.show', 'unsubscribe.store', 'unsubscribe.one-click'] as $nome) {
+            $m = RouteFacade::getRoutes()->getByName($nome)?->gatherMiddleware() ?? [];
+            $this->assertContains('signed', $m, $nome);
+            $this->assertContains('throttle:email-links', $m, $nome);
+        }
+        // O um-clique fica fora do grupo web (sem sessao); os outros dentro (CSRF).
+        $this->assertNotContains('web', RouteFacade::getRoutes()->getByName('unsubscribe.one-click')->gatherMiddleware());
+        $this->assertContains('web', RouteFacade::getRoutes()->getByName('unsubscribe.store')->gatherMiddleware());
+    }
+
     public function test_nenhuma_rota_usa_auth_sem_guard(): void
     {
         foreach ($this->rotas() as $rota) {
@@ -158,6 +178,7 @@ class RouteAuthorizationTest extends TestCase
             ServiceCategory::class,
             Attendance::class,
             CommissionPayout::class,
+            Review::class,
         ];
 
         foreach ($models as $model) {

@@ -3,6 +3,7 @@
 namespace App\Modules\Receipts\Services;
 
 use App\Modules\Checkout\Models\Attendance;
+use App\Modules\Communication\Services\Outbox;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Models\Advance;
 use App\Modules\Finance\Models\CashSession;
@@ -13,13 +14,11 @@ use App\Modules\Finance\Services\CashRegister;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Models\GiftCard;
 use App\Modules\Receipts\Enums\ReceiptType;
-use App\Modules\Receipts\Mail\ReceiptMail;
 use App\Modules\Receipts\Models\ReceiptDelivery;
 use App\Modules\System\Models\Setting;
 use App\Modules\System\Services\AuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use InvalidArgumentException;
 
 /**
@@ -30,7 +29,10 @@ use InvalidArgumentException;
  */
 final class Receipts
 {
-    public function __construct(private readonly CashRegister $cash) {}
+    public function __construct(
+        private readonly CashRegister $cash,
+        private readonly Outbox $outbox,
+    ) {}
 
     /**
      * Nome e contato da barbearia para o cabecalho (configuracao geral
@@ -105,7 +107,9 @@ final class Receipts
                 'requested_by_customer_id' => $requester instanceof Customer ? $requester->id : null,
                 'request_key' => $key,
             ]);
-            Mail::to($destino)->queue(new ReceiptMail($type, (int) $doc->getKey(), $this->subject($type, $doc)));
+            // Fase 10: pela fila central (registro, novas tentativas, falha definitiva).
+            $this->outbox->queue('receipt', $destino, null, $requester instanceof Customer ? $requester : null,
+                ['type' => $type->value, 'id' => (int) $doc->getKey(), 'subject' => $this->subject($type, $doc)], 'receipt:'.$key, 'receipt_delivery', $envio->id);
             AuditTrail::record('receipt.emailed', $doc, $requester instanceof User ? $requester : null, $type->label().' enviado por e-mail.', [
                 'para' => self::mask($destino), 'pedido_por' => $requester instanceof Customer ? 'cliente' : 'equipe',
             ]);

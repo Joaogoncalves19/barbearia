@@ -3,6 +3,7 @@
 namespace App\Modules\Subscriptions\Services;
 
 use App\Modules\Checkout\Models\Attendance;
+use App\Modules\Communication\Services\CustomerMessages;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Services\PromotionService;
@@ -74,8 +75,30 @@ final class SubscriptionLifecycle
         $s->status = $to;
         $s->save();
         SubscriptionHistory::record($s, $kind, $source, $de, $to, $actor, $reason, null, $gatewayEventId, $data);
+        $this->notifyCustomer($s, $de, $to);
 
         return true;
+    }
+
+    /**
+     * Fase 10 (D-50): avisa o cliente DEPOIS da consolidacao do estado (este
+     * metodo so roda quando a transicao foi aplicada), nunca so porque chegou
+     * um webhook. Falha de pagamento e cancelamento; a ativacao e a
+     * renovacao saem de recordPaidInvoice. Link de pagamento que nunca foi
+     * pago (pendente) nao gera aviso.
+     */
+    private function notifyCustomer(Subscription $s, ?SubscriptionStatus $from, SubscriptionStatus $to): void
+    {
+        if ($from === SubscriptionStatus::Pending || $from === null) {
+            return;
+        }
+        $msgs = app(CustomerMessages::class);
+        match ($to) {
+            SubscriptionStatus::PastDue => $msgs->subscription($s, 'payment_failed', (string) ($s->ends_on?->toDateString() ?? 'sem-data')),
+            SubscriptionStatus::CancelScheduled => $msgs->subscription($s, 'cancel_scheduled', (string) ($s->cancel_requested_at?->getTimestamp() ?? BusinessTime::now()->getTimestamp())),
+            SubscriptionStatus::Cancelled => $msgs->subscription($s, 'cancelled', 'final'),
+            default => null,
+        };
     }
 
     /**
@@ -218,6 +241,12 @@ final class SubscriptionLifecycle
 
         if ($primeira) {
             $this->applyBenefitToSignupAppointment($s, $gatewayEventId);
+        }
+        // Fase 10 (D-50): ativacao por e-mail + aviso; renovacao so aviso na conta.
+        if ($primeira && $s->status !== null && ! $s->status->isFinal()) {
+            app(CustomerMessages::class)->subscription($s, 'activated', 'first');
+        } elseif ($novo && $s->status !== null && ! $s->status->isFinal() && $s->ends_on !== null && $pagoAte !== $antesFim) {
+            app(CustomerMessages::class)->subscription($s, 'renewed', $s->ends_on->toDateString());
         }
 
         return $novo ? 'applied' : 'duplicate';

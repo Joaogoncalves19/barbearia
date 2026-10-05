@@ -18,7 +18,7 @@ class SchemaTest extends TestCase
         'stock_movements', 'appointments', 'appointment_items', 'appointment_adjustments', 'appointment_events', 'appointment_reminders',
         'payments', 'commission_entries', 'commission_payouts', 'advances', 'expenses', 'financial_goals', 'loyalty_entries', 'coupons',
         'coupon_redemptions', 'gift_cards', 'plans', 'plan_versions', 'plan_version_services', 'subscriptions', 'subscription_payments', 'subscription_refunds', 'subscription_events', 'gateway_events',
-        'reviews', 'review_replies', 'campaigns', 'settings', 'audit_logs', 'import_runs', 'import_issues', 'legacy_references',
+        'reviews', 'review_replies', 'campaigns', 'campaign_recipients', 'email_messages', 'settings', 'audit_logs', 'import_runs', 'import_issues', 'legacy_references',
     ];
 
     public function test_todas_as_tabelas_do_modelo_existem(): void
@@ -94,12 +94,17 @@ class SchemaTest extends TestCase
             'subscriptions' => ['gateway_subscription_id', 'active_customer_id'],
             'subscription_payments' => ['gateway_payment_id'],
             'gateway_events' => ['gateway,event_id'],
-            'reviews' => ['appointment_id'],
+            'reviews' => ['appointment_id', 'attendance_id'],
             // Fase 8: 1 uso por cliente via sentinela (reservado ou usado; liberado nao conta).
             'coupon_redemptions' => ['active_key'],
             'loyalty_redemptions' => ['active_key'],
             'legacy_references' => ['source_table,source_id'],
-            'appointment_reminders' => ['appointment_id,kind'],
+            // Fase 10: lembrete e do HORARIO; avaliacao unica por atendimento; fila central.
+            'appointment_reminders' => ['appointment_id,kind,scheduled_for'],
+            'email_messages' => ['dedupe_key', 'public_id'],
+            'campaign_recipients' => ['campaign_id,customer_id'],
+            'customer_notifications' => ['dedupe_key'],
+            'review_replies' => ['review_id'],
             'email_suppressions' => ['email'],
             'settings' => ['key'],
         ] as $t => $cols) {

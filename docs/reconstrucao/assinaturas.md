@@ -140,9 +140,9 @@ Os eventos recebidos do Stripe (`gateway_events`) guardam o corpo inteiro, que t
 e-mail, endereço de cobrança). Política:
 
 - **12 meses** a partir do recebimento, com o corpo inteiro (permite reprocessar e investigar).
-- Depois disso, a rotina `app:retention-gateway-events` (diária) **remove o corpo** do evento. Fica só o
-  necessário para auditoria técnica e financeira: gateway, ID do evento, tipo, situação, resultado, datas,
-  tentativas e a assinatura local. O ID do evento continua guardado: um reenvio do mesmo evento continua sendo
+- Depois disso, a rotina `app:communication retention` (diária, 03:30) **remove o corpo** do evento. Fica só o
+  necessário para auditoria técnica e financeira: gateway, ID do evento, tipo, situação, resultado, erro
+  técnico do processamento (mensagem do sistema, sem o corpo), datas, tentativas e a assinatura local. O ID do evento continua guardado: um reenvio do mesmo evento continua sendo
   reconhecido e não é reprocessado.
 - Os dados financeiros que importam já estão nos registros próprios (pagamentos, reembolsos, histórico da
   assinatura), que seguem a política de retenção financeira.

@@ -31,9 +31,11 @@ class CommunicationMail extends Mailable
     public function headers(): Headers
     {
         $extra = ['X-Barbearia-Message' => $this->messageId];
-        if ($this->email->unsubscribeUrl !== null) {
-            $extra['List-Unsubscribe'] = '<'.$this->email->unsubscribeUrl.'>';
+        if ($this->email->oneClickUrl !== null) {
+            $extra['List-Unsubscribe'] = '<'.$this->email->oneClickUrl.'>';
             $extra['List-Unsubscribe-Post'] = 'List-Unsubscribe=One-Click';
+        } elseif ($this->email->unsubscribeUrl !== null) {
+            $extra['List-Unsubscribe'] = '<'.$this->email->unsubscribeUrl.'>';
         }
 
         return new Headers(text: $extra);

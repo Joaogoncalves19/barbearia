@@ -6,8 +6,11 @@ use App\Http\Controllers\Account\AppointmentController as AccountAppointmentCont
 use App\Http\Controllers\Account\BookingController as AccountBookingController;
 use App\Http\Controllers\Account\CompleteProfileController;
 use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
+use App\Http\Controllers\Account\NotificationController as AccountNotificationController;
+use App\Http\Controllers\Account\PreferencesController as AccountPreferencesController;
 use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
+use App\Http\Controllers\Account\ReviewController as AccountReviewController;
 use App\Http\Controllers\Account\SubscriptionController as AccountSubscriptionController;
 use App\Http\Controllers\Auth\Customer\EmailVerificationController;
 use App\Http\Controllers\Auth\Customer\ForgotPasswordController as CustomerForgotPasswordController;
@@ -33,6 +36,10 @@ use App\Http\Controllers\Panel\Catalog\ServiceController;
 use App\Http\Controllers\Panel\Catalog\StockController;
 use App\Http\Controllers\Panel\Checkout\AttendanceController;
 use App\Http\Controllers\Panel\Checkout\CashController;
+use App\Http\Controllers\Panel\Communication\CampaignController;
+use App\Http\Controllers\Panel\Communication\EmailLogController;
+use App\Http\Controllers\Panel\Communication\ReviewController as PanelReviewController;
+use App\Http\Controllers\Panel\Communication\SettingsController as CommunicationSettingsController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\Finance\AdvanceController;
 use App\Http\Controllers\Panel\Finance\CommissionController;
@@ -51,7 +58,10 @@ use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
 use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\PresenceController;
+use App\Http\Controllers\Site\UnsubscribeController;
 use App\Modules\Checkout\Models\Attendance;
+use App\Modules\Reviews\Models\Review;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -116,6 +126,18 @@ Route::get('/confirmar-email/{customer:public_id}/{hash}', EmailVerificationCont
     ->middleware(['signed', 'throttle:token-use', 'no-store'])
     ->name('customer.verification.verify');
 
+// --- Links dos e-mails (Fase 10): assinados, sem login ----------------------
+// Abrir (GET) so mostra; a acao e um POST. Presenca: link com validade ate o
+// horario (lembretes.md §4). Descadastro: so o marketing; o POST tambem
+// atende o "um clique" do leitor de e-mail (RFC 8058, sem CSRF: a
+// assinatura e a garantia; consentimento.md §3).
+Route::middleware(['signed', 'throttle:email-links', 'no-store'])->group(function () {
+    Route::get('/presenca/{appointment:code}', [PresenceController::class, 'show'])->name('presence.show');
+    Route::post('/presenca/{appointment:code}', [PresenceController::class, 'store'])->name('presence.store');
+    Route::get('/descadastro/{customer:public_id}', [UnsubscribeController::class, 'show'])->name('unsubscribe.show');
+    Route::post('/descadastro/{customer:public_id}', [UnsubscribeController::class, 'store'])->name('unsubscribe.store');
+});
+
 // --- Clientes: area autenticada --------------------------------------------
 Route::prefix('minha-conta')
     ->name('account.')
@@ -163,6 +185,14 @@ Route::prefix('minha-conta')
             Route::get('/assinatura', [AccountSubscriptionController::class, 'show'])->name('subscription');
             Route::post('/assinatura/cancelar', [AccountSubscriptionController::class, 'cancel'])->middleware('throttle:booking')->name('subscription.cancel');
             Route::post('/assinatura/reativar', [AccountSubscriptionController::class, 'reactivate'])->middleware('throttle:booking')->name('subscription.reactivate');
+            // Comunicacao (Fase 10): preferencias de e-mail, avisos e avaliacoes.
+            // Avaliar: so o proprio atendimento concluido (Policy; alheio = 404).
+            Route::put('/preferencias', [AccountPreferencesController::class, 'update'])->middleware('throttle:account-actions')->name('preferences.update');
+            Route::get('/avisos', [AccountNotificationController::class, 'index'])->name('notifications');
+            Route::post('/avisos/lidos', [AccountNotificationController::class, 'markRead'])->middleware('throttle:account-actions')->name('notifications.read');
+            Route::get('/avaliacoes', [AccountReviewController::class, 'index'])->name('reviews.index');
+            Route::get('/avaliacoes/{attendance}', [AccountReviewController::class, 'create'])->middleware('can:view,attendance')->name('reviews.create');
+            Route::post('/avaliacoes/{attendance}', [AccountReviewController::class, 'store'])->middleware(['can:view,attendance', 'throttle:account-actions'])->name('reviews.store');
         });
     });
 
@@ -379,6 +409,32 @@ Route::prefix('painel')
         Route::get('/planos/{plan}', [PlanController::class, 'edit'])->middleware('can:plans.manage')->name('plans.edit');
         Route::post('/planos/{plan}/versoes', [PlanController::class, 'storeVersion'])->middleware(['can:plans.manage', 'throttle:money'])->name('plans.versions.store');
         Route::post('/planos/{plan}/situacao', [PlanController::class, 'setStatus'])->middleware(['can:plans.manage', 'throttle:money'])->name('plans.status');
+
+        // --- Comunicacao e avaliacoes (Fase 10) ---
+        // Ver nao da direito a moderar/responder; rascunho de campanha nao da
+        // direito a disparar; ver o registro nao da direito a reenviar.
+        Route::get('/avaliacoes', [PanelReviewController::class, 'index'])->middleware('can:viewAny,'.Review::class)->name('reviews.index');
+        Route::post('/avaliacoes/{review}/aprovar', [PanelReviewController::class, 'approve'])->middleware(['can:reviews.moderate', 'throttle:money'])->name('reviews.approve');
+        Route::post('/avaliacoes/{review}/recusar', [PanelReviewController::class, 'reject'])->middleware(['can:reviews.moderate', 'throttle:money'])->name('reviews.reject');
+        Route::post('/avaliacoes/{review}/destaque', [PanelReviewController::class, 'feature'])->middleware(['can:reviews.moderate', 'throttle:money'])->name('reviews.feature');
+        Route::post('/avaliacoes/{review}/resposta', [PanelReviewController::class, 'reply'])->middleware(['can:reviews.reply', 'throttle:money'])->name('reviews.reply');
+
+        Route::get('/campanhas', [CampaignController::class, 'index'])->middleware('can:campaigns.view')->name('campaigns.index');
+        Route::get('/campanhas/nova', [CampaignController::class, 'create'])->middleware('can:campaigns.manage')->name('campaigns.create');
+        Route::post('/campanhas', [CampaignController::class, 'store'])->middleware(['can:campaigns.manage', 'throttle:money'])->name('campaigns.store');
+        Route::get('/campanhas/{campaign}', [CampaignController::class, 'show'])->middleware('can:campaigns.view')->name('campaigns.show');
+        Route::get('/campanhas/{campaign}/editar', [CampaignController::class, 'edit'])->middleware('can:campaigns.manage')->name('campaigns.edit');
+        Route::put('/campanhas/{campaign}', [CampaignController::class, 'update'])->middleware(['can:campaigns.manage', 'throttle:money'])->name('campaigns.update');
+        Route::post('/campanhas/{campaign}/teste', [CampaignController::class, 'test'])->middleware(['can:campaigns.manage', 'throttle:email-actions'])->name('campaigns.test');
+        Route::post('/campanhas/{campaign}/disparar', [CampaignController::class, 'start'])->middleware(['can:campaigns.send', 'throttle:money'])->name('campaigns.start');
+        Route::post('/campanhas/{campaign}/cancelar', [CampaignController::class, 'cancel'])->middleware(['can:campaigns.send', 'throttle:money'])->name('campaigns.cancel');
+
+        Route::get('/emails', [EmailLogController::class, 'index'])->middleware('can:communications.view')->name('emails.index');
+        Route::get('/emails/modelos/{template}', [EmailLogController::class, 'preview'])->middleware('can:communications.view')->name('emails.preview');
+        Route::post('/emails/{message}/reenviar', [EmailLogController::class, 'retry'])->middleware(['can:communications.retry', 'throttle:email-actions'])->name('emails.retry');
+
+        Route::get('/comunicacao', [CommunicationSettingsController::class, 'edit'])->middleware('can:communications.settings')->name('communication.settings');
+        Route::put('/comunicacao', [CommunicationSettingsController::class, 'update'])->middleware(['can:communications.settings', 'throttle:money'])->name('communication.settings.update');
 
         // --- Comprovantes impressos e por e-mail (Fase 8) ---
         // Mesmo acesso da tela do documento; envio com limite proprio.

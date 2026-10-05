@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
 /** Area da equipe? (decide para qual login mandar quem nao esta logado) */
@@ -24,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Webhooks (Fase 9): sem sessao, cookie ou CSRF; limite proprio.
         then: function (): void {
             Route::middleware('throttle:webhooks')->group(__DIR__.'/../routes/webhooks.php');
+            // Descadastro de um clique (Fase 10): sem sessao/CSRF, URL assinada.
+            Route::middleware(['signed', 'throttle:email-links', SubstituteBindings::class])->group(__DIR__.'/../routes/email-links.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware) use ($isPanel): void {

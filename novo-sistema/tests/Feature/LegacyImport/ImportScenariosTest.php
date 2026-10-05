@@ -90,6 +90,9 @@ class ImportScenariosTest extends ImporterTestCase
         $reviewOrfa = DB::table('reviews')->where('id', $this->ref('avaliacoes', 'av-5'))->first();
         $this->assertNull($reviewOrfa->appointment_id);
         $this->assertNotNull($reviewOrfa->professional_id);
+        // Fase 10: o sistema antigo publicava sem moderacao; o historico entra aprovado e marcado.
+        $this->assertSame(0, DB::table('reviews')->where(fn ($q) => $q->where('status', '<>', 'approved')->orWhere('is_legacy', false))->count());
+        $this->assertSame(0, DB::table('review_replies')->selectRaw('review_id, count(*) n')->groupBy('review_id')->having('n', '>', 1)->get()->count(), 'uma resposta por avaliação');
     }
 
     public function test_ids_externos_preservados(): void

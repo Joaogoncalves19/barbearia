@@ -170,7 +170,19 @@ class PermissionMatrixTest extends TestCase
             'subscriptions.refund' => ['owner', 'finance'],
             'subscriptions.history' => ['owner', 'manager', 'finance'],
             'plans.manage' => ['owner'],
-            'marketing.manage' => ['owner', 'manager'],
+            // Fase 10: comunicacao e avaliacoes. Configurar lembretes/ritmo: so
+            // o proprietario. Disparar campanha separado de escrever rascunho.
+            // Recepcao consulta avaliacoes; profissional ve as publicadas dele.
+            'communications.view' => ['owner', 'manager'],
+            'communications.retry' => ['owner', 'manager'],
+            'communications.settings' => ['owner'],
+            'campaigns.view' => ['owner', 'manager'],
+            'campaigns.manage' => ['owner', 'manager'],
+            'campaigns.send' => ['owner', 'manager'],
+            'reviews.view' => ['owner', 'manager', 'reception'],
+            'reviews.view_own' => ['professional'],
+            'reviews.moderate' => ['owner', 'manager'],
+            'reviews.reply' => ['owner', 'manager'],
             'settings.manage' => ['owner'],
         ];
 

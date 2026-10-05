@@ -12,8 +12,8 @@ use App\Modules\Communication\Templates\TemplateRegistry;
 use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Models\EmailSuppression;
-use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Customers\Support\Email;
+use App\Modules\Scheduling\Support\BusinessTime;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -31,7 +31,7 @@ use Throwable;
  *   confere de novo consentimento/supressao, monta o e-mail com o estado
  *   ATUAL (pode desistir: "nao se aplica mais") e entrega. Erro: volta para
  *   a fila com o erro (o job tenta de novo com espera crescente); esgotou:
- *   "falhou" (pode ser reenviado com app:email-retry).
+ *   "falhou" (pode ser reenviado com app:communication retry).
  * - Um job executado duas vezes nao reenvia: o registro ja enviado nao e
  *   reivindicado de novo.
  */
@@ -124,10 +124,10 @@ final class Outbox
     public function markFailed(int $messageId, ?Throwable $e): void
     {
         EmailMessage::query()->whereKey($messageId)->whereNotIn('status', [MessageStatus::Sent->value, MessageStatus::Suppressed->value, MessageStatus::Skipped->value])
-            ->update(['status' => MessageStatus::Failed->value, 'failed_at' => now(), 'last_error' => $e !== null ? self::safeError($e) : null, 'updated_at' => now()]);
+            ->update(['status' => MessageStatus::Failed->value, 'failed_at' => now(), 'last_error' => $e !== null ? self::safeError($e) : 'Falha sem detalhe (tentativas esgotadas).', 'updated_at' => now()]);
     }
 
-    /** Reenvio manual de um registro que falhou (app:email-retry / painel). */
+    /** Reenvio manual de um registro que falhou (app:communication retry / painel). */
     public function retry(EmailMessage $m): bool
     {
         $ok = EmailMessage::query()->whereKey($m->id)->where('status', MessageStatus::Failed->value)

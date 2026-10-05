@@ -13,7 +13,7 @@ use App\Modules\Scheduling\Support\BusinessTime;
  * Pedido de avaliacao (D-49): algumas horas depois da conclusao (padrao 3 h),
  * e-mail + aviso na conta, UMA vez por atendimento (chave de unicidade), e
  * so enquanto puder ser avaliado (30 dias, sem avaliacao, cliente
- * cadastrado). Rotina a cada 10 minutos (app:review-requests).
+ * cadastrado). Rotina a cada 10 minutos (app:communication review-requests).
  */
 final class ReviewRequests
 {

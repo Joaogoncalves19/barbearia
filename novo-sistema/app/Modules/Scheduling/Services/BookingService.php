@@ -3,6 +3,7 @@
 namespace App\Modules\Scheduling\Services;
 
 use App\Modules\Catalog\Models\Service;
+use App\Modules\Communication\Services\CustomerMessages;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Exceptions\PromotionRejected;
@@ -161,6 +162,8 @@ final class BookingService
                 'desconto' => $q->chosen?->label,
                 'total_cents' => $a->total_cents,
             ]);
+            // Fase 10: e-mail de confirmacao (sai depois do commit; encaixe nao gera).
+            app(CustomerMessages::class)->bookingConfirmed($a);
 
             return $a;
         });
@@ -241,6 +244,7 @@ final class BookingService
                 'para' => BusinessTime::formatLocal($janela->start).' com '.$pro->display_name,
                 'canal' => $channel->value,
             ]);
+            app(CustomerMessages::class)->bookingRescheduled($a);
 
             return $a;
         });
@@ -280,6 +284,7 @@ final class BookingService
             $this->promotions->releaseForAppointment($a->id, 'Agendamento '.$a->code.' cancelado');
 
             $this->event($a, 'cancelled', 'Agendamento cancelado.', $actor, ['por' => $a->cancelled_by->label(), 'motivo' => $motivo]);
+            app(CustomerMessages::class)->bookingCancelled($a);
 
             return $a;
         });
@@ -290,6 +295,33 @@ final class BookingService
     {
         return $this->transition($appointment, AppointmentStatus::Confirmed, $actor, 'confirmed', 'Agendamento confirmado pela barbearia.', function (Appointment $a): void {
             $a->forceFill(['confirmed_at' => BusinessTime::now()]);
+            app(CustomerMessages::class)->bookingApproved($a);
+        });
+    }
+
+    /**
+     * Fase 10: o cliente confirma presenca pelo link do lembrete (D-51). So
+     * para agendamento ainda aberto e futuro; confirmar de novo nao muda nada.
+     * Nao mexe no status (confirmar presenca nao e o "confirmado" da agenda).
+     *
+     * @return bool true se confirmou agora; false se ja estava confirmada
+     *
+     * @throws BookingRuleViolation
+     */
+    public function confirmPresence(Appointment $appointment): bool
+    {
+        return DB::transaction(function () use ($appointment): bool {
+            $a = Appointment::query()->findOrFail($appointment->id);
+            if (! in_array($a->status, [AppointmentStatus::Pending, AppointmentStatus::Confirmed], true) || CarbonImmutable::instance($a->starts_at)->lte(BusinessTime::now())) {
+                throw new BookingRuleViolation('invalid_status');
+            }
+            if ($a->presence_confirmed_at !== null) {
+                return false;
+            }
+            $a->forceFill(['presence_confirmed_at' => BusinessTime::now()])->save();
+            $this->event($a, 'presence_confirmed', 'Cliente confirmou presença pelo link do lembrete.', null);
+
+            return true;
         });
     }
 

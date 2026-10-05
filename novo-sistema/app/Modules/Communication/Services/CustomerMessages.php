@@ -32,6 +32,15 @@ final class CustomerMessages
         $this->appointmentEmail($a, 'booking_confirmed', 'booking_confirmed:'.$a->id, []);
     }
 
+    /** Agendamento que aguardava a barbearia foi confirmado (D-06). */
+    public function bookingApproved(Appointment $a): void
+    {
+        if (in_array($a->source, [AppointmentSource::WalkIn, AppointmentSource::Legacy], true)) {
+            return;
+        }
+        $this->appointmentEmail($a, 'booking_confirmed', 'booking_confirmed:'.$a->id.':approved', []);
+    }
+
     public function bookingRescheduled(Appointment $a): void
     {
         $ts = $a->starts_at?->getTimestamp();

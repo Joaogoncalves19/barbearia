@@ -4,6 +4,8 @@ namespace Tests\Feature\Promotions;
 
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Services\PaymentLine;
+use App\Modules\Communication\Mail\CommunicationMail;
+use App\Modules\Communication\Models\EmailMessage;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Enums\CommissionRuleType;
 use App\Modules\Finance\Enums\CommissionTarget;
@@ -13,7 +15,6 @@ use App\Modules\Finance\Services\Payouts;
 use App\Modules\Identity\Enums\StaffRole;
 use App\Modules\Identity\Models\User;
 use App\Modules\Receipts\Enums\ReceiptType;
-use App\Modules\Receipts\Mail\ReceiptMail;
 use App\Modules\Receipts\Models\ReceiptDelivery;
 use App\Modules\System\Models\AuditLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,8 +116,12 @@ class ReceiptsTest extends TestCase
 
         $envio = ReceiptDelivery::query()->sole();
         $this->assertSame([ReceiptType::Attendance, $at->id, 'cliente.ficticio@exemplo.test', $this->recepcao->id], [$envio->receipt_type, $envio->receipt_id, $envio->email, $envio->requested_by_user_id]);
-        Mail::assertQueued(ReceiptMail::class, 1);
-        Mail::assertQueued(ReceiptMail::class, fn (ReceiptMail $m) => $m->hasTo('cliente.ficticio@exemplo.test') && $m->receiptId === $at->id);
+        // Fase 10: pela fila central, uma vez so (mesma chave = mesmo registro).
+        $comprovantes = Mail::sent(CommunicationMail::class, fn (CommunicationMail $m) => $m->email->view === 'mail.communication.receipt');
+        $this->assertCount(1, $comprovantes);
+        $this->assertTrue($comprovantes->first()->hasTo('cliente.ficticio@exemplo.test') && str_contains($comprovantes->first()->render(), $at->code));
+        $msg = EmailMessage::query()->where('template', 'receipt')->sole();
+        $this->assertSame(['receipt', 'sent', 'receipt:'.$chave], [$msg->template, $msg->status->value, $msg->dedupe_key]);
         $log = AuditLog::query()->where('action', 'receipt.emailed')->sole();
         $this->assertStringNotContainsString('cliente.ficticio@', (string) json_encode($log->toArray()), 'auditoria guarda o endereço mascarado');
 
@@ -127,7 +132,8 @@ class ReceiptsTest extends TestCase
     public function test_email_renderiza_o_mesmo_comprovante(): void
     {
         $at = $this->completed();
-        $html = (new ReceiptMail(ReceiptType::Attendance, $at->id, 'Comprovante'))->render();
+        $this->actingAs($this->recepcao)->post(route('panel.receipts.attendance.email', $at), ['request_key' => (string) Str::uuid(), 'email' => 'a@exemplo.test']);
+        $html = Mail::sent(CommunicationMail::class, fn (CommunicationMail $m) => $m->email->view === 'mail.communication.receipt')->sole()->render();
 
         $this->assertStringContainsString($at->code, $html);
         $this->assertStringContainsString('R$ 50,00', $html);
@@ -142,7 +148,7 @@ class ReceiptsTest extends TestCase
         $this->actingAs($this->cliente, 'customer')->get(route('account.attendances.print', $at))->assertOk()->assertSee($at->code)->assertSee('eu@exemplo.test');
         $this->actingAs($this->cliente, 'customer')->post(route('account.attendances.email', $at), ['request_key' => (string) Str::uuid(), 'email' => 'outro@exemplo.test'])->assertSessionHas('status');
 
-        Mail::assertQueued(ReceiptMail::class, fn (ReceiptMail $m) => $m->hasTo('eu@exemplo.test') && ! $m->hasTo('outro@exemplo.test'));
+        Mail::assertSent(CommunicationMail::class, fn (CommunicationMail $m) => $m->hasTo('eu@exemplo.test') && ! $m->hasTo('outro@exemplo.test'));
         $this->assertSame($this->cliente->id, ReceiptDelivery::query()->sole()->requested_by_customer_id);
 
         $outro = Customer::factory()->create(['email' => 'intruso@exemplo.test']);

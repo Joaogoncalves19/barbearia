@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  * 2. Envio de teste para um e-mail da equipe.
  * 3. Iniciar: o publico e FOTOGRAFADO (um destinatario por cliente, unico no
  *    banco); a contagem fica registrada.
- * 4. Rotina a cada minuto (app:campaigns-process): entrega N destinatarios a
+ * 4. Rotina a cada minuto (app:communication campaigns): entrega N destinatarios a
  *    fila central (N = limite por minuto). Cada um e conferido de novo
  *    (consentimento e descadastro NA HORA); quem saiu e pulado.
  * 5. Cancelar: o que nao saiu nao sai mais.
@@ -116,6 +116,11 @@ final class Campaigns
     {
         $limite = CommunicationSettings::current()->int('campaign_per_minute');
         $n = ['entregues' => 0, 'pulados' => 0, 'concluidas' => 0];
+        // Processo que caiu no meio do lote: o destinatario volta para a fila.
+        // Sem risco de e-mail duplicado: a chave de unicidade da fila central
+        // devolve o registro ja criado.
+        CampaignRecipient::query()->where('status', 'dispatching')->where('updated_at', '<', now()->subMinutes(10))
+            ->update(['status' => 'queued', 'updated_at' => now()]);
         foreach (Campaign::query()->where('status', 'sending')->orderBy('id')->get() as $c) {
             $lote = CampaignRecipient::query()->where('campaign_id', $c->id)->where('status', 'queued')->orderBy('id')->limit(max(0, $limite - $n['entregues'] - $n['pulados']))->get();
             foreach ($lote as $r) {

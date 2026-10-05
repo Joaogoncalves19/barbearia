@@ -166,6 +166,31 @@ class IntegrityChecker
                 ->where(fn ($q) => $q->where(fn ($a) => $a->where('status', 'processed')->whereNull('processed_at')->where(fn ($x) => $x->whereNull('result')->orWhere('result', '<>', 'legacy')))
                     ->orWhere(fn ($b) => $b->where('status', 'failed')->whereNull('last_error'))
                     ->orWhereNotIn('status', ['received', 'processed', 'failed']))->count()],
+            // Fase 10: comunicacao e avaliacoes.
+            'R47_email_registro' => ['E-mail: situacao conhecida; enviado tem data de envio; falho tem data e erro; nao enviado tem o motivo; marketing so para cliente', fn () => DB::table('email_messages')
+                ->where(fn ($q) => $q->whereNotIn('status', ['queued', 'sending', 'sent', 'failed', 'suppressed', 'skipped'])
+                    ->orWhere(fn ($a) => $a->where('status', 'sent')->whereNull('sent_at'))
+                    ->orWhere(fn ($b) => $b->where('status', 'failed')->where(fn ($x) => $x->whereNull('failed_at')->orWhereNull('last_error')))
+                    ->orWhere(fn ($c) => $c->whereIn('status', ['suppressed', 'skipped'])->whereNull('skip_reason'))
+                    ->orWhere(fn ($d) => $d->where('category', 'marketing')->whereNull('customer_id'))
+                    ->orWhereNotIn('category', ['transactional', 'marketing']))->count()],
+            'R48_campanha' => ['Campanha: situacao conhecida; iniciada tem data e publico; destinatario aponta e-mail da propria campanha', fn () => DB::table('campaigns')->where('is_legacy', false)
+                ->where(fn ($q) => $q->whereNotIn('status', ['draft', 'sending', 'completed', 'cancelled'])
+                    ->orWhere(fn ($a) => $a->whereIn('status', ['sending', 'completed'])->where(fn ($x) => $x->whereNull('started_at')->orWhere('total_recipients', '<', 1))))->count()
+                + DB::table('campaign_recipients')->join('email_messages', 'email_messages.id', '=', 'campaign_recipients.email_message_id')
+                    ->where(fn ($q) => $q->whereColumn('email_messages.campaign_id', '<>', 'campaign_recipients.campaign_id')->orWhere('email_messages.category', '<>', 'marketing'))->count()],
+            'R49_avaliacao' => ['Avaliacao: nota 1 a 5; situacao conhecida; moderada tem quem e quando (exceto importadas); recusada tem motivo; destaque so publicada; atendimento do proprio cliente', fn () => DB::table('reviews')
+                ->where(fn ($q) => $q->where('rating', '<', 1)->orWhere('rating', '>', 5)
+                    ->orWhereNotIn('status', ['pending', 'approved', 'rejected'])
+                    ->orWhere(fn ($a) => $a->where('is_legacy', false)->where('status', '<>', 'pending')->where(fn ($x) => $x->whereNull('moderated_by_user_id')->orWhereNull('moderated_at')))
+                    ->orWhere(fn ($b) => $b->where('status', 'rejected')->whereNull('moderation_reason'))
+                    ->orWhere(fn ($c) => $c->where('is_featured', true)->where('status', '<>', 'approved')))->count()
+                + DB::table('reviews')->join('attendances', 'attendances.id', '=', 'reviews.attendance_id')
+                    ->where(fn ($q) => $q->whereColumn('attendances.customer_id', '<>', 'reviews.customer_id')->orWhere('attendances.status', '<>', 'completed'))->count()],
+            'R50_lembrete' => ['Lembrete: preso ao horario lembrado; e-mail do lembrete e do proprio agendamento', fn () => DB::table('appointment_reminders')->whereNull('scheduled_for')->count()
+                + DB::table('appointment_reminders')->join('email_messages', 'email_messages.id', '=', 'appointment_reminders.email_message_id')
+                    ->where(fn ($q) => $q->where('email_messages.related_type', '<>', 'appointment')->orWhereColumn('email_messages.related_id', '<>', 'appointment_reminders.appointment_id'))->count()],
+            'R51_retencao_stripe' => ['Evento do Stripe com mais de 12 meses ja sem o corpo (P9-10; rotina diaria, 1 dia de folga)', fn () => DB::table('gateway_events')->whereNotNull('payload')->where('received_at', '<', now()->subMonths(12)->subDay())->count()],
         ];
     }
 }

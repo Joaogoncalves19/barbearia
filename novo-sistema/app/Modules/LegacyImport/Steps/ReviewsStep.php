@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\DB;
  * avaliacoes, respostas_avaliacoes, avaliacoes_destacadas.
  * Uma avaliacao por agendamento: a segunda do mesmo agendamento e mantida,
  * mas sem o vinculo (pendencia). Avaliacao de agendamento que sumiu fica
- * ligada ao profissional.
+ * ligada ao profissional. Fase 10: entram aprovadas e marcadas como
+ * importadas; uma resposta por avaliacao (a segunda vira pendencia).
  */
 final class ReviewsStep extends Step
 {
@@ -62,6 +63,10 @@ final class ReviewsStep extends Step
                 'comment' => $this->text('avaliacoes', $row['comment'] ?? null),
                 'is_featured' => isset($destaques[$sid]),
                 'reviewed_at' => $this->local($row['timestamp'] ?? null),
+                // Fase 10: o sistema antigo publicava sem moderacao; o historico
+                // entra como aprovado e marcado como importado.
+                'status' => 'approved',
+                'is_legacy' => true,
                 ...$this->stamps(),
             ]);
             $this->ctx->remember('avaliacoes', $sid, 'review', $id, $row);
@@ -79,6 +84,12 @@ final class ReviewsStep extends Step
             $texto = $this->text('respostas_avaliacoes', $row['texto_resposta'] ?? null);
             if ($review === null || $texto === null) {
                 $this->ctx->skip('respostas_avaliacoes', $sid, $review === null ? C::Orphan : C::Inconsistent, 'invalid_reply', 'Resposta vazia ou de avaliacao inexistente.', ['id_avaliacao' => $row['id_avaliacao'] ?? null], false);
+
+                continue;
+            }
+            if (DB::table('review_replies')->where('review_id', $review)->exists()) {
+                // Fase 10: uma resposta por avaliacao; a segunda fica so como pendencia.
+                $this->ctx->skip('respostas_avaliacoes', $sid, C::Duplicate, 'duplicate_reply', 'Avaliacao ja tem resposta; a segunda resposta nao foi importada.', ['id_avaliacao' => $row['id_avaliacao'] ?? null], false);
 
                 continue;
             }

@@ -12,7 +12,7 @@ use Illuminate\Database\QueryException;
  */
 final class InAppNotifier
 {
-    public function notify(int $customerId, string $kind, string $message, ?string $link, ?string $dedupeKey): ?CustomerNotification
+    public function notify(int $customerId, string $kind, string $message, ?string $link, ?string $dedupeKey): CustomerNotification
     {
         if ($dedupeKey !== null && ($existente = CustomerNotification::query()->where('dedupe_key', $dedupeKey)->first()) !== null) {
             return $existente;

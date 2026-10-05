@@ -20,6 +20,9 @@ class AppointmentReminder extends Model
         return [
             'kind' => ReminderKind::class,
             'sent_at' => 'datetime',
+            'scheduled_for' => 'immutable_datetime',
+            'email_message_id' => 'integer',
+            'notified_in_app' => 'boolean',
         ];
     }
 

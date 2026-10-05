@@ -39,6 +39,8 @@ final class MarketingAuditStep extends Step
                 'created_by_label' => V::text($row['criada_por'] ?? null),
                 'started_at' => $this->local($row['criada_em'] ?? null),
                 'completed_at' => $this->local($row['concluida_em'] ?? null),
+                // Fase 10: so o resumo do sistema antigo (D-20); nunca reenviada.
+                'is_legacy' => true,
                 ...$this->stamps($this->local($row['criada_em'] ?? null)),
             ]);
             $this->ctx->remember('campanhas', $sid, 'campaign', $id, $row);

@@ -166,6 +166,12 @@ a:hover {
     color: var(--c-text-muted);
 }
 
+/* Texto livre do usuario (comentario, resposta): mantem as quebras de linha, nunca HTML. */
+.pre-line {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
 .text-sm {
     font-size: var(--fs-sm);
 }

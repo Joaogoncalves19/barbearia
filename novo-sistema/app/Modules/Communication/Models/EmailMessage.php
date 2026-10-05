@@ -92,7 +92,12 @@ class EmailMessage extends Model
     /** "jo***@exemplo.test" para telas e auditoria. */
     public function maskedEmail(): string
     {
-        [$local, $dominio] = array_pad(explode('@', $this->to_email, 2), 2, '');
+        return self::mask($this->to_email);
+    }
+
+    public static function mask(string $email): string
+    {
+        [$local, $dominio] = array_pad(explode('@', $email, 2), 2, '');
 
         return mb_substr($local, 0, 2).'***@'.$dominio;
     }

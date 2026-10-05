@@ -50,7 +50,9 @@ final class CampaignTemplate extends BaseTemplate
             return 'Cliente não existe mais.';
         }
 
-        return $this->compose((string) $c->subject, (string) $c->body, $cliente->name, self::unsubscribeUrl($cliente));
+        $r = $this->compose((string) $c->subject, (string) $c->body, $cliente->name, self::unsubscribeUrl($cliente));
+
+        return new RenderedEmail($r->subject, $r->view, $r->data, $r->unsubscribeUrl, URL::signedRoute('unsubscribe.one-click', ['customer' => $cliente->public_id]));
     }
 
     public function compose(string $subject, string $body, ?string $customerName, string $unsubscribeUrl): RenderedEmail

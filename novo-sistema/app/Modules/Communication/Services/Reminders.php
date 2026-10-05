@@ -58,7 +58,7 @@ final class Reminders
     private function confirmedBetween(CarbonImmutable $from, CarbonImmutable $to): iterable
     {
         return Appointment::query()->where('status', AppointmentStatus::Confirmed->value)
-            ->where('starts_at', '>=', $from)->where('starts_at', '<', $to)->orderBy('starts_at')->lazyById(200);
+            ->where('starts_at', '>=', $from)->where('starts_at', '<', $to)->lazyById(200);
     }
 
     /** Envia (enfileira) o lembrete do horario atual do agendamento; false se ja lembrado. */

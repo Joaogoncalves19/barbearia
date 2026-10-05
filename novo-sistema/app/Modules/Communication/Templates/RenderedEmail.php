@@ -13,5 +13,7 @@ final class RenderedEmail
         public readonly string $view,
         public readonly array $data,
         public readonly ?string $unsubscribeUrl = null,
+        // Descadastro de um clique (RFC 8058): vai no cabecalho List-Unsubscribe.
+        public readonly ?string $oneClickUrl = null,
     ) {}
 }

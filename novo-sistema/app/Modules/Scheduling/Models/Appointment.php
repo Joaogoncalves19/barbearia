@@ -45,6 +45,7 @@ use Illuminate\Support\Carbon;
  * @property CancelledBy|null $cancelled_by
  * @property string|null $cancellation_reason
  * @property Carbon|null $confirmed_at
+ * @property Carbon|null $presence_confirmed_at
  * @property int $customer_reschedules
  * @property int|null $created_by_user_id
  */
@@ -84,6 +85,7 @@ class Appointment extends Model
             'cancelled_at' => 'datetime',
             'confirmation_requested_at' => 'datetime',
             'confirmed_at' => 'datetime',
+            'presence_confirmed_at' => 'datetime',
             'completed_at' => 'datetime',
         ];
     }

@@ -37,7 +37,7 @@ abstract class BaseTemplate implements EmailTemplate
         $quando = $a->starts_at !== null
             ? ucfirst(BusinessTime::local($a->starts_at)->locale('pt_BR')->translatedFormat('l, d/m/Y')).' às '.BusinessTime::formatLocal($a->starts_at, 'H:i')
             : '—';
-        $itens = $a->items()->get()->pluck('name')->join(', ');
+        $itens = $a->items()->pluck('name')->join(', ');
         $d = ['Quando' => $quando, 'Profissional' => $a->professional_name ?? 'A definir', 'Serviços' => $itens !== '' ? $itens : '—'];
         if ($a->total_cents !== null) {
             $d['Valor'] = Money::fromCents((int) $a->total_cents)->format().((int) $a->discount_cents > 0 ? ' (com desconto)' : '');
@@ -49,12 +49,16 @@ abstract class BaseTemplate implements EmailTemplate
 
     protected function firstName(?string $name): string
     {
-        $primeiro = trim(explode(' ', trim((string) $name))[0] ?? '');
+        $primeiro = trim(explode(' ', trim((string) $name))[0]);
 
         return $primeiro !== '' ? $primeiro : 'cliente';
     }
 
-    /** Agendamento ficticio para pre-visualizacao (nao e gravado). */
+    /**
+     * Agendamento ficticio para pre-visualizacao (nao e gravado).
+     *
+     * @return array<string, string>
+     */
     protected function fakeDetails(): array
     {
         return ['Quando' => 'Segunda-feira, 05/10/2026 às 10:00', 'Profissional' => 'João (exemplo)', 'Serviços' => 'Corte', 'Valor' => 'R$ 50,00', 'Código' => 'AG-EXEMPLO'];

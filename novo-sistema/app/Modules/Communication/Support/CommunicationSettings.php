@@ -73,7 +73,7 @@ final class CommunicationSettings
                 continue;
             }
             $v = is_numeric($v) ? (int) $v : null;
-            if ($v === null || $v < ($def['min'] ?? 0) || $v > ($def['max'] ?? PHP_INT_MAX)) {
+            if ($v === null || $v < $def['min'] || $v > $def['max']) {
                 if ($strict) {
                     throw new InvalidArgumentException("{$campo} fora do limite.");
                 }

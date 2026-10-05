@@ -40,6 +40,11 @@ final class TemplateRegistry
         return $this->all;
     }
 
+    public function has(string $key): bool
+    {
+        return isset($this->all()[$key]);
+    }
+
     public function get(string $key): EmailTemplate
     {
         return $this->all()[$key] ?? throw new InvalidArgumentException("Modelo de e-mail desconhecido: {$key}");
