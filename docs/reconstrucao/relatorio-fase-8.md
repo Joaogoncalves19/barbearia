@@ -177,7 +177,15 @@ sentido no MySQL, D-02).
 
 ## 9. CI
 
-**PENDENTE** — preenchido depois do push (ver o commit seguinte).
+**PASSOU.** Run nº 35 (commit `9219d32`, https://github.com/Joaogoncalves19/barbearia/actions/runs/37340778720),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais), importador com banco fictício e Playwright + axe.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O run anterior (nº 34, commit `8505acf`) **FALHOU** só no passo Pint (§10.5); corrigido no commit seguinte.
+O commit depois deste só atualiza este relatório (documentação).
 
 ## 10. Problemas encontrados
 
