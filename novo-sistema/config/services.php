@@ -32,6 +32,13 @@ return [
     // vai para o banco, para o frontend ou para o log. Sem a chave secreta, a
     // assinatura online nao aparece (R-25); sem o segredo do webhook, todo
     // evento e recusado.
+    // Resend (D-05): chave SO no ambiente; vazia = provedor nao configurado.
+    'resend' => [
+        'key' => env('RESEND_API_KEY'),
+        'api_base' => env('RESEND_API_BASE', 'https://api.resend.com'),
+        'timeout' => (int) env('RESEND_TIMEOUT', 10),
+    ],
+
     'stripe' => [
         'secret' => env('STRIPE_SECRET'),
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),

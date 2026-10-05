@@ -160,6 +160,18 @@ class SubscriptionController extends Controller
         return redirect()->route('panel.subscriptions.show', $s)->with('status', 'Link de pagamento gerado. Envie ao cliente; ele também aparece na conta dele. A assinatura ativa quando o Stripe confirmar o pagamento.');
     }
 
+    /** P10-04: envia por e-mail o link ja gerado (nunca gera outro). */
+    public function emailLink(Request $request, Subscription $subscription): RedirectResponse
+    {
+        try {
+            $novo = $this->checkout->emailLink($subscription, $this->user($request));
+        } catch (SubscriptionRuleViolation $e) {
+            return back()->withErrors(['subscription' => $e->getMessage()]);
+        }
+
+        return back()->with('status', $novo ? 'Link enviado para o e-mail do cliente (sai pela fila em instantes).' : 'Este link já tinha sido enviado por e-mail.');
+    }
+
     public function events(Request $request): View
     {
         $filtro = (string) $request->query('situacao', 'todos');

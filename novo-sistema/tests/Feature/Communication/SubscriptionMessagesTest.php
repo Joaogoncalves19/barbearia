@@ -101,6 +101,45 @@ class SubscriptionMessagesTest extends TestCase
         $this->assertSame(MessageStatus::Sent, EmailMessage::query()->where('template', 'subscription_cancelled')->sole()->status);
     }
 
+    public function test_link_de_pagamento_por_email_idempotente_sem_novo_link_e_no_historico(): void
+    {
+        $s = $this->startSignup($this->cliente);
+        $url = $s->checkout_url;
+
+        $this->actingAs($this->recepcao)->post(route('panel.subscriptions.link.email', $s))->assertSessionHas('status');
+        $this->actingAs($this->recepcao)->post(route('panel.subscriptions.link.email', $s))->assertSessionHas('status', 'Este link já tinha sido enviado por e-mail.');
+
+        $m = EmailMessage::query()->where('template', 'subscription_payment_link')->sole();
+        $this->assertSame([MessageStatus::Sent, 'transactional'], [$m->status, $m->category->value]);
+        $this->assertStringNotContainsString((string) $url, (string) json_encode($m->params), 'o link não fica no registro');
+        Mail::assertSent(\App\Modules\Communication\Mail\CommunicationMail::class, fn ($mail) => str_contains($mail->render(), (string) $url));
+        \Illuminate\Support\Facades\Http::assertSentCount(1); // uma sessão no Stripe: o envio nunca gera outro link
+        $this->assertSame($url, $s->refresh()->checkout_url);
+        $this->assertSame(1, $s->events()->where('kind', 'link_emailed')->count());
+        $this->assertSame(1, \App\Modules\System\Models\AuditLog::query()->where('action', 'subscription.link_emailed')->count());
+
+        $financeiro = \App\Modules\Identity\Models\User::factory()->role(\App\Modules\Identity\Enums\StaffRole::Finance)->create();
+        $this->actingAs($financeiro)->post(route('panel.subscriptions.link.email', $s))->assertForbidden();
+    }
+
+    public function test_link_substituido_ou_vencido_nao_sai(): void
+    {
+        $s = $this->startSignup($this->cliente);
+        Queue::fake();
+        $this->checkout()->emailLink($s, $this->recepcao);
+        $antigo = EmailMessage::query()->where('template', 'subscription_payment_link')->sole();
+
+        $this->travel(5)->minutes(); // passado o duplo clique (mesmo link por 2 min)
+        $novo = $this->startSignup($this->cliente); // novo link expira o anterior
+        $this->assertNotSame($s->id, $novo->id);
+        (new SendEmailMessage($antigo->id))->handle(app(Outbox::class));
+        $this->assertSame(MessageStatus::Skipped, $antigo->refresh()->status);
+
+        $this->travel(2)->days();
+        $this->expectException(\App\Modules\Subscriptions\Exceptions\SubscriptionRuleViolation::class);
+        $this->checkout()->emailLink($novo->refresh(), $this->recepcao);
+    }
+
     public function test_renovacao_so_aviso_na_conta(): void
     {
         $s = $this->activeSubscription($this->cliente);

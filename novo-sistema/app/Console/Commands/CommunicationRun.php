@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Modules\Communication\Models\EmailMessage;
+use App\Modules\Communication\Services\CommunicationRetention;
 use App\Modules\Communication\Services\Outbox;
 use App\Modules\Communication\Services\Reminders;
 use App\Modules\Marketing\Services\Campaigns;
@@ -17,7 +18,7 @@ use Illuminate\Console\Command;
  *   review-requests  pedidos de avaliacao
  *   campaigns        proximo lote das campanhas em envio
  *   retry            reenvia e-mails que falharam (--id= um so)
- *   retention        retencao dos eventos do Stripe (P9-10)
+ *   retention        retencao: eventos do Stripe (P9-10) e comunicacao (P10-03)
  */
 class CommunicationRun extends Command
 {
@@ -52,6 +53,8 @@ class CommunicationRun extends Command
                 break;
             case 'retention':
                 $this->info('Eventos do Stripe anonimizados: '.app(GatewayEventRetention::class)->run().'.');
+                $n = app(CommunicationRetention::class)->run();
+                $this->info("Comunicação: {$n['emails']} e-mail(s) e {$n['destinatarios']} destinatário(s) anonimizados, {$n['avisos']} aviso(s) apagado(s).");
                 break;
             default:
                 $this->error('Tarefa desconhecida.');

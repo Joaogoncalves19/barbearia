@@ -6,7 +6,7 @@ use App\Modules\Communication\Enums\MessageCategory;
 use App\Modules\Communication\Enums\MessageStatus;
 use App\Modules\Communication\Exceptions\EmailDeliveryFailed;
 use App\Modules\Communication\Jobs\SendEmailMessage;
-use App\Modules\Communication\Mail\CommunicationMail;
+use App\Modules\Communication\Delivery\EmailProviders;
 use App\Modules\Communication\Models\EmailMessage;
 use App\Modules\Communication\Templates\RenderedEmail;
 use App\Modules\Communication\Templates\TemplateRegistry;
@@ -17,7 +17,6 @@ use App\Modules\Customers\Support\Email;
 use App\Modules\Scheduling\Support\BusinessTime;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 /**
@@ -38,7 +37,15 @@ use Throwable;
  */
 final class Outbox
 {
-    public function __construct(private readonly TemplateRegistry $templates) {}
+    /** P10-01: campanhas de marketing por cliente na janela. */
+    public const MARKETING_CAP = 4;
+
+    public const MARKETING_CAP_DAYS = 30;
+
+    public function __construct(
+        private readonly TemplateRegistry $templates,
+        private readonly EmailProviders $providers,
+    ) {}
 
     /**
      * @param  array<string, scalar|null>  $params
@@ -110,17 +117,62 @@ final class Outbox
             return MessageStatus::Skipped;
         }
 
+        // P10-01: no maximo 4 campanhas por cliente em 30 dias (so marketing).
+        if ($m->category === MessageCategory::Marketing && ! $this->clearMarketingCap($m)) {
+            $m->forceFill(['status' => MessageStatus::Suppressed, 'skip_reason' => 'Limite de '.self::MARKETING_CAP.' campanhas em '.self::MARKETING_CAP_DAYS.' dias.'])->save();
+
+            return MessageStatus::Suppressed;
+        }
+
+        $provedor = $this->providers->current();
         try {
-            Mail::to($m->to_email, $m->to_name)->send(new CommunicationMail($montado, $m->public_id));
+            $idProvedor = $provedor->send($m, $montado);
         } catch (Throwable $e) {
-            $erro = self::safeError($e);
-            $m->forceFill(['status' => MessageStatus::Queued, 'last_error' => $erro])->save();
+            $erro = $e instanceof EmailDeliveryFailed ? mb_substr($e->getMessage(), 0, 1000) : self::safeError($e);
+            $m->forceFill(['status' => MessageStatus::Queued, 'last_error' => $erro, 'provider' => $provedor->name()])->save();
             // Para o worker sai so a mensagem limpa (sem a excecao original encadeada).
             throw new EmailDeliveryFailed($erro);
         }
-        $m->forceFill(['status' => MessageStatus::Sent, 'sent_at' => BusinessTime::now(), 'subject' => mb_substr($montado->subject, 0, 255), 'last_error' => null])->save();
+        $m->forceFill([
+            'status' => MessageStatus::Sent, 'sent_at' => BusinessTime::now(), 'subject' => mb_substr($montado->subject, 0, 255), 'last_error' => null,
+            'provider' => $provedor->name(), 'provider_message_id' => $idProvedor,
+        ])->save();
 
         return MessageStatus::Sent;
+    }
+
+    /**
+     * P10-01 (decisao do dono): no maximo 4 campanhas de marketing por cliente
+     * em qualquer janela de 30 dias. So contam e-mails de marketing ja
+     * LIBERADOS por esta conferencia (e que nao falharam nem foram barrados).
+     * A conferencia trava a linha do cliente: dois workers entregando campanhas
+     * diferentes ao mesmo cliente ficam em fila e o limite nunca passa.
+     */
+    private function clearMarketingCap(EmailMessage $m): bool
+    {
+        if ($m->customer_id === null) {
+            return false;
+        }
+
+        return DB::transaction(function () use ($m): bool {
+            Customer::query()->whereKey($m->customer_id)->increment('communication_version');
+            if (self::marketingCount($m->customer_id, $m->id) >= self::MARKETING_CAP) {
+                return false;
+            }
+            EmailMessage::query()->whereKey($m->id)->update(['marketing_cleared_at' => BusinessTime::now(), 'updated_at' => now()]);
+
+            return true;
+        });
+    }
+
+    /** Campanhas liberadas para o cliente na janela de 30 dias (sem contar $except). */
+    public static function marketingCount(int $customerId, ?int $except = null): int
+    {
+        return EmailMessage::query()->where('customer_id', $customerId)->where('category', MessageCategory::Marketing->value)
+            ->whereNotNull('marketing_cleared_at')->where('marketing_cleared_at', '>=', BusinessTime::now()->subDays(self::MARKETING_CAP_DAYS))
+            ->whereNotIn('status', [MessageStatus::Failed->value, MessageStatus::Suppressed->value, MessageStatus::Skipped->value])
+            ->when($except !== null, fn ($q) => $q->whereKeyNot($except))
+            ->count();
     }
 
     /** Esgotou as tentativas (chamado pelo job). */

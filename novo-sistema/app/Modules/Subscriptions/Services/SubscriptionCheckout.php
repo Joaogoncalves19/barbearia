@@ -2,6 +2,8 @@
 
 namespace App\Modules\Subscriptions\Services;
 
+use App\Modules\Communication\Models\EmailMessage;
+use App\Modules\Communication\Services\Outbox;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Models\Appointment;
@@ -136,6 +138,45 @@ final class SubscriptionCheckout
             }
 
             return $t;
+        });
+    }
+
+    /**
+     * P10-04 (decisao do dono): envia por e-mail o link JA GERADO (nunca gera
+     * outro: duplo clique nao cria sessao nem cobranca nova). Pela fila central
+     * (transacional, nunca campanha), uma vez por link (chave = sessao do
+     * Stripe), no historico da assinatura e na auditoria. O link e lido na hora
+     * do envio: vencido ou substituido, o e-mail nao sai.
+     *
+     * @return bool true se pediu o envio agora; false se este link ja tinha sido enviado
+     *
+     * @throws SubscriptionRuleViolation
+     */
+    public function emailLink(Subscription $subscription, User $actor): bool
+    {
+        return DB::transaction(function () use ($subscription, $actor): bool {
+            $s = $this->life->lock($subscription->id);
+            if ($s->status !== SubscriptionStatus::Pending || $s->checkout_url === null || $s->checkout_session_id === null) {
+                throw new SubscriptionRuleViolation('Só um link de pagamento em aberto pode ser enviado.');
+            }
+            if ($s->checkout_expires_at !== null && $s->checkout_expires_at->lte(BusinessTime::now())) {
+                throw new SubscriptionRuleViolation('O link venceu. Gere um novo.');
+            }
+            $cliente = Customer::query()->findOrFail($s->customer_id);
+            if ($cliente->email === null || $cliente->email === '') {
+                throw new SubscriptionRuleViolation('O cliente não tem e-mail cadastrado.');
+            }
+            $chave = 'subscription_link:'.$s->id.':'.$s->checkout_session_id;
+            if (EmailMessage::query()->where('dedupe_key', $chave)->exists()) {
+                return false;
+            }
+            $msg = app(Outbox::class)->queue('subscription_payment_link', $cliente->email, $cliente->name, $cliente,
+                ['subscription_id' => $s->id, 'session' => $s->checkout_session_id], $chave, 'subscription', $s->id);
+            SubscriptionHistory::record($s, SubscriptionEventKind::LinkEmailed, EventSource::Staff, $s->status, $s->status, $actor, null, null, null,
+                ['registro_email' => $msg?->public_id]);
+            AuditTrail::record('subscription.link_emailed', $s, $actor, 'Link de pagamento enviado por e-mail ao cliente.', ['assinatura' => $s->public_id]);
+
+            return true;
         });
     }
 

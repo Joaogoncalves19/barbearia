@@ -402,6 +402,7 @@ Route::prefix('painel')
         Route::post('/assinaturas/pagamentos/{payment}/reembolso', [PanelSubscriptionController::class, 'refund'])->middleware(['can:subscriptions.refund', 'throttle:money'])->name('subscriptions.refund');
         Route::get('/assinaturas/{subscription}', [PanelSubscriptionController::class, 'show'])->middleware('can:subscriptions.view')->name('subscriptions.show');
         Route::post('/assinaturas/{subscription}/cancelar', [PanelSubscriptionController::class, 'cancel'])->middleware(['can:subscriptions.cancel', 'throttle:money'])->name('subscriptions.cancel');
+        Route::post('/assinaturas/{subscription}/link/email', [PanelSubscriptionController::class, 'emailLink'])->middleware(['can:subscriptions.create', 'throttle:email-actions'])->name('subscriptions.link.email');
         Route::post('/assinaturas/{subscription}/reativar', [PanelSubscriptionController::class, 'reactivate'])->middleware(['can:subscriptions.reactivate', 'throttle:money'])->name('subscriptions.reactivate');
         Route::get('/planos', [PlanController::class, 'index'])->middleware('can:plans.manage')->name('plans.index');
         Route::get('/planos/novo', [PlanController::class, 'create'])->middleware('can:plans.manage')->name('plans.create');

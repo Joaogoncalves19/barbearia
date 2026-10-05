@@ -35,6 +35,12 @@ return [
     // (ex.: s3) sem mudar codigo. Imagens nunca vao para o banco nem o Git.
     'media_disk' => env('MEDIA_DISK', 'public'),
 
+    // Provedor de entrega dos e-mails do dominio (D-05; emails.md §7):
+    // "mailer" = mailer do Laravel (MAIL_MAILER: log/array/smtp);
+    // "resend" = API do Resend (chave em RESEND_API_KEY). Trocar de fornecedor
+    // e so isto: fila, modelos e regras nao mudam.
+    'email_provider' => env('EMAIL_PROVIDER', 'mailer'),
+
     'queue' => [
         // Em hospedagem sem supervisor de processos, o agendador sobe um
         // worker a cada minuto que processa a fila e encerra (ver

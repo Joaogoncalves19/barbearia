@@ -45,6 +45,12 @@
             <div class="stack stack-sm">
                 <p>Envie este link ao cliente (ele também aparece na conta dele). Vale até {{ $s->checkout_expires_at ? BusinessTime::formatLocal($s->checkout_expires_at) : '24 h depois de gerado' }}. A assinatura ativa quando o Stripe confirmar o pagamento.</p>
                 <x-ui.input name="checkout_url" label="Link" :value="$s->checkout_url" readonly optional />
+                @can('subscriptions.create')
+                    <form method="POST" action="{{ route('panel.subscriptions.link.email', $s) }}">
+                        @csrf
+                        <x-ui.button type="submit" variant="secondary" icon="mail">Enviar link por e-mail</x-ui.button>
+                    </form>
+                @endcan
             </div>
         </x-ui.card>
     @endif

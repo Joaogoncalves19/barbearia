@@ -198,6 +198,10 @@ final class Campaigns
         if (EmailSuppression::isSuppressed($email)) {
             return 'Descadastrado ou bloqueado.';
         }
+        // P10-01: conferido de novo (com trava) na hora do envio.
+        if (Outbox::marketingCount($customer->id) >= Outbox::MARKETING_CAP) {
+            return 'Limite de '.Outbox::MARKETING_CAP.' campanhas em '.Outbox::MARKETING_CAP_DAYS.' dias.';
+        }
 
         return null;
     }

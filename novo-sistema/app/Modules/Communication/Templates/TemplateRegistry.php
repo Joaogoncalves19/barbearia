@@ -28,6 +28,7 @@ final class TemplateRegistry
                 new SubscriptionTemplate('payment_failed'),
                 new SubscriptionTemplate('cancel_scheduled'),
                 new SubscriptionTemplate('cancelled'),
+                new SubscriptionLinkTemplate,
                 new CampaignTemplate,
                 new CampaignTemplate(test: true),
             ];

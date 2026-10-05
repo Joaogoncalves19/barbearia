@@ -19,6 +19,7 @@ enum SubscriptionEventKind: string
     case Expired = 'expired';
     case Refunded = 'refunded';
     case BenefitApplied = 'benefit_applied';
+    case LinkEmailed = 'link_emailed';
 
     public function label(): string
     {
@@ -37,6 +38,7 @@ enum SubscriptionEventKind: string
             self::Expired => 'Expirada',
             self::Refunded => 'Reembolso',
             self::BenefitApplied => 'Benefício aplicado ao agendamento',
+            self::LinkEmailed => 'Link de pagamento enviado por e-mail',
         };
     }
 }

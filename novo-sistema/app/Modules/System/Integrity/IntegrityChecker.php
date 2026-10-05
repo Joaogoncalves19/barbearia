@@ -190,6 +190,9 @@ class IntegrityChecker
             'R50_lembrete' => ['Lembrete: preso ao horario lembrado; e-mail do lembrete e do proprio agendamento', fn () => DB::table('appointment_reminders')->whereNull('scheduled_for')->count()
                 + DB::table('appointment_reminders')->join('email_messages', 'email_messages.id', '=', 'appointment_reminders.email_message_id')
                     ->where(fn ($q) => $q->where('email_messages.related_type', '<>', 'appointment')->orWhereColumn('email_messages.related_id', '<>', 'appointment_reminders.appointment_id'))->count()],
+            'R52_retencao_comunicacao' => ['Comunicacao com mais de 12 meses ja anonimizada e avisos apagados (P10-03; rotina diaria, 1 dia de folga); anonimizado sem endereco nem assunto', fn () => DB::table('email_messages')->whereNull('purged_at')->whereNotIn('status', ['queued', 'sending'])->where('created_at', '<', now()->subMonths(12)->subDay())->count()
+                + DB::table('customer_notifications')->where('created_at', '<', now()->subMonths(12)->subDay())->count()
+                + DB::table('email_messages')->whereNotNull('purged_at')->where(fn ($q) => $q->where('to_email', '<>', '[removido]')->orWhereNotNull('subject')->orWhereNotNull('to_name'))->count()],
             'R51_retencao_stripe' => ['Evento do Stripe com mais de 12 meses ja sem o corpo (P9-10; rotina diaria, 1 dia de folga)', fn () => DB::table('gateway_events')->whereNotNull('payload')->where('received_at', '<', now()->subMonths(12)->subDay())->count()],
         ];
     }

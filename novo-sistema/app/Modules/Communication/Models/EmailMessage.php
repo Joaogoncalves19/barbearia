@@ -39,6 +39,10 @@ use Illuminate\Support\Str;
  * @property CarbonInterface|null $queued_at
  * @property CarbonInterface|null $sent_at
  * @property CarbonInterface|null $failed_at
+ * @property string|null $provider
+ * @property string|null $provider_message_id
+ * @property CarbonInterface|null $marketing_cleared_at
+ * @property CarbonInterface|null $purged_at
  * @property CarbonInterface|null $created_at
  */
 class EmailMessage extends Model
@@ -60,6 +64,8 @@ class EmailMessage extends Model
             'queued_at' => 'datetime',
             'sent_at' => 'datetime',
             'failed_at' => 'datetime',
+            'marketing_cleared_at' => 'datetime',
+            'purged_at' => 'datetime',
         ];
     }
 
@@ -69,7 +75,7 @@ class EmailMessage extends Model
             $m->public_id ??= (string) Str::uuid();
         });
         static::updating(function (self $m): void {
-            if (array_diff(array_keys($m->getDirty()), ['status', 'skip_reason', 'attempts', 'last_error', 'sent_at', 'failed_at', 'queued_at', 'subject', 'updated_at']) !== []) {
+            if (array_diff(array_keys($m->getDirty()), ['status', 'skip_reason', 'attempts', 'last_error', 'sent_at', 'failed_at', 'queued_at', 'subject', 'provider', 'provider_message_id', 'marketing_cleared_at', 'updated_at']) !== []) {
                 throw DomainRuleViolation::rule('R-HIST', 'Registro de e-mail: só a situação muda.');
             }
         });
