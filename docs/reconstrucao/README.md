@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 8 concluídas e aprovadas. **Fase 9 concluída, aguardando aprovação do dono**
-> (assinaturas: [relatorio-fase-9.md](relatorio-fase-9.md)).
+> **Status:** Fases 0 a 9 concluídas e aprovadas ([relatorio-fase-9.md](relatorio-fase-9.md)). **Fase 10 em
+> andamento** (comunicação e avaliações).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 

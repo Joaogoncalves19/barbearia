@@ -79,7 +79,9 @@
 > de tabela**, com a regra de assinante do profissional (percentual, fixo por atendimento, sem comissão).
 > **D-47** adesão **como hoje, no agendamento**, pelo Stripe Checkout, e também por **link de pagamento** gerado
 > no painel; ativa quando o Stripe confirma. Pontos implementados de forma conservadora e marcados **PRECISA DE
-> DECISÃO** (P9-01 a P9-10): ver [assinaturas.md §10](assinaturas.md#10-precisa-de-decisão).
+> DECISÃO** (P9-01 a P9-10): ver [assinaturas.md §10](assinaturas.md#10-precisa-de-decisão). **Aprovação da
+> Fase 9 (2026-10-05):** **P9-10** decidida: eventos do Stripe guardados por **12 meses**; depois, rotina
+> auditável remove os dados pessoais e preserva só o necessário (inclusive o ID, para não reprocessar).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

@@ -291,9 +291,10 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 9 — Assinaturas (se aprovada, D-03) ✅ (aguardando aprovação)
+## Fase 9 — Assinaturas (se aprovada, D-03) ✅
 
-> **Concluída em 2026-10-05, aguardando aprovação do dono.** Relatório: [relatorio-fase-9.md](relatorio-fase-9.md).
+> **Concluída e aprovada em 2026-10-05.** Relatório: [relatorio-fase-9.md](relatorio-fase-9.md). O ciclo real em
+> modo teste do Stripe fica para a homologação, antes de qualquer uso real.
 > Branch `claude/fase-9-assinaturas` (a partir da Fase 8). Entregue: planos versionados, adesão no agendamento e
 > por link do painel (Stripe Checkout), webhooks assinados, idempotentes, transacionais e à prova de ordem,
 > estados e transições documentados, direito ao benefício separado do estado, cancelamento (fim do período e

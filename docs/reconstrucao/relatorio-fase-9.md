@@ -1,6 +1,8 @@
 # Relatório da Fase 9 — Assinaturas
 
-> **Status: concluída, aguardando aprovação do dono para a Fase 10.** Branch `claude/fase-9-assinaturas`,
+> **Status: concluída e aprovada pelo dono em 2026-10-05** (P9-10 decidida: eventos do Stripe guardados 12 meses
+> e depois anonimizados por rotina auditável, implementada na Fase 10; o ciclo real em modo teste do Stripe fica
+> para a homologação, antes de qualquer uso real; Fase 10 autorizada). Branch `claude/fase-9-assinaturas`,
 > criada a partir de `claude/fase-8-promocoes-fidelidade`. Só dados fictícios; nenhum banco real; nenhuma
 > chave do Stripe (real ou de teste) no repositório, no banco ou no CI; nenhuma chamada real ao Stripe (todas
 > simuladas); nenhuma migração real; sistema antigo não alterado (lido só como fonte das regras).
@@ -212,4 +214,4 @@ Novos: [assinaturas.md](assinaturas.md), [planos.md](planos.md), [beneficios.md]
 
 ---
 
-**Aguardando aprovação explícita do dono para a Fase 10.**
+**Fase 9 aprovada (2026-10-05). P9-10 decidida (retenção de 12 meses). Fase 10 autorizada.**

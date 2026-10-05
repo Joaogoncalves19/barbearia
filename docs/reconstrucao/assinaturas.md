@@ -132,4 +132,23 @@ nesta fase.
 | P9-07 | Tolerância de 1 dia | Vale para o benefício da assinatura ativa (o antigo usava só para expirar a situação) |
 | P9-08 | Envio do link | Cópia na tela e conta do cliente; e-mail/WhatsApp dependem da Fase 10 (D-05) |
 | P9-09 | Pausar assinatura | Não oferecido; `paused` vindo do Stripe é tratado como em atraso (sem benefício novo) |
-| P9-10 | Retenção dos eventos do Stripe (contêm dados do cliente) | Guardados sem prazo; definir o prazo de retenção (LGPD, Fase 12) |
+| ~~P9-10~~ | Retenção dos eventos do Stripe — **decidida (aprovação da Fase 9): 12 meses** | Ver §11 |
+
+## 11. Retenção dos eventos do Stripe (decisão do dono, P9-10)
+
+Os eventos recebidos do Stripe (`gateway_events`) guardam o corpo inteiro, que traz dados pessoais (nome,
+e-mail, endereço de cobrança). Política:
+
+- **12 meses** a partir do recebimento, com o corpo inteiro (permite reprocessar e investigar).
+- Depois disso, a rotina `app:retention-gateway-events` (diária) **remove o corpo** do evento. Fica só o
+  necessário para auditoria técnica e financeira: gateway, ID do evento, tipo, situação, resultado, datas,
+  tentativas e a assinatura local. O ID do evento continua guardado: um reenvio do mesmo evento continua sendo
+  reconhecido e não é reprocessado.
+- Os dados financeiros que importam já estão nos registros próprios (pagamentos, reembolsos, histórico da
+  assinatura), que seguem a política de retenção financeira.
+- A rotina é idempotente e **auditável**: cada execução que anonimiza registra na auditoria
+  (`retention.gateway_events`) quantos eventos e o limite de data. O evento anonimizado guarda a data da
+  anonimização (`payload_purged_at`).
+- Nada de dados pessoais guardados indefinidamente por conveniência. A política geral de retenção/LGPD
+  (Fase 12) deve citar esta regra.
+
