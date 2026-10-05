@@ -137,7 +137,7 @@ class IntegrityChecker
                     ->havingRaw('SUM(r.points) > (SELECT COALESCE(SUM(points), 0) FROM loyalty_entries WHERE loyalty_entries.customer_id = r.customer_id)')
                     ->select('r.customer_id'), 'sem_saldo')->count()],
             'R41_vale_presente' => ['Vale-presente: usado tem um pagamento (ate o valor do vale); pagamento com vale aponta o vale; venda e devolucao no caixa com o valor do vale', fn () => DB::table('gift_cards')->where('status', 'redeemed')->where('is_legacy', false)
-                ->whereRaw("(SELECT COUNT(*) FROM payments p WHERE p.gift_card_id = gift_cards.id AND p.amount_cents <= gift_cards.amount_cents) <> 1")->count()
+                ->whereRaw('(SELECT COUNT(*) FROM payments p WHERE p.gift_card_id = gift_cards.id AND p.amount_cents <= gift_cards.amount_cents) <> 1')->count()
                 + DB::table('payments')->where(fn ($q) => $q->where(fn ($a) => $a->where('method', 'gift_card')->whereNull('gift_card_id'))->orWhere(fn ($b) => $b->where('method', '<>', 'gift_card')->whereNotNull('gift_card_id')))->count()
                 + DB::table('gift_cards')->where('is_legacy', false)->whereNotNull('sale_cash_session_id')
                     ->whereRaw("(SELECT COALESCE(SUM(amount_cents), 0) FROM cash_movements m WHERE m.gift_card_id = gift_cards.id AND m.type = 'gift_card_sale') <> amount_cents")->count()

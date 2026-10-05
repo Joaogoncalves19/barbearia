@@ -188,7 +188,11 @@ sentido no MySQL, D-02).
 3. **Limite de tentativas da prévia do cupom** (§6), corrigido.
 4. **Testes do painel trocando de usuário na mesma sessão:** a sessão anterior redirecionava; os testes
    passaram a limpar a sessão entre usuários (comportamento correto do `auth.session`).
-5. **Banco local de desenvolvimento:** continua vazio desde a Fase 7 (repovoar com `php artisan db:seed`);
+5. **Pint no CI (run nº 34, FALHOU):** localmente o estilo foi conferido só nos arquivos alterados
+   (`pint --dirty`), e quatro arquivos do commit anterior da fase (`AttendanceService`, `PromotionEngine`,
+   `PromotionService`, `IntegrityChecker`) ficaram fora. Só formatação (espaços, chaves, ordem de `use`);
+   corrigido com `pint`, conferido com `pint --test` no projeto inteiro, e testes (607) e PHPStan repetidos.
+6. **Banco local de desenvolvimento:** continua vazio desde a Fase 7 (repovoar com `php artisan db:seed`);
    todo E2E e migration desta fase rodou em banco temporário.
 
 ## 11. Pendências

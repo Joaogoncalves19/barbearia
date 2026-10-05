@@ -5,6 +5,7 @@ namespace App\Modules\Loyalty\Services;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Checkout\Models\AttendanceDiscount;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Identity\Models\User;
 use App\Modules\Loyalty\Enums\DiscountType;
 use App\Modules\Loyalty\Enums\LoyaltyEntryKind;
 use App\Modules\Loyalty\Enums\RedemptionStatus;
@@ -19,6 +20,7 @@ use App\Modules\Loyalty\Pricing\PromotionRequest;
 use App\Modules\Scheduling\Enums\AdjustmentKind;
 use App\Modules\Scheduling\Models\Appointment;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Shared\Support\Money;
 use App\Modules\System\Services\AuditTrail;
 use Illuminate\Support\Facades\DB;
 
@@ -99,7 +101,7 @@ final class PromotionService
         }
         $c = $q->chosen;
         if ($c === null || $c->isCurrent) {
-            throw new PromotionRejected('not_better', $atual !== null ? $atual->label.': '.\App\Modules\Shared\Support\Money::fromCents($atual->amountCents)->format().'.' : null);
+            throw new PromotionRejected('not_better', $atual !== null ? $atual->label.': '.Money::fromCents($atual->amountCents)->format().'.' : null);
         }
 
         foreach ($atuais as $d) {
@@ -279,7 +281,7 @@ final class PromotionService
     }
 
     /** Auditoria de quem aplicou promocao no balcao. */
-    public function audit(Attendance $attendance, PromotionCandidate $c, ?\App\Modules\Identity\Models\User $actor): void
+    public function audit(Attendance $attendance, PromotionCandidate $c, ?User $actor): void
     {
         AuditTrail::record('promotion.applied', $attendance, $actor, $c->label.' aplicado no atendimento '.$attendance->code.'.', [
             'tipo' => $c->kind->value, 'valor_cents' => $c->amountCents,

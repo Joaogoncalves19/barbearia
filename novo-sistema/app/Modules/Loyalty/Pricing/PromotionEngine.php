@@ -15,6 +15,7 @@ use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Pricing\Discount;
 use App\Modules\Shared\Pricing\PriceBreakdown;
 use App\Modules\Shared\Support\Money;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -261,7 +262,7 @@ final class PromotionEngine
             return null;
         }
         $inicio = BusinessTime::at(substr($localDate, 0, 7).'-01', '00:00');
-        $fim = BusinessTime::at(\Carbon\CarbonImmutable::createFromFormat('Y-m-d', substr($localDate, 0, 7).'-01')->addMonth()->toDateString(), '00:00');
+        $fim = BusinessTime::at(CarbonImmutable::createFromFormat('Y-m-d', substr($localDate, 0, 7).'-01')->addMonth()->toDateString(), '00:00');
 
         $noAgendamento = DB::table('appointment_adjustments')->join('appointments', 'appointments.id', '=', 'appointment_adjustments.appointment_id')
             ->where('appointment_adjustments.kind', AdjustmentKind::Birthday->value)->where('appointments.customer_id', $customer->id)
