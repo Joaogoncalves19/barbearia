@@ -157,6 +157,13 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(60)->by('receipts-h|'.$request->user()?->getAuthIdentifier()),
         ]);
 
+        // Previa com cupom na confirmacao do agendamento (Fase 8): impede testar
+        // codigos de cupom em serie. Sem cupom no pedido, nao conta.
+        RateLimiter::for('coupon-check', fn (Request $request) => $request->filled('cupom') ? [
+            Limit::perMinute(10)->by('coupon|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()),
+            Limit::perHour(60)->by('coupon-h|'.$request->user()?->getAuthIdentifier()),
+        ] : Limit::none());
+
         // Troca/confirmacao de senha logado: segura quem tenta adivinhar a
         // senha atual numa sessao roubada.
         RateLimiter::for('password-check', fn (Request $request) => Limit::perMinute($max)->by(

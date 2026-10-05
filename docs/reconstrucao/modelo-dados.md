@@ -1,10 +1,12 @@
-# Modelo de dados do novo sistema (Fases 2 a 6)
+# Modelo de dados do novo sistema (Fases 2 a 8)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
 > (seção 2.1); a Fase 4, `2026_09_30_000100_add_catalog_and_team_admin_columns` (seções 2.3 e 2.4);
 > a Fase 5, `2026_10_01_000100_create_agenda_tables` (seções 2.3 e 2.5); a Fase 6,
-> `2026_10_02_000100_create_checkout_tables` (seções 2.4, 2.5a e 2.6).
+> `2026_10_02_000100_create_checkout_tables` (seções 2.4, 2.5a e 2.6); a Fase 7,
+> `2026_10_03_000100_create_commission_tables` (seções 2.3 e 2.6); a Fase 8,
+> `2026_10_04_000100_create_promotion_engine_tables` (seções 2.2, 2.5, 2.5a, 2.6, 2.7 e 2.9).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -331,21 +333,43 @@ histórico, nunca abatido de novo). Só inclusão.
 **financial_goals** — `professional_id` (N = meta da barbearia), `period` (`daily`|`monthly`),
 `amount_cents`, `effective_from` (N), timestamps.
 
-### 2.7 Loyalty
+### 2.7 Loyalty (Fase 8: motor de promoções; ver [promocoes.md](promocoes.md))
 
 **loyalty_entries** (razão, só inclusão) — `customer_id` (FK restrict), `points` (com sinal), `kind`
 (`earned`|`redeemed`|`referral_bonus`|`adjustment`|`legacy_history`|`legacy_opening`), `description` (N),
-`appointment_id` (N), `occurred_at` (N), `created_at`. Saldo = `SUM(points)`.
+`appointment_id` (N), `attendance_id` (N), `loyalty_redemption_id` (U, N: o resgate debitado),
+`referred_customer_id` (U, N: bônus de indicação uma vez por indicado), `created_by_user_id` (N, ajuste),
+`request_key` (U, N), `occurred_at` (N), `created_at`. U(`attendance_id`,`kind`): um ganho por atendimento.
+Saldo = `SUM(points)`; disponível = saldo − resgates reservados.
 
-**coupons** — `code` (U, maiúsculo), `discount_type` (`percent`|`fixed`), `percent_bp` (N), `amount_cents` (N),
-`max_uses` (N = ilimitado), `uses_count`, `expires_on` (N), `is_active`, timestamps, SD.
-Check: `percent` exige `percent_bp` 1–10000; `fixed` exige `amount_cents` > 0.
+**loyalty_redemptions** — `customer_id`, `appointment_id` (N), `attendance_id` (N), `points`, `reward` (json:
+fotografia da recompensa), `discount_cents`, `status` (`reserved`|`redeemed`|`released`), `active_key` (U, N:
+`a{agendamento}` enquanto em vigor; resgate feito no balcão sem agendamento fica sem chave e é protegido pela
+trava do cliente), `reserved_at`, `redeemed_at` (N), `released_at` (N), `release_reason` (N), timestamps.
+Só avança de estado.
 
-**coupon_redemptions** — `coupon_id` (FK restrict), `customer_id` (N), `appointment_id` (N),
-`redeemed_at` (N), `created_at`. U(`coupon_id`,`customer_id`) (regra atual: um uso por cliente).
+**coupons** — `code` (U, maiúsculo), `description` (N), `discount_type` (`percent`|`fixed`), `percent_bp` (N),
+`amount_cents` (N), `max_uses` (N = ilimitado), `uses_count`, `expires_on` (N), `is_active`, `version`
+(trava), `created_by_user_id` (N), timestamps, SD. Check: `percent` exige `percent_bp` 1–10000; `fixed`
+exige `amount_cents` > 0.
+
+**coupon_redemptions** — `coupon_id` (FK restrict), `customer_id` (N), `appointment_id` (N), `attendance_id` (N),
+`discount_cents` (N), `status` (`reserved`|`redeemed`|`released`), `active_key` (U, N: `c{cupom}|u{cliente}`
+enquanto reservado ou usado — um uso por cliente no banco), `reserved_at` (N), `redeemed_at` (N),
+`released_at` (N), `release_reason` (N), `created_at`. Usos importados entram como `redeemed`.
 
 **gift_cards** — `code` (U), `amount_cents`, `status` (`available`|`redeemed`|`expired`|`cancelled`),
-`issued_at` (N), `expires_on` (N), `redeemed_at` (N), `redeemed_appointment_id` (N), `purchaser_name` (N), timestamps.
+`issued_at` (N), `expires_on` (N), `redeemed_at` (N), `redeemed_appointment_id` (N), `redeemed_attendance_id` (N),
+`purchaser_name`/`purchaser_email`/`recipient_name`/`recipient_email`/`message` (N), `sale_method` (N),
+`sale_cash_session_id` (N), `sold_by_user_id` (N), `cancelled_at`/`cancel_reason`/`cancelled_by_user_id` (N),
+`is_legacy` (importado: venda não registrada aqui), `request_key` (U, N), `version` (trava), timestamps.
+Vale-presente é **forma de pagamento**: `payments.gift_card_id` (U, N) e `cash_movements.gift_card_id` (N).
+
+**Também na Fase 8:** `customers.loyalty_version` (trava dos pontos); `appointment_adjustments` e
+`attendance_discounts` ganham a regra (`discount_type`/`type`, `percent_bp`, `fixed_cents`) e a reserva
+(`coupon_redemption_id`, `loyalty_redemption_id`); **receipt_deliveries** (só inclusão) — `receipt_type`,
+`receipt_id`, `email`, `requested_by_user_id` (N), `requested_by_customer_id` (N), `request_key` (U),
+`created_at`: envio de comprovante por e-mail ([comprovantes.md](comprovantes.md)).
 
 ### 2.8 Subscriptions
 
@@ -398,7 +422,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (60 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (62 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -434,6 +458,11 @@ Indices: (professional_id, commission_payout_id)
 | `description` | varchar | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `discount_type` | varchar | sim | | |
+| `percent_bp` | integer | sim | | |
+| `fixed_cents` | integer | sim | | |
+| `coupon_redemption_id` | integer | sim | | coupon_redemptions.id (set null) |
+| `loyalty_redemption_id` | integer | sim | | loyalty_redemptions.id (set null) |
 ### `appointment_events`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -535,6 +564,8 @@ Indices: (customer_id, starts_at) · (payment_gateway_reference) · (professiona
 | `applied_by_user_id` | integer | sim | | users.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `coupon_redemption_id` | integer | sim | | coupon_redemptions.id (set null) |
+| `loyalty_redemption_id` | integer | sim | | loyalty_redemptions.id (set null) |
 ### `attendance_events`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -670,6 +701,7 @@ Unicos: (weekday, starts_at)
 | `created_at` | datetime | sim | | |
 | `commission_payout_id` | integer | sim | | commission_payouts.id (restrict) |
 | `advance_id` | integer | sim | | advances.id (restrict) |
+| `gift_card_id` | integer | sim | | gift_cards.id (restrict) |
 Unicos: (payment_id) · (request_key)
 Indices: (cash_session_id, method)
 ### `cash_sessions`
@@ -791,7 +823,14 @@ Indices: (customer_id, purpose) · (email)
 | `appointment_id` | integer | sim | | appointments.id (set null) |
 | `redeemed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
-Unicos: (coupon_id, customer_id)
+| `status` | varchar | nao | `redeemed` | |
+| `active_key` | varchar | sim | | |
+| `attendance_id` | integer | sim | | attendances.id (set null) |
+| `discount_cents` | integer | sim | | |
+| `reserved_at` | datetime | sim | | |
+| `released_at` | datetime | sim | | |
+| `release_reason` | varchar | sim | | |
+Unicos: (active_key)
 ### `coupons`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -807,6 +846,9 @@ Unicos: (coupon_id, customer_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `deleted_at` | datetime | sim | | |
+| `description` | varchar | sim | | |
+| `version` | integer | nao | `0` | |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
 Unicos: (code)
 ### `customer_favorite_professionals`
 | Coluna | Tipo | Nulo | Padrao | FK |
@@ -890,6 +932,7 @@ Indices: (customer_id, read_at)
 | `deleted_at` | datetime | sim | | |
 | `password_changed_at` | datetime | sim | | |
 | `last_login_at` | datetime | sim | | |
+| `loyalty_version` | integer | nao | `0` | |
 Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
 Indices: (name)
 ### `email_suppressions`
@@ -952,7 +995,21 @@ Unicos: (gateway, event_id)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 | `redeemed_appointment_id` | integer | sim | | appointments.id (set null) |
-Unicos: (code)
+| `purchaser_email` | varchar | sim | | |
+| `recipient_name` | varchar | sim | | |
+| `recipient_email` | varchar | sim | | |
+| `message` | varchar | sim | | |
+| `sale_method` | varchar | sim | | |
+| `sale_cash_session_id` | integer | sim | | cash_sessions.id (restrict) |
+| `sold_by_user_id` | integer | sim | | users.id (set null) |
+| `redeemed_attendance_id` | integer | sim | | attendances.id (set null) |
+| `cancelled_at` | datetime | sim | | |
+| `cancel_reason` | varchar | sim | | |
+| `cancelled_by_user_id` | integer | sim | | users.id (set null) |
+| `is_legacy` | tinyint | nao | `0` | |
+| `request_key` | varchar | sim | | |
+| `version` | integer | nao | `0` | |
+Unicos: (code) · (request_key)
 ### `import_issues`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1007,7 +1064,33 @@ Indices: (entity_type, entity_id)
 | `appointment_id` | integer | sim | | appointments.id (set null) |
 | `occurred_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
+| `attendance_id` | integer | sim | | attendances.id (restrict) |
+| `loyalty_redemption_id` | integer | sim | | loyalty_redemptions.id (restrict) |
+| `referred_customer_id` | integer | sim | | customers.id (restrict) |
+| `created_by_user_id` | integer | sim | | users.id (set null) |
+| `request_key` | varchar | sim | | |
+Unicos: (attendance_id, kind) · (loyalty_redemption_id) · (referred_customer_id) · (request_key)
 Indices: (customer_id, occurred_at)
+### `loyalty_redemptions`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `points` | integer | nao | | |
+| `status` | varchar | nao | | |
+| `active_key` | varchar | sim | | |
+| `appointment_id` | integer | sim | | appointments.id (restrict) |
+| `attendance_id` | integer | sim | | attendances.id (set null) |
+| `reward` | text | nao | | |
+| `discount_cents` | integer | nao | | |
+| `reserved_at` | datetime | nao | | |
+| `redeemed_at` | datetime | sim | | |
+| `released_at` | datetime | sim | | |
+| `release_reason` | varchar | sim | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (active_key)
+Indices: (customer_id, status)
 ### `package_items`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1049,7 +1132,8 @@ Unicos: (package_id, service_id)
 | `received_by_user_id` | integer | sim | | users.id (set null) |
 | `reason` | varchar | sim | | |
 | `request_key` | varchar | sim | | |
-Unicos: (request_key)
+| `gift_card_id` | integer | sim | | gift_cards.id (restrict) |
+Unicos: (gift_card_id) · (request_key)
 Indices: (attendance_id) · (paid_at)
 ### `plan_services`
 | Coluna | Tipo | Nulo | Padrao | FK |
@@ -1122,6 +1206,19 @@ Unicos: (sku)
 | `ledger_version` | integer | nao | `0` | |
 Unicos: (slug) · (user_id)
 Indices: (is_active, sort_order)
+### `receipt_deliveries`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `receipt_type` | varchar | nao | | |
+| `receipt_id` | integer | nao | | |
+| `email` | varchar | nao | | |
+| `requested_by_user_id` | integer | sim | | users.id (set null) |
+| `requested_by_customer_id` | integer | sim | | customers.id (set null) |
+| `request_key` | varchar | nao | | |
+| `created_at` | datetime | sim | | |
+Unicos: (request_key)
+Indices: (receipt_type, receipt_id)
 ### `review_replies`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|

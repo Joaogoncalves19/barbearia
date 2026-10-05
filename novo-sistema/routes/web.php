@@ -5,7 +5,9 @@ use App\Http\Controllers\Account\AccountPasswordController;
 use App\Http\Controllers\Account\AppointmentController as AccountAppointmentController;
 use App\Http\Controllers\Account\BookingController as AccountBookingController;
 use App\Http\Controllers\Account\CompleteProfileController;
+use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
 use App\Http\Controllers\Account\ProfileController as AccountProfileController;
+use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
 use App\Http\Controllers\Auth\Customer\EmailVerificationController;
 use App\Http\Controllers\Auth\Customer\ForgotPasswordController as CustomerForgotPasswordController;
 use App\Http\Controllers\Auth\Customer\LoginController as CustomerLoginController;
@@ -32,17 +34,15 @@ use App\Http\Controllers\Panel\Checkout\AttendanceController;
 use App\Http\Controllers\Panel\Checkout\CashController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\Finance\AdvanceController;
+use App\Http\Controllers\Panel\Finance\CommissionController;
+use App\Http\Controllers\Panel\Finance\CommissionRuleController;
+use App\Http\Controllers\Panel\Finance\PayoutController;
+use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
 use App\Http\Controllers\Panel\Promotions\CouponController;
 use App\Http\Controllers\Panel\Promotions\CustomerLoyaltyController;
 use App\Http\Controllers\Panel\Promotions\GiftCardController;
 use App\Http\Controllers\Panel\Promotions\PromotionSettingsController;
 use App\Http\Controllers\Panel\ReceiptController as PanelReceiptController;
-use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
-use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
-use App\Http\Controllers\Panel\Finance\CommissionController;
-use App\Http\Controllers\Panel\Finance\CommissionRuleController;
-use App\Http\Controllers\Panel\Finance\PayoutController;
-use App\Http\Controllers\Panel\PasswordController as PanelPasswordController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
@@ -132,7 +132,7 @@ Route::prefix('minha-conta')
                 ->middleware('throttle:password-check')->name('password.update');
 
             // Agendar (Fase 5): confirmacao e reserva, sempre revalidadas no servidor.
-            Route::get('/agendar/confirmar', [AccountBookingController::class, 'confirm'])->name('booking.confirm');
+            Route::get('/agendar/confirmar', [AccountBookingController::class, 'confirm'])->middleware('throttle:coupon-check')->name('booking.confirm');
             Route::post('/agendamentos', [AccountBookingController::class, 'store'])
                 ->middleware('throttle:booking')->name('booking.store');
 

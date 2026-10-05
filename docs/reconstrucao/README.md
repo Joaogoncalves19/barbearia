@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 7 concluídas e aprovadas ([relatorio-fase-7.md](relatorio-fase-7.md)). **Fase 8 em
-> andamento** (promoções, fidelidade e comprovantes).
+> **Status:** Fases 0 a 7 concluídas e aprovadas. **Fase 8 concluída, aguardando aprovação do dono**
+> (promoções, fidelidade, vale-presente e comprovantes: [relatorio-fase-8.md](relatorio-fase-8.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -101,6 +101,16 @@ plano para reconstruí-lo do zero, por etapas.
 | [comissoes.md](comissoes.md) | Regras de comissão (precedência, versões), cálculo na conclusão, rateio do desconto, estorno, correção, permissões |
 | [repasses.md](repasses.md) | Gorjeta, vales, saldo em aberto, repasse e estorno, caixa, travas, idempotência, concorrência |
 | [relatorio-fase-7.md](relatorio-fase-7.md) | Relatório final da Fase 7 |
+
+### Fase 8
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [promocoes.md](promocoes.md) | Motor único de descontos, "vale o maior", cupom, aniversário, indicação, reserva e uso, valor visto = gravado |
+| [fidelidade.md](fidelidade.md) | Pontos (ganho, reserva, resgate na conclusão, ajuste), aniversário, indicação, telas |
+| [vale-presente.md](vale-presente.md) | Vale-presente como forma de pagamento: venda no caixa, uso único, cancelamento |
+| [comprovantes.md](comprovantes.md) | Comprovantes impressos e por e-mail (atendimento, repasse, vale-presente, fechamento de caixa) |
+| [relatorio-fase-8.md](relatorio-fase-8.md) | Relatório final da Fase 8 |
 
 ## Legenda usada em todos os documentos
 

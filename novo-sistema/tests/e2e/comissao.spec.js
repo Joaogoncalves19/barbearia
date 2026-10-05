@@ -118,6 +118,9 @@ test('comissão: regra, ajuste, vale, repasse e estorno do repasse', async ({ pa
 });
 
 test('profissional: vê só o próprio extrato, sem gestão', async ({ page }, info) => {
+    // Login, extrato com axe e três telas negadas: com a fila do servidor embutido
+    // (uma requisição por vez) passava perto dos 30 s padrão (visto na Fase 8).
+    test.slow();
     const erros = observarErros(page);
     const s = info.project.name;
     await entrarNoPainel(page, `e2e-comissao-pro-${s}`);

@@ -115,6 +115,12 @@ class E2eAccounts extends Command
         // login proprio) e um profissional com conta, sem regra e sem saldo.
         $donoComissao = $this->membro("e2e-comissao-{$s}", 'Dono Comissão E2E', StaffRole::Owner, $senha);
         $this->zerarComissao($this->barbeiro("e2e-comissao-pro-{$s}", "Comissão E2E {$s}", $senha), $donoComissao);
+
+        // Promocoes e vale-presente (Fase 8): dono e cliente proprios (limite
+        // de login separado). Os cupons e vales de cada execucao tem codigo
+        // novo; nada precisa ser reiniciado.
+        $this->membro("e2e-promo-{$s}", 'Dono Promoções E2E', StaffRole::Owner, $senha);
+        $this->cliente("e2e-promo-cliente-{$s}@exemplo.test", 'Cliente Promoções E2E', $senha);
     }
 
     /**

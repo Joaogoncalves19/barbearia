@@ -59,6 +59,14 @@ troca de profissional e o cancelamento do encaixe passam pelo atendimento, que r
 
 Não se copia o resto (descrição do serviço, foto, bio, categoria): não é necessário para o histórico.
 
+### 3.1 Promoções (Fase 8)
+
+O agendamento grava **um** desconto (o maior entre cupom, pontos, aniversário e indicação), com a regra e a
+reserva do cupom ou dos pontos, e o total (`appointments.total_cents`). A tela de confirmação do cliente
+mostra valor, desconto e total pela mesma função que grava; se o total gravado for diferente do visto
+(`expected_total`), a reserva é recusada inteira. Cancelamento e falta liberam cupom e pontos. Detalhes em
+[promocoes.md](promocoes.md).
+
 ## 4. Status
 
 Definidos uma vez em `AppointmentStatus` (desde a Fase 2), com transições permitidas no próprio enum e

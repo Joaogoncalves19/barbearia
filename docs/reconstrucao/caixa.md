@@ -29,10 +29,12 @@ Tipos de movimentação:
 | Estorno de repasse (`payout_reversal`) | + | o repasse | estorno de repasse pago em dinheiro |
 | Vale (`advance`) | − | o vale (`advance_id`) | vale pago em **dinheiro** (Fase 7) |
 | Estorno de vale (`advance_reversal`) | + | o estorno do vale | estorno de vale em dinheiro |
+| Venda de vale-presente (`gift_card_sale`) | + | o vale (`gift_card_id`) | venda do vale, na forma usada pelo comprador (Fase 8) |
+| Devolução de vale-presente (`gift_card_refund`) | − | o vale | cancelamento de vale vendido no sistema novo (Fase 8) |
 
-Cada tipo aponta **exatamente** a sua origem (pagamento, repasse ou vale), e suprimento/sangria não apontam
+Cada tipo aponta **exatamente** a sua origem (pagamento, repasse, vale ou vale-presente), e suprimento/sangria não apontam
 nenhuma; a regra está no model (`CashMovementType::originColumn`) e no verificador de integridade
-(R30/R31/R37). Repasse e vale em dinheiro são recusados se o dinheiro esperado na gaveta não cobrir o valor,
+(R30/R31/R37/R41). Repasse e vale em dinheiro são recusados se o dinheiro esperado na gaveta não cobrir o valor,
 como a sangria ([repasses.md](repasses.md)).
 
 ## 3. Operações
@@ -76,3 +78,5 @@ estornos e sangrias saem). Pix e cartões aparecem no resumo por forma, mas não
 
 `cash.opened`, `cash.supply`, `cash.withdrawal`, `cash.closed` (esperado, contado, diferença) pela
 `AuditTrail`; `Auditable` na sessão de caixa (antes/depois). A razão (`cash_movements`) é o histórico.
+
+**Fase 8:** o caixa fechado tem comprovante para imprimir e enviar por e-mail ([comprovantes.md](comprovantes.md)).

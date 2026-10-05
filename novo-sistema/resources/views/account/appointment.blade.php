@@ -19,6 +19,13 @@
             @foreach ($appointment->items as $item)
                 <div><dt>{{ $item->name }}</dt><dd>{{ $item->total_cents !== null ? \App\Modules\Shared\Support\Money::fromCents((int) $item->total_cents)->format() : '—' }}</dd></div>
             @endforeach
+            {{-- Fase 8: o desconto combinado e o total gravados no agendamento (o mesmo valor da confirmacao). --}}
+            @foreach ($appointment->adjustments as $ajuste)
+                <div><dt>Desconto · {{ $ajuste->kind->label() }}</dt><dd class="numeric">−{{ \App\Modules\Shared\Support\Money::fromCents((int) $ajuste->amount_cents)->format() }}</dd></div>
+            @endforeach
+            @if ($appointment->total_cents !== null)
+                <div><dt>Total</dt><dd class="numeric" data-total>{{ \App\Modules\Shared\Support\Money::fromCents((int) $appointment->total_cents)->format() }}</dd></div>
+            @endif
         </dl>
     </x-ui.card>
 

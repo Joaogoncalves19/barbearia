@@ -7,6 +7,8 @@ use App\Modules\Checkout\Exceptions\CheckoutRuleViolation;
 use App\Modules\Checkout\Services\AttendanceService;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Models\User;
+use App\Modules\Loyalty\Exceptions\PromotionRejected;
+use App\Modules\Loyalty\Pricing\PromotionRequest;
 use App\Modules\Scheduling\Enums\AppointmentSource;
 use App\Modules\Scheduling\Exceptions\BookingRuleViolation;
 use App\Modules\Scheduling\Exceptions\SlotUnavailable;
@@ -27,7 +29,9 @@ use Throwable;
  * BookingService; o inicio e o proximo ponto da grade). Espera um
  * arquivo de "largada" para todos comecarem juntos e segura a transacao
  * aberta (--hold) entre a verificacao e a gravacao, alargando a janela de
- * corrida. So roda em local/testing.
+ * corrida. Fase 8: --coupon e --points pedem a promocao na reserva (o
+ * cupom de uso limitado e os pontos disputados entre processos). So roda em
+ * local/testing.
  */
 class BookingProbe extends Command
 {
@@ -37,7 +41,9 @@ class BookingProbe extends Command
         {--hold=300 : milissegundos segurando a transacao depois da verificacao}
         {--as=staff : staff | online | walk-in}
         {--actor= : usuario da equipe (encaixe)}
-        {--now= : relogio parado neste instante (ISO 8601)}';
+        {--now= : relogio parado neste instante (ISO 8601)}
+        {--coupon= : codigo do cupom pedido}
+        {--points : pede o resgate de pontos}';
 
     protected $description = 'Tenta uma reserva (so para o teste de concorrencia)';
 
@@ -82,12 +88,15 @@ class BookingProbe extends Command
                 channel: $online ? Channel::Customer : Channel::Staff,
                 source: $online ? AppointmentSource::Online : AppointmentSource::Staff,
                 customer: $cliente,
+                promotion: (string) $this->option('coupon') !== '' || $this->option('points') ? new PromotionRequest((string) $this->option('coupon') ?: null, (bool) $this->option('points')) : null,
             ));
             $this->line('OK '.$a->id.' '.$a->source->value);
         } catch (SlotUnavailable $e) {
             $this->line('CONFLICT '.implode(',', $e->result->reasons));
         } catch (BookingRuleViolation|CheckoutRuleViolation $e) {
             $this->line('RULE '.$e->reason);
+        } catch (PromotionRejected $e) {
+            $this->line('PROMO '.$e->reason.' '.$e->getMessage());
         } catch (Throwable $e) {
             $this->line('ERROR '.get_class($e).': '.$e->getMessage());
         }

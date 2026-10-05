@@ -134,9 +134,19 @@ ABERTO ──> EM ATENDIMENTO ──> CONCLUÍDO
 7. **Estoque:** trava os produtos (id crescente); lança venda e consumo (`attendance_id`), recusando saldo
    negativo.
 8. **Pagamentos e caixa:** um `payment` por forma e uma entrada no caixa por pagamento (valor + gorjeta).
+   Fase 8: linha de **vale-presente** é conferida e travada aqui (uso único, valor exato, sem gorjeta), o
+   vale vira "usado" e o pagamento não entra no caixa ([vale-presente.md](vale-presente.md)).
 9. **Atendimento:** status concluído, totais, gorjeta, quem concluiu, chave.
 10. **Agendamento de origem:** concluído.
 11. **Histórico:** evento `completed` com totais e formas; auditoria (antes/depois) pelo `Auditable`.
+
+Fase 7 e 8, na mesma transação: comissão e gorjeta ([comissoes.md](comissoes.md)); **promoção** (cupom
+reservado vira usado, pontos reservados saem do saldo, reserva não usada é liberada) e **pontos ganhos** na
+visita e bônus de indicação ([promocoes.md](promocoes.md), [fidelidade.md](fidelidade.md)).
+
+**Balcão (Fase 8):** "Aplicar promoção" (cupom ou pontos, `promotions.apply`) e o desconto manual passam pelo
+mesmo motor: vale um desconto só, o maior; o menor é recusado com o motivo. Atendimento concluído tem
+comprovante para imprimir e enviar por e-mail ([comprovantes.md](comprovantes.md)).
 
 Qualquer falha (estoque insuficiente, sem caixa, erro inesperado) **desfaz tudo**: o atendimento continua em
 andamento, sem pagamento, sem entrada no caixa, sem baixa de estoque. Teste:

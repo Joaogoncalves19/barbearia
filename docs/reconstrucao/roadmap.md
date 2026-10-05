@@ -267,7 +267,17 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 8 — Promoções e fidelidade
+## Fase 8 — Promoções e fidelidade ✅ (aguardando aprovação)
+
+> **Concluída em 2026-10-05, aguardando aprovação do dono.** Relatório: [relatorio-fase-8.md](relatorio-fase-8.md).
+> Branch `claude/fase-8-promocoes-fidelidade` (a partir da Fase 7). Entregue: motor único de promoções (um
+> desconto só, o maior, inclusive o manual), cupons com reserva e uso na conclusão, fidelidade (ganho,
+> reserva, resgate na conclusão, extrato, ajuste), aniversário, indicação (D-14), vale-presente como forma de
+> pagamento com impressão, comprovantes impressos e por e-mail (atendimento, repasse, vale-presente,
+> fechamento de caixa), 9 permissões novas, 4 regras novas no verificador (R39–R42), concorrência com
+> processos reais. Tabela de casos de desconto (32 combinações) 100% verde: orçamento exibido = valor
+> gravado = valor cobrado. Docs: [promocoes.md](promocoes.md), [fidelidade.md](fidelidade.md),
+> [vale-presente.md](vale-presente.md), [comprovantes.md](comprovantes.md).
 
 - **Objetivo:** motor de preço completo.
 - **Escopo:** cupons, vale-presente (com impressão), fidelidade (ganho, resgate, extrato, ajuste),

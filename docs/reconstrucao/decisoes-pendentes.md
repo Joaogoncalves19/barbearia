@@ -62,6 +62,15 @@
 > comprovantes **impressos e com envio por e-mail** para atendimento do cliente, repasse ao profissional,
 > vale-presente e fechamento de caixa, implementados na Fase 8. Ver
 > [relatorio-fase-7.md](relatorio-fase-7.md#4-decisões).
+>
+> **Fase 8 (decisões do dono, no início da fase):** **D-14** decidida: **implementar** a indicação (código
+> por cliente, desconto no primeiro atendimento do indicado, pontos para quem indicou uma vez). **D-41** o
+> vale-presente é **forma de pagamento**: a venda entra no caixa e a comissão é sobre o valor cheio do serviço.
+> **D-42** um desconto só por agendamento/atendimento, **vale o maior**, incluindo o desconto manual do
+> balcão. **D-43** resgate de pontos escolhido ao agendar ou no balcão; os pontos ficam reservados e **só saem
+> do saldo na conclusão** do atendimento. **D-40 revista:** comprovantes impressos e por e-mail dos quatro
+> documentos, implementados nesta fase. Itens implementados de forma conservadora e marcados **PRECISA DE
+> DECISÃO** (P8-01 a P8-07): ver [relatorio-fase-8.md](relatorio-fase-8.md#4-decisões).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
@@ -81,7 +90,7 @@ que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
 | D-11 | **Funcionalidades abandonadas** | Lista de espera, CRM (tags/status), metas por profissional, retenção, conciliação de pagamentos, ações em lote na agenda | Aprovar **lista de espera** (útil em barbearia) e metas; descartar CRM/retenção/conciliação como módulos (as partes úteis viram tags e anotações do cliente) | Fase 2 |
 | D-12 | **Login do cliente** | Senha (atual); link mágico por e-mail; ambos. Identificador: e-mail, telefone, CPF | E-mail + senha, com link mágico opcional; telefone como contato, não como login; **CPF só se houver motivo fiscal** (dado sensível) | Fase 3 |
 | D-13 | **Política de cancelamento e remarcação** | Prazo mínimo, limite de remarcações, o que fazer com faltas | Ex.: cancelar/remarcar até 2 h antes pelo app; depois disso, só pelo WhatsApp | Fase 5 |
-| D-14 | **Indicação** | Manter (com tela de configuração), remover | Manter se já houver indicações registradas | Fase 8 |
+| ~~D-14~~ | **Indicação** — **decidida (Fase 8): implementar** | Manter (com tela de configuração), remover | Manter se já houver indicações registradas | Fase 8 |
 | D-15 | **PWA** (app instalável) | Manter, remover | Manter simples (manifesto + ícones); sem notificações push inicialmente | Fase 11 |
 | D-16 | **Correções emergenciais no sistema atual** | Corrigir agora S-01 a S-04 (e rotacionar segredos) no sistema em produção; não mexer até a virada | **Corrigir agora**, em mudança mínima e separada da reconstrução, porque o sistema atual segue no ar por meses. **Exige autorização explícita** (a Fase 0 proíbe alterar o sistema) | Nenhuma (paralela) |
 | D-17 | **Agendamentos passados não concluídos** (status `aprovado` com data passada) na migração | Marcar como concluído, como falta ou revisar um a um | Importar como "a revisar" e resolver em lote com o dono | Fase 2 |

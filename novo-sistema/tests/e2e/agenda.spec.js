@@ -70,7 +70,7 @@ test('cliente: agenda pelo site, vê, remarca e cancela', async ({ page }, info)
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
 
     await expect(page.getByRole('heading', { name: 'Confirme seu horário' })).toBeVisible();
-    await expect(page.getByText('R$ 50,00')).toBeVisible();
+    await expect(page.locator('[data-total]')).toHaveText('R$ 50,00'); // Fase 8: a confirmação mostra valor e total
     await verificarTela(page, info, 'Agendar - confirmação');
     await page.getByRole('button', { name: 'Confirmar agendamento' }).click();
 

@@ -1,4 +1,4 @@
-# Pagamentos, descontos e arredondamento (Fase 6)
+# Pagamentos, descontos e arredondamento (Fases 6 a 8)
 
 ## 1. Dinheiro
 
@@ -17,6 +17,7 @@ As que o negócio usa hoje (sistema antigo: dinheiro, pix, débito, crédito, ou
 | Débito (`debit_card`) | `debit_card` | Não |
 | Crédito (`credit_card`) | `credit_card` | Não |
 | Outro (`other`) | `other` | Não |
+| Vale-presente (`gift_card`, Fase 8) | `gift_card` + `gift_card_id` | Não (o dinheiro entrou na venda do vale; ver [vale-presente.md](vale-presente.md)) |
 
 "Não informado" (`unknown`) existe **só** para pagamentos importados do sistema antigo; a tela e o serviço
 recusam. Nenhuma integração de gateway nesta fase: o sistema **registra** o pagamento.
@@ -51,7 +52,7 @@ aplicou e a origem (`kind`).
 | Percentual entre 0,01% e 100%; valor fixo ≥ R$ 0,01 | `Discount::percent/fixed` |
 | Nunca maior que a base; total nunca negativo | `Discount::amountOn`, `PriceBreakdown` |
 | Motivo obrigatório; só com `attendances.discount` | `AttendanceService::applyDiscount`, rota |
-| Um desconto manual por atendimento (aplicar de novo substitui) | `AttendanceService::applyDiscount` |
+| **Um desconto só por atendimento, vale o maior** (Fase 8, D-42): o manual substitui outro manual; diante de cupom, pontos, aniversário ou indicação, só entra se for maior (e libera o cupom/pontos) | `AttendanceService::applyDiscount` + `PromotionEngine` ([promocoes.md](promocoes.md)) |
 | Descontos do agendamento (Fase 8) passam para o atendimento com a mesma origem | `openFromAppointment` |
 | Recalculado enquanto o atendimento está aberto; **congela** na conclusão | `AttendancePricing::refreshDiscounts` |
 
@@ -66,8 +67,8 @@ Uma regra só, em um lugar só (`Money::percentOf`, usada pelo `Discount`):
   item daria R$ 15,03.
 - Vários descontos são aplicados **em ordem**, cada um sobre o que sobrou da base.
 - O valor exibido é o valor **gravado** (centavos); tela, comprovante, caixa e relatórios leem o mesmo número.
-- Rateio do desconto por item/profissional (comissão, Fase 7): **ainda não existe**. Recomendação: rateio
-  proporcional com o método do maior resto, para a soma fechar no centavo.
+- Rateio do desconto por item/profissional (comissão, Fase 7): proporcional pelo método do maior resto
+  (`PriceBreakdown::shareDiscount`), para a soma fechar no centavo.
 
 Testes: `tests/Unit/DiscountTest.php` (percentual, fixo, zero, limites, inválidos, arredondamento, ordem,
 total e não item a item).
@@ -85,6 +86,8 @@ total e não item a item).
 - Só de atendimento **concluído**; estorno de estorno não existe.
 - O atendimento continua concluído com o valor do dia; o histórico mostra o estorno.
 - Permissão `payments.refund` (proprietário e financeiro). Idempotente por `request_key`.
+- Pagamento feito com **vale-presente** não é estornado pelo caixa (`gift_card_not_refundable`): não entrou
+  dinheiro naquele atendimento (Fase 8; PRECISA DE DECISÃO P8-07).
 - Devolver a mercadoria ao estoque é outra ação (ver [estoque.md](estoque.md#5-estorno-e-devolução)).
 
 ## 7. Legado

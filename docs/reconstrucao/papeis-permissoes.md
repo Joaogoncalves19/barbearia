@@ -1,4 +1,4 @@
-# Papéis e permissões (Fases 3 a 7)
+# Papéis e permissões (Fases 3 a 8)
 
 Fonte da verdade: `novo-sistema/config/permissions.php`. A tabela da seção 3 é conferida pelo
 `PermissionMatrixTest::test_matriz_papel_por_habilidade`: mudar a configuração sem mudar o teste (e este
@@ -75,7 +75,12 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `payouts.view` / `payouts.create` / `payouts.reverse` | Ver repasses / registrar repasse / estornar repasse | **Fase 7** |
 | `advances.create` / `advances.reverse` | Lançar vale / estornar vale | **Fase 7** |
 | `reports.view` | Relatórios | Fase 7 |
-| `marketing.manage` | Cupons, campanhas e fidelidade | Fases 8 e 10 |
+| `coupons.view` / `coupons.manage` | Ver cupons / criar, editar, pausar e reativar cupons | **Fase 8** |
+| `promotions.apply` | Aplicar cupom ou resgate de pontos no atendimento (balcão) | **Fase 8** |
+| `promotions.configure` | Configurar fidelidade, aniversário e indicação | **Fase 8** |
+| `loyalty.view` / `loyalty.adjust` | Ver pontos e extrato dos clientes / ajustar pontos (motivo obrigatório) | **Fase 8** |
+| `gift_cards.view` / `gift_cards.sell` / `gift_cards.cancel` | Ver vales-presente (e o comprovante) / vender / cancelar com devolução | **Fase 8** |
+| `marketing.manage` | Campanhas (cupons e fidelidade saíram para as habilidades acima) | Fase 10 |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
 | `account.access` *(cliente)* | Acessar a própria conta de cliente | **Fase 3** |
 
@@ -141,6 +146,15 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `payouts.create` / `payouts.reverse` | ✔ | | | ✔ | |
 | `advances.create` / `advances.reverse` | ✔ | | | ✔ | |
 | `reports.view` | ✔ | ✔ | | ✔ | |
+| `coupons.view` | ✔ | ✔ | ✔ | ✔ | |
+| `coupons.manage` | ✔ | ✔ | | | |
+| `promotions.apply` | ✔ | ✔ | ✔ | | ✔ |
+| `promotions.configure` | ✔ | | | | |
+| `loyalty.view` | ✔ | ✔ | ✔ | ✔ | |
+| `loyalty.adjust` | ✔ | ✔ | | | |
+| `gift_cards.view` | ✔ | ✔ | ✔ | ✔ | |
+| `gift_cards.sell` | ✔ | ✔ | ✔ | | |
+| `gift_cards.cancel` | ✔ | | | ✔ | |
 | `marketing.manage` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
 
@@ -192,3 +206,15 @@ extrato e os próprios repasses: `ProfessionalPolicy@viewLedger` e `CommissionPa
 
 Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz:
 `HorizontalAccessTest::test_matriz_das_policies_de_cliente_e_agendamento_por_papel`.
+
+## Fase 8 — promoções, vale-presente e comprovantes
+
+- Nove habilidades por ação, sem acesso amplo: cupom (ver / gerenciar), aplicar promoção no balcão,
+  configurar o programa (só o proprietário, como as regras de comissão), pontos (ver / ajustar) e
+  vale-presente (ver / vender / cancelar). `marketing.manage` fica só para campanhas (Fase 10).
+- Aplicar promoção no balcão exige também poder editar aquele atendimento (`can:update,attendance`): o
+  profissional só aplica nos próprios.
+- Cancelar vale devolve dinheiro: proprietário e financeiro (mesmo critério do estorno, D-30).
+- Comprovantes usam a permissão (ou policy) da tela do próprio documento; o cliente só vê e envia os
+  próprios, para o próprio e-mail ([comprovantes.md](comprovantes.md)).
+- Gravações com `throttle:money`; envio de comprovante com `throttle:receipts`.

@@ -32,7 +32,7 @@ Legenda da coluna **Destino**: **migra** (vira dado do modelo), **transforma** (
 | `assinatura_pagamentos` | migra | `subscription_payments` (`referencia` → `gateway_payment_id`) | SubscriptionsStep |
 | `webhook_eventos_processados` | migra | `gateway_events` | SubscriptionsStep |
 | `cupoes` | migra | `coupons` | PromotionsStep |
-| `vouchers` | migra | `gift_cards` | PromotionsStep |
+| `vouchers` | migra | `gift_cards` (`is_legacy`: a venda não foi registrada no sistema novo; cancelamento sem devolução pelo caixa) | PromotionsStep |
 | `agendamentos` | transforma | `appointments` + `appointment_items` + `appointment_adjustments` + `appointment_reminders` + `appointment_events`; concluídos: também `attendances` + `attendance_items` + `attendance_discounts` + `payments` (Fase 6) | AppointmentsStep |
 | `agenda_historico` | migra | `appointment_events` (`legacy.<acao>`) | AppointmentsStep |
 | `agenda_operacao` | transforma | `appointments.confirmation_requested_at` | AppointmentsStep |
@@ -135,5 +135,5 @@ Nenhuma tem tela no sistema atual (código de gestão criado e nunca ligado ao p
 
 | Seção | Destino |
 |---|---|
-| `config_geral`, `config_agendamento`, `config_lembretes`, `config_site`, `fidelidade_config`, `config_aniversario`, `config_indicacao`, `landing_page`, `theme_config`, `config` | `settings` com chave `legacy.<secao>`; campos com nome de segredo removidos (pendência) |
+| `config_geral`, `config_agendamento`, `config_lembretes`, `config_site`, `fidelidade_config`, `config_aniversario`, `config_indicacao`, `landing_page`, `theme_config`, `config` | `settings` com chave `legacy.<secao>`; campos com nome de segredo removidos (pendência). Fase 8: `fidelidade_config`, `config_aniversario` e `config_indicacao` também viram `promotions.policy` na primeira importação (valor fora do limite = padrão + pendência) |
 | `config_email`, `config_stripe`, `config_gemini`, `config_chatbot`, `config_cron` | **descartadas**: recadastrar no `.env` do sistema novo, de preferência com credenciais **novas** (as atuais ficaram em texto puro) |
