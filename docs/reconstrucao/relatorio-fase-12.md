@@ -96,7 +96,16 @@ tela mudou, a regra não): `PreferencesAndPanelTest` (contador de avisos no menu
 
 ## 6. CI
 
-RESULTADO_CI
+**PASSOU.** Run nº 45 (commit `f27e960`, https://github.com/Joaogoncalves19/barbearia/actions/runs/37543866177),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais), importador com banco fictício e Playwright + axe.
+  Nenhuma chave do Resend ou do Stripe no CI.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+O run nº 44 é o primeiro envio da branch, ainda com o commit da Fase 11 (`d068aa9`). O commit seguinte só
+atualiza este relatório (documentação).
 
 ## 7. Problemas encontrados
 
