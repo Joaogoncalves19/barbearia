@@ -59,7 +59,7 @@ alguém alterar o campo.
 | Situação | Novos agendamentos | Site | Histórico |
 |---|---|---|---|
 | Serviço ativo, categoria ativa | sim | se `is_public` | — |
-| Serviço ativo, fora do site | sim (pela equipe) | não | — |
+| Serviço ativo, fora do site | sim (**só pela equipe**; Fase 11: o canal do cliente recusa, regra na `Availability`) | não | — |
 | Serviço **inativo** | não | não | intacto: agendamentos antigos continuam apontando para ele, com o nome, o preço e a duração **fotografados no item** |
 | Categoria inativa | não (para todos os serviços dela) | não | intacto |
 | Serviço **excluído** (só se nunca usado) | não | não | não havia histórico |

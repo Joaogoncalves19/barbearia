@@ -1,6 +1,6 @@
 {{--
     Envio de arquivo (imagem). O formulario precisa de enctype="multipart/form-data".
-    <x-ui.file name="photo" label="Foto" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, ate 3 MB." optional />
+    <x-ui.file name="photo" label="Foto" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, ate 8 MB." optional />
 --}}
 @props(['name', 'label', 'id' => null, 'hint' => null, 'error' => null, 'optional' => false, 'accept' => null])
 @php

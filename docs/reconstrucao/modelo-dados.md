@@ -1,4 +1,4 @@
-# Modelo de dados do novo sistema (Fases 2 a 10)
+# Modelo de dados do novo sistema (Fases 2 a 11)
 
 > Status: **definitivo para a Fase 2**. Implementado em `novo-sistema/database/migrations`
 > (2026_09_*). A Fase 3 acrescentou a migration `2026_09_29_000100_add_account_security_tables`
@@ -8,7 +8,8 @@
 > `2026_10_03_000100_create_commission_tables` (seções 2.3 e 2.6); a Fase 8,
 > `2026_10_04_000100_create_promotion_engine_tables` (seções 2.2, 2.5, 2.5a, 2.6, 2.7 e 2.9); a Fase 9,
 > `2026_10_05_000100_create_subscription_engine_tables` (seções 2.3, 2.5a, 2.6 e 2.8); a Fase 10,
-> `2026_10_06_000100_create_communication_tables` (seções 2.2, 2.5, 2.8 e 2.9).
+> `2026_10_06_000100_create_communication_tables` (seções 2.2, 2.5, 2.8 e 2.9); a Fase 11,
+> `2026_10_07_000100_create_site_tables` (seções 2.2 e 2.9).
 > Mudanças posteriores entram por novas migrations, nunca editando as existentes
 > depois da primeira implantação.
 >
@@ -434,6 +435,13 @@ com `scheduled_for`, `email_message_id` e `notified_in_app` ([lembretes.md](lemb
 `appointments.presence_confirmed_at`; `customers.email_reminders_enabled`; `customer_notifications.kind`,
 `link` e `dedupe_key` (U); `gateway_events.payload_purged_at` (retenção P9-10).
 
+**Fase 11:** **site_images** ([imagens.md](imagens.md)) — `kind` (hero/about/gallery/logo), `path` (WebP
+reprocessado; dimensões no nome), `alt` (obrigatório), `caption` (N), `width`, `height`, `sort_order`,
+`is_active`, `uploaded_by_user_id` (N), timestamps. Conteúdo do site em `settings` (`site.content`, só texto).
+Decisões da aprovação da Fase 10: `email_messages.provider`/`provider_message_id` (D-05),
+`marketing_cleared_at` (P10-01) e `purged_at` (P10-03); `campaign_recipients.purged_at` (P10-03);
+`customers.communication_version` (trava do limite de campanhas).
+
 **settings** — `key` (U), `value` (json), timestamps. **Nunca** guarda segredo (teste de varredura).
 
 **audit_logs** (só inclusão) — `actor_type` (N), `actor_id` (N), `actor_label` (N), `action`,
@@ -463,7 +471,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (67 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (68 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -726,6 +734,7 @@ Unicos: (weekday, starts_at)
 | `email_message_id` | integer | sim | | email_messages.id (set null) |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `purged_at` | datetime | sim | | |
 Unicos: (campaign_id, customer_id)
 Indices: (campaign_id, status)
 ### `campaigns`
@@ -1008,6 +1017,7 @@ Indices: (customer_id, read_at)
 | `last_login_at` | datetime | sim | | |
 | `loyalty_version` | integer | nao | `0` | |
 | `email_reminders_enabled` | tinyint | nao | `1` | |
+| `communication_version` | integer | nao | `0` | |
 Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
 Indices: (name)
 ### `email_messages`
@@ -1035,8 +1045,12 @@ Indices: (name)
 | `failed_at` | datetime | sim | | |
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
+| `provider` | varchar | sim | | |
+| `provider_message_id` | varchar | sim | | |
+| `marketing_cleared_at` | datetime | sim | | |
+| `purged_at` | datetime | sim | | |
 Unicos: (dedupe_key) · (public_id)
-Indices: (customer_id, created_at) · (related_type, related_id) · (status, queued_at)
+Indices: (created_at) · (customer_id, category, marketing_cleared_at) · (customer_id, created_at) · (related_type, related_id) · (status, queued_at)
 ### `email_suppressions`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1437,6 +1451,22 @@ Indices: (is_active, sort_order)
 | `created_at` | datetime | sim | | |
 | `updated_at` | datetime | sim | | |
 Unicos: (key)
+### `site_images`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `kind` | varchar | nao | | |
+| `path` | varchar | nao | | |
+| `alt` | varchar | nao | | |
+| `caption` | varchar | sim | | |
+| `width` | integer | nao | | |
+| `height` | integer | nao | | |
+| `sort_order` | integer | nao | `0` | |
+| `is_active` | tinyint | nao | `1` | |
+| `uploaded_by_user_id` | integer | sim | | users.id (set null) |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Indices: (kind, is_active, sort_order)
 ### `stock_movements`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|

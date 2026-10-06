@@ -64,9 +64,9 @@ registro já criado). Testado com 4 processos reais ([fila.md §4](fila.md#4-con
 
 Importadas como **resumo** (D-20), marcadas `is_legacy`: aparecem na lista, nunca são editadas nem reenviadas.
 
-## 7. PRECISA DE DECISÃO
+## 7. Decisões do dono (aprovação da Fase 10)
 
-| # | Ponto | Implementado (conservador) |
+| # | Decisão | Como está implementado |
 |---|---|---|
-| P10-01 | Limite de frequência por cliente (ex.: no máximo 1 campanha por semana) | **Não inventado**: só o ritmo do provedor. Cada campanha é decisão explícita da equipe |
-| P10-02 | Clientes importados com consentimento "desconhecido" | Ficam **fora** das campanhas até escolherem. Se o dono quiser pedir o consentimento, uma campanha transacional de "pedido de consentimento" precisa de decisão jurídica |
+| P10-01 | **No máximo 4 campanhas de marketing por cliente em qualquer janela de 30 dias.** Confirmação, remarcação, cancelamento, lembrete, comprovante, assinatura e qualquer transacional **não contam** | Conferido no lote (o destinatário é pulado com o motivo) e de novo na hora do envio, com trava na linha do cliente (`customers.communication_version`): dois workers entregando campanhas diferentes ao mesmo cliente nunca passam do limite. Só contam e-mails de marketing liberados (`email_messages.marketing_cleared_at`) que não falharam nem foram barrados. Atingiu o limite: não recebe novas campanhas até a mais antiga sair da janela. Testes: `Fase10DecisionsTest::test_limite_de_4_campanhas_em_30_dias_so_conta_marketing` e `test_limite_conferido_tambem_na_hora_do_envio` |
+| P10-02 | Importados com consentimento **"desconhecido" ficam fora** das campanhas; silêncio não é consentimento | Como já estava: só "concedido" entra (público, lote e envio). Transacional continua |

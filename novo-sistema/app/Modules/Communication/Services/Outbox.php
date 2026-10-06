@@ -2,11 +2,11 @@
 
 namespace App\Modules\Communication\Services;
 
+use App\Modules\Communication\Delivery\EmailProviders;
 use App\Modules\Communication\Enums\MessageCategory;
 use App\Modules\Communication\Enums\MessageStatus;
 use App\Modules\Communication\Exceptions\EmailDeliveryFailed;
 use App\Modules\Communication\Jobs\SendEmailMessage;
-use App\Modules\Communication\Delivery\EmailProviders;
 use App\Modules\Communication\Models\EmailMessage;
 use App\Modules\Communication\Templates\RenderedEmail;
 use App\Modules\Communication\Templates\TemplateRegistry;

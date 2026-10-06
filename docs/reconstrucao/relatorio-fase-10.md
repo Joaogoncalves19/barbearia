@@ -1,6 +1,10 @@
 # Relatório da Fase 10 — Comunicação e avaliações
 
-> **Status: concluída, aguardando aprovação explícita do dono para a Fase 11.** Branch
+> **Status: concluída e aprovada pelo dono em 2026-10-05** (D-05: Resend atrás de uma abstração de provedor;
+> P10-01: no máximo 4 campanhas por cliente em 30 dias; P10-02: "desconhecido" fora das campanhas; P10-03:
+> registros de e-mail e avisos por 12 meses, depois anonimização automática; P10-04: link de pagamento da
+> assinatura também por e-mail. Implementados no início da Fase 11, ver
+> [relatorio-fase-11.md](relatorio-fase-11.md#2-decisões-da-aprovação-da-fase-10)). Fase 11 autorizada. Branch
 > `claude/fase-10-comunicacao`, criada a partir de `claude/fase-9-assinaturas`. Só dados fictícios; nenhum
 > banco real; nenhum provedor de e-mail real (D-05 pendente: em desenvolvimento, testes e CI os e-mails ficam
 > no log/memória); nenhuma credencial no código, no banco, no painel ou no log; nenhuma migração real;

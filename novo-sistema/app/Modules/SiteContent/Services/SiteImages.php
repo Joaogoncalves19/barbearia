@@ -59,10 +59,10 @@ final class SiteImages
     public function move(SiteImage $image, int $direction, User $actor): void
     {
         DB::transaction(function () use ($image, $direction, $actor): void {
-            $lista = SiteImage::query()->where('kind', $image->kind)->orderBy('sort_order')->orderBy('id')->get()->values();
-            $i = $lista->search(fn (SiteImage $x) => $x->id === $image->id);
+            $lista = SiteImage::query()->where('kind', $image->kind)->orderBy('sort_order')->orderBy('id')->get()->all();
+            $i = array_search($image->id, array_map(fn (SiteImage $x) => $x->id, $lista), true);
             $j = is_int($i) ? $i + ($direction < 0 ? -1 : 1) : -1;
-            if (! is_int($i) || $j < 0 || $j >= $lista->count()) {
+            if (! is_int($i) || $j < 0 || $j >= count($lista)) {
                 return;
             }
             $tmp = $lista[$i];

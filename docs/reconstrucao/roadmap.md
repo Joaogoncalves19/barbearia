@@ -317,9 +317,10 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 10 — Comunicação e avaliações
+## Fase 10 — Comunicação e avaliações ✅
 
-> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-10.md](relatorio-fase-10.md)). Fila
+> **Status: concluída e aprovada (2026-10-05)**; decisões da aprovação (D-05 Resend atrás de abstração,
+> P10-01 a P10-04) implementadas no início da Fase 11. Situação original: ([relatorio-fase-10.md](relatorio-fase-10.md)). Fila
 > central de e-mails (registro, unicidade, envio depois do commit, 4 tentativas com espera crescente, falha
 > definitiva, reenvio, log sem credenciais), modelos com a nova identidade e prévia no painel, confirmação /
 > remarcação / cancelamento, lembretes (D-51) com confirmação de presença por link assinado, avisos na conta,
@@ -341,6 +342,17 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 ---
 
 ## Fase 11 — Site público
+
+> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-11.md](relatorio-fase-11.md)). Início,
+> serviços, equipe, página do profissional, assinatura e páginas legais com conteúdo real (nada inventado),
+> direção A com elementos gráficos próprios e versão tipográfica sem foto; conteúdo e imagens no painel
+> (`site.manage`); imagens reprocessadas (WebP, tamanhos, sem metadados, tipo pelo conteúdo); SEO básico
+> (título, descrição, canônico, Open Graph, JSON-LD sem dado inventado, sitemap, robots); o canal do cliente
+> só agenda o que é publicado (regra na `Availability`); testes de navegador no celular e no desktop.
+> **Não executado:** Lighthouse CI e teste com 5 pessoas. **Pendente:** fotos reais (D-08), logo/marca (D-07),
+> textos do dono e política de privacidade. Docs: [site-publico.md](site-publico.md), [home.md](home.md),
+> [imagens.md](imagens.md), [seo.md](seo.md), [acessibilidade.md](acessibilidade.md),
+> [agendamento-publico.md](agendamento-publico.md), [retencao-lgpd.md](retencao-lgpd.md).
 
 - **Objetivo:** a nova vitrine da barbearia.
 - **Escopo:** home conforme [proposta-design.md](proposta-design.md#113-nova-landing-page--estrutura-proposta);

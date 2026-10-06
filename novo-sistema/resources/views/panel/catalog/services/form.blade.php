@@ -59,7 +59,7 @@
                             <img class="thumb" src="{{ $service->imageUrl() }}" alt="Imagem atual de {{ $service->name }}">
                             <x-ui.checkbox name="remove_image" label="Remover a imagem atual" />
                         @endif
-                        <x-ui.file name="image" :label="$service->image_path ? 'Trocar imagem' : 'Imagem'" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, até 3 MB, mínimo 200 × 200 px." optional />
+                        <x-ui.file name="image" :label="$service->image_path ? 'Trocar imagem' : 'Imagem'" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, até 8 MB, mínimo 200 × 200 px. O sistema otimiza a imagem para o site." optional />
                     </div>
                 </x-ui.card>
             @endif

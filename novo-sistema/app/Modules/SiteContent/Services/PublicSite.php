@@ -3,6 +3,7 @@
 namespace App\Modules\SiteContent\Services;
 
 use App\Modules\Catalog\Models\Service;
+use App\Modules\Catalog\Models\ServiceCategory;
 use App\Modules\Catalog\Services\ServiceCatalog;
 use App\Modules\Reviews\Enums\ReviewStatus;
 use App\Modules\Reviews\Models\Review;
@@ -72,7 +73,7 @@ final class PublicSite
     /**
      * Catalogo do site (ativos, de categoria ativa, publicos), por categoria.
      *
-     * @return list<array{category: ?\App\Modules\Catalog\Models\ServiceCategory, services: Collection<int, Service>}>
+     * @return list<array{category: ?ServiceCategory, services: Collection<int, Service>}>
      */
     public function services(): array
     {

@@ -89,7 +89,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::get('/servicos', [PagesController::class, 'services'])->name('site.services');
 Route::get('/equipe', [PagesController::class, 'team'])->name('site.team');
-Route::get('/equipe/{professional}', [PagesController::class, 'professional'])->where('professional', '[a-z0-9-]+')->name('site.professional');
+Route::get('/equipe/{professional:slug}', [PagesController::class, 'professional'])->where('professional', '[a-z0-9-]+')->name('site.professional');
 Route::get('/assinatura', [PagesController::class, 'plans'])->name('site.plans');
 Route::get('/privacidade', [PagesController::class, 'privacy'])->name('site.privacy');
 Route::get('/termos', [PagesController::class, 'terms'])->name('site.terms');

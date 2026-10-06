@@ -8,7 +8,11 @@ use App\Modules\Communication\Mail\CommunicationMail;
 use App\Modules\Communication\Models\EmailMessage;
 use App\Modules\Communication\Services\Outbox;
 use App\Modules\Customers\Models\CustomerNotification;
+use App\Modules\Identity\Enums\StaffRole;
+use App\Modules\Identity\Models\User;
 use App\Modules\Subscriptions\Enums\SubscriptionStatus;
+use App\Modules\Subscriptions\Exceptions\SubscriptionRuleViolation;
+use App\Modules\System\Models\AuditLog;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -112,13 +116,13 @@ class SubscriptionMessagesTest extends TestCase
         $m = EmailMessage::query()->where('template', 'subscription_payment_link')->sole();
         $this->assertSame([MessageStatus::Sent, 'transactional'], [$m->status, $m->category->value]);
         $this->assertStringNotContainsString((string) $url, (string) json_encode($m->params), 'o link não fica no registro');
-        Mail::assertSent(\App\Modules\Communication\Mail\CommunicationMail::class, fn ($mail) => str_contains($mail->render(), (string) $url));
-        \Illuminate\Support\Facades\Http::assertSentCount(1); // uma sessão no Stripe: o envio nunca gera outro link
+        Mail::assertSent(CommunicationMail::class, fn ($mail) => str_contains($mail->render(), (string) $url));
+        Http::assertSentCount(1); // uma sessão no Stripe: o envio nunca gera outro link
         $this->assertSame($url, $s->refresh()->checkout_url);
         $this->assertSame(1, $s->events()->where('kind', 'link_emailed')->count());
-        $this->assertSame(1, \App\Modules\System\Models\AuditLog::query()->where('action', 'subscription.link_emailed')->count());
+        $this->assertSame(1, AuditLog::query()->where('action', 'subscription.link_emailed')->count());
 
-        $financeiro = \App\Modules\Identity\Models\User::factory()->role(\App\Modules\Identity\Enums\StaffRole::Finance)->create();
+        $financeiro = User::factory()->role(StaffRole::Finance)->create();
         $this->actingAs($financeiro)->post(route('panel.subscriptions.link.email', $s))->assertForbidden();
     }
 
@@ -136,7 +140,7 @@ class SubscriptionMessagesTest extends TestCase
         $this->assertSame(MessageStatus::Skipped, $antigo->refresh()->status);
 
         $this->travel(2)->days();
-        $this->expectException(\App\Modules\Subscriptions\Exceptions\SubscriptionRuleViolation::class);
+        $this->expectException(SubscriptionRuleViolation::class);
         $this->checkout()->emailLink($novo->refresh(), $this->recepcao);
     }
 

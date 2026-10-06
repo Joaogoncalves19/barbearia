@@ -39,7 +39,7 @@ final class ImageProcessor
             throw new InvalidImage('Envie uma imagem JPG, PNG ou WebP.');
         }
         $info = @getimagesize($path);
-        if ($info === false || ($info[2] ?? null) !== self::MIMES[$mime] || $info[0] < 1 || $info[1] < 1) {
+        if ($info === false || $info[2] !== self::MIMES[$mime] || $info[0] < 1 || $info[1] < 1) {
             throw new InvalidImage('O arquivo não é uma imagem válida.');
         }
         if ($info[0] * $info[1] > self::MAX_PIXELS) {

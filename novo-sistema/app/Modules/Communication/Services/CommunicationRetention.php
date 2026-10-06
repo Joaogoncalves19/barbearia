@@ -49,7 +49,7 @@ final class CommunicationRetention
         $n = ['emails' => $emails, 'destinatarios' => $destinatarios, 'avisos' => $avisos];
         if (array_sum($n) > 0) {
             AuditTrail::record('retention.communication', null, null,
-                "Retenção da comunicação (mais de ".self::MONTHS." meses): {$emails} e-mail(s) e {$destinatarios} destinatário(s) anonimizados, {$avisos} aviso(s) apagado(s).",
+                'Retenção da comunicação (mais de '.self::MONTHS." meses): {$emails} e-mail(s) e {$destinatarios} destinatário(s) anonimizados, {$avisos} aviso(s) apagado(s).",
                 [...$n, 'criados_antes_de' => $limite->toIso8601String()]);
         }
 

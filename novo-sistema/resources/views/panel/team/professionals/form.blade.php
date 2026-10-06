@@ -43,7 +43,7 @@
                             <img class="thumb" src="{{ $professional->photoUrl() }}" alt="Foto atual de {{ $professional->display_name }}">
                             <x-ui.checkbox name="remove_photo" label="Remover a foto atual" />
                         @endif
-                        <x-ui.file name="photo" :label="$professional->photo_path ? 'Trocar foto' : 'Foto'" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, até 3 MB, mínimo 200 × 200 px. Prefira foto em retrato." optional />
+                        <x-ui.file name="photo" :label="$professional->photo_path ? 'Trocar foto' : 'Foto'" accept="image/jpeg,image/png,image/webp" hint="JPG, PNG ou WebP, até 8 MB, mínimo 200 × 200 px. O sistema otimiza a imagem para o site. Prefira foto em retrato." optional />
                     </div>
                 </x-ui.card>
             @endif

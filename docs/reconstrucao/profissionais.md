@@ -39,8 +39,8 @@ Professional (quem atende: nome de exibição, serviços, agenda, site)
 
 | Situação | Novos agendamentos | Site | Histórico |
 |---|---|---|---|
-| Ativo e agendável | sim (só nos serviços vinculados) | se `is_public` | — |
-| Ativo, **não** agendável | não | se `is_public` | — |
+| Ativo e agendável | sim (só nos serviços vinculados; pelo site, só se `is_public`) | se `is_public` | — |
+| Ativo, **não** agendável | não | **não** (Fase 11, decisão do dono: o site mostra só quem recebe agendamento) | — |
 | **Inativo** (desligado) | não | não | intacto |
 
 **Profissional histórico** é quem já teve atendimento, comissão ou vale: nunca é apagado (FK `restrict`),

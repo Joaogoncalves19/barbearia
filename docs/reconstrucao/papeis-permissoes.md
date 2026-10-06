@@ -92,6 +92,7 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `campaigns.view` / `campaigns.manage` / `campaigns.send` | Ver campanhas / rascunho e teste / disparar e cancelar | **Fase 10** |
 | `reviews.view` / `reviews.view_own` | Ver todas as avaliações / só as publicadas dos próprios atendimentos | **Fase 10** |
 | `reviews.moderate` / `reviews.reply` | Aprovar, recusar (com motivo) e destacar / responder | **Fase 10** |
+| `site.manage` | Conteúdo (textos, contatos, páginas legais) e imagens do site público | **Fase 11** |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
 | `account.access` *(cliente)* | Acessar a própria conta de cliente | **Fase 3** |
 
@@ -184,6 +185,7 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `reviews.view_own` | | | | | ✔ |
 | `reviews.moderate` | ✔ | ✔ | | | |
 | `reviews.reply` | ✔ | ✔ | | | |
+| `site.manage` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
 
 A distribuição acima é uma **proposta técnica conservadora** (menor privilégio) baseada nos perfis do
@@ -271,3 +273,12 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
   **assinatura da URL** (`signed`), testada em `RouteAuthorizationTest::test_links_dos_emails_exigem_assinatura`.
 - Limites: `throttle:email-links` (links públicos), `throttle:email-actions` (teste de campanha e reenvio),
   `throttle:account-actions` (avaliação e preferências), `throttle:money` (moderação, campanha, configuração).
+
+## Fase 11 — site público
+
+- `site.manage` (proprietário e gerente): textos, contatos, páginas legais e imagens do site. Serviços,
+  preços, fotos de serviço e equipe continuam nas habilidades do catálogo e da equipe (Fase 4): o site não tem
+  cadastro paralelo.
+- Páginas públicas são só leitura e não exigem conta; tudo que não está publicado responde 404.
+- O canal do cliente só agenda serviço e profissional publicados (regra na `Availability`); a equipe agenda
+  qualquer um ativo.

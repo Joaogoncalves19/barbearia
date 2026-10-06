@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 9 concluídas e aprovadas ([relatorio-fase-9.md](relatorio-fase-9.md)). **Fase 10
-> concluída, aguardando aprovação do dono** ([relatorio-fase-10.md](relatorio-fase-10.md)).
+> **Status:** Fases 0 a 10 concluídas e aprovadas ([relatorio-fase-10.md](relatorio-fase-10.md)). **Fase 11
+> concluída, aguardando aprovação do dono** ([relatorio-fase-11.md](relatorio-fase-11.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -137,6 +137,19 @@ plano para reconstruí-lo do zero, por etapas.
 | [avaliacoes.md](avaliacoes.md) | Base válida, moderação (D-48), pedido (D-49), comentário como texto (S-02) |
 | [consentimento.md](consentimento.md) | Preferências, prova, descadastro (link e um clique), LGPD e retenção |
 | [relatorio-fase-10.md](relatorio-fase-10.md) | Relatório final da Fase 10 |
+
+### Fase 11
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [site-publico.md](site-publico.md) | Arquitetura do site: páginas, de onde vem cada bloco, painel, segurança |
+| [home.md](home.md) | Início: ordem dos blocos, identidade, versão sem foto, o que o dono preenche |
+| [imagens.md](imagens.md) | Onde ficam, envio seguro (reprocessamento), tamanhos, texto alternativo |
+| [seo.md](seo.md) | Título, descrição, canônico, Open Graph, sitemap, robots, dados estruturados |
+| [acessibilidade.md](acessibilidade.md) | Teclado, foco, contraste, estrutura, movimento, celular |
+| [agendamento-publico.md](agendamento-publico.md) | Entradas do site no fluxo real; só o que é publicado |
+| [retencao-lgpd.md](retencao-lgpd.md) | Prazos de retenção e rotinas (Stripe, e-mails, avisos), o que nunca é guardado |
+| [relatorio-fase-11.md](relatorio-fase-11.md) | Relatório final da Fase 11 |
 
 ## Legenda usada em todos os documentos
 

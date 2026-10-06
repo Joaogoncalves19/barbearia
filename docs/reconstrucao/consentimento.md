@@ -59,9 +59,8 @@ A URL leva o **identificador público** do cliente (nunca o id interno nem o e-m
 | Erros do provedor | Credenciais mascaradas antes de gravar e de ir para o log |
 | Prova de consentimento | Guardada (só inclusão) |
 | Eventos do Stripe | **12 meses** com o corpo; depois a rotina diária remove o corpo e mantém o necessário (P9-10, [assinaturas.md §11](assinaturas.md#11-retenção-dos-eventos-do-stripe-decisão-do-dono-p9-10)) |
+| Registro de e-mails, destinatários de campanha e avisos | **12 meses** (P10-03, decisão do dono); depois a rotina diária anonimiza o e-mail (endereço, nome, assunto, erro) e o destinatário, e apaga os avisos. Fica o necessário para auditoria |
 
-**PRECISA DE DECISÃO (P10-03):** prazo de retenção do registro de e-mails (`email_messages`) e dos avisos na
-conta. Implementado: guardados (histórico), sem rotina de expurgo. A política geral de retenção/LGPD e a
-**anonimização do cliente** (Fase 12) devem: (a) anonimizar `email_messages.to_email/to_name` do cliente
-(atualização direta, porque o model só deixa mudar a situação); (b) manter a prova de consentimento; (c)
-citar a retenção dos eventos do Stripe.
+A política completa de retenção está em [retencao-lgpd.md](retencao-lgpd.md). A **anonimização do cliente**
+(exclusão de conta, Fase 12) deve anonimizar também `email_messages.to_email/to_name` dele (atualização
+direta, porque o model só deixa mudar a situação) e manter a prova de consentimento.

@@ -62,7 +62,11 @@ final class StructuredData
         return $dados;
     }
 
-    /** JSON seguro dentro de <script>: "</script>" nunca fecha a tag. */
+    /**
+     * JSON seguro dentro de <script>: "</script>" nunca fecha a tag.
+     *
+     * @param  array<string, mixed>  $data
+     */
     public static function encode(array $data): string
     {
         return (string) json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP);

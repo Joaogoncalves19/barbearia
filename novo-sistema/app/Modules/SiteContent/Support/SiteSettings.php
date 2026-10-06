@@ -152,24 +152,20 @@ final class SiteSettings
     {
         $blocos = [];
         $paragrafo = [];
-        $fecha = function () use (&$blocos, &$paragrafo): void {
-            if ($paragrafo !== []) {
+        // Linha vazia ou titulo fecha o paragrafo em andamento; "" no fim fecha o ultimo.
+        foreach ([...(preg_split('/\R/', $this->get($field)) ?: []), ''] as $linha) {
+            $linha = trim($linha);
+            $titulo = str_starts_with($linha, '## ');
+            if (($linha === '' || $titulo) && $paragrafo !== []) {
                 $blocos[] = ['type' => 'p', 'text' => implode("\n", $paragrafo)];
                 $paragrafo = [];
             }
-        };
-        foreach (preg_split('/\R/', $this->get($field)) ?: [] as $linha) {
-            $linha = trim($linha);
-            if ($linha === '') {
-                $fecha();
-            } elseif (str_starts_with($linha, '## ')) {
-                $fecha();
+            if ($titulo) {
                 $blocos[] = ['type' => 'h', 'text' => trim(substr($linha, 3))];
-            } else {
+            } elseif ($linha !== '') {
                 $paragrafo[] = $linha;
             }
         }
-        $fecha();
 
         return $blocos;
     }

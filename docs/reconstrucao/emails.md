@@ -96,15 +96,28 @@ O registro é histórico: só a situação muda; nunca é apagado (o model recus
 
 ## 7. Provedor (D-05) e segredos
 
-O provedor ainda não foi escolhido (**D-05, pendente**). O sistema usa o mailer do Laravel configurado por
-variáveis de ambiente (`MAIL_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`,
-`MAIL_TIMEOUT`, `MAIL_FROM_*`). Nenhuma credencial no código, no banco, no painel ou no log: o erro guardado
-passa por `Outbox::safeError`, que mascara `password=`, `token=`, `secret=`, `key=`. Em desenvolvimento e
-nos testes o mailer é `log`/`array` (nada sai da máquina).
+**D-05 decidido (aprovação da Fase 10): Resend como primeiro provedor, atrás de uma abstração.** O domínio
+não conhece o fornecedor: a fila, os modelos, as regras de envio, as preferências, as novas tentativas e o
+histórico falam só com a interface `EmailProvider` (`app/Modules/Communication/Delivery`).
 
-**Pendente com D-05:** entrega real a uma lista-semente e aprovação visual dos e-mails no provedor (critério
-do roadmap), devolução/reclamação automáticas (webhook do provedor alimentando `email_suppressions`) e
-SPF/DKIM/DMARC do domínio.
+| `EMAIL_PROVIDER` | Implementação | Uso |
+|---|---|---|
+| `mailer` (padrão) | `MailerProvider`: mailer do Laravel (`MAIL_MAILER`: `log` em desenvolvimento, `array` nos testes, `smtp` se preciso) | Desenvolvimento, testes, CI |
+| `resend` | `ResendProvider`: API HTTP do Resend (`POST /emails`), sem SDK | Homologação e produção |
+
+Regras do adaptador do Resend: chave **só** em `RESEND_API_KEY` (vazia = nada sai e o registro guarda "provedor
+não configurado"); `Idempotency-Key` = identificador público do registro (o mesmo registro nunca vira dois
+e-mails no provedor); o HTML é o mesmo do layout da identidade; cabeçalhos de descadastro de um clique no
+marketing; tempo limite de 10 s (`RESEND_TIMEOUT`); erro devolvido como `EmailDeliveryFailed` **sem a chave**;
+o identificador do e-mail no Resend fica em `email_messages.provider_message_id`. Trocar de fornecedor = nova
+classe que implementa a interface + uma linha em `EmailProviders::AVAILABLE` + `EMAIL_PROVIDER`.
+
+Nenhuma credencial no código, no banco, no painel ou no log: o erro guardado passa por `Outbox::safeError`,
+que mascara `password=`, `token=`, `secret=`, `key=`, e o log global de falhas de fila também.
+
+**Pendente para a homologação (sem credenciais reais aqui):** entrega real com o Resend a uma lista-semente,
+aprovação visual dos e-mails reais, SPF/DKIM/DMARC do domínio e devolução/reclamação automáticas (webhook do
+Resend alimentando `email_suppressions`).
 
 ## 8. Rotinas
 
