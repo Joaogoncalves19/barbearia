@@ -131,7 +131,21 @@ topo carrega na hora; o resto é preguiçoso. Animações: duas, desligadas com 
 
 ## 10. CI
 
-RESULTADO_CI
+**PASSOU.** Run nº 42 (commit `91c8697`, https://github.com/Joaogoncalves19/barbearia/actions/runs/37504278585),
+PHP 8.4, os dois jobs verdes em todos os passos:
+
+- **Novo sistema (Laravel):** dependências, Pint, Larastan nível 6, auditoria de dependências, build, testes
+  PHP (inclusive os de concorrência com processos reais), importador com banco fictício e Playwright + axe.
+  Nenhuma chave do Resend ou do Stripe no CI.
+- **Sistema atual:** regressão de segurança S-01 a S-04.
+
+**FALHOU antes (run nº 41, commit `57397da`), no passo "Auditoria de dependências":** um aviso de segurança
+publicado nesse dia para `source-map-js` 1.2.1 (dependência de build do Vite/PostCSS, alta, negação de serviço;
+GHSA-68fv-2mgg-jv7q). Não veio do código da fase. Corrigido atualizando o lockfile para 1.2.2 (`npm audit fix`,
+só esse pacote), sem desligar a auditoria; build e testes do site repetidos. Os passos seguintes do run 41
+nem chegaram a rodar.
+
+O commit seguinte só atualiza este relatório (documentação).
 
 ## 11. Problemas encontrados
 
