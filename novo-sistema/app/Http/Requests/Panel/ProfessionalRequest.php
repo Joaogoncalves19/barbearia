@@ -67,7 +67,7 @@ class ProfessionalRequest extends FormRequest
             'bio' => ['nullable', 'string', 'max:1000'],
             'is_public' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],
-            'photo' => ['nullable', 'file', ...ImageStore::RULES],
+            'photo' => ['nullable', 'file', ...ImageStore::rules()],
             'remove_photo' => ['sometimes', 'boolean'],
             'version' => $p === null ? ['prohibited'] : ['required', 'integer', 'min:0'],
         ];

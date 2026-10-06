@@ -13,8 +13,12 @@
     'homeUrl' => '/',
     'prototype' => false,
     'bottomBar' => true,
+    // Fase 11 (site real): logo enviado no painel e nome no titulo.
+    'logo' => null,
+    'siteName' => null,
+    'noindex' => false,
 ])
-<x-layouts.document :title="$title" :description="$description" :direction="$direction" surface="escura" area="site" :noindex="$prototype">
+<x-layouts.document :title="$title" :description="$description" :direction="$direction" surface="escura" area="site" :noindex="$prototype || $noindex" :site-name="$siteName">
     @if ($prototype)
         @include('partials.prototype-banner', ['direcao' => $direction])
     @endif
@@ -22,8 +26,12 @@
     <header class="site-header" x-data="disclosure" x-on:keydown.escape="close">
         <div class="container site-header__inner">
             <a class="brand" href="{{ $homeUrl }}">
-                <span class="brand__mark" aria-hidden="true">{{ mb_substr($brand, 0, 1) }}</span>
-                <span class="brand__name">{{ $brand }}</span>
+                @if ($logo)
+                    <img class="brand__logo" src="{{ $logo['url'] }}" alt="{{ $brand }}" @if ($logo['width']) width="{{ $logo['width'] }}" height="{{ $logo['height'] }}" @endif>
+                @else
+                    <span class="brand__mark" aria-hidden="true">{{ mb_substr($brand, 0, 1) }}</span>
+                    <span class="brand__name">{{ $brand }}</span>
+                @endif
             </a>
 
             <nav class="site-nav" aria-label="Principal">

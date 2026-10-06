@@ -159,6 +159,9 @@ return [
         'reviews.view_own' => 'Ver as avaliações publicadas dos próprios atendimentos',
         'reviews.moderate' => 'Aprovar, recusar (com motivo) e destacar avaliações',
         'reviews.reply' => 'Responder avaliações em nome da barbearia',
+        // Site publico (Fase 11): textos, contatos, paginas legais e imagens.
+        // Servicos e equipe continuam nas habilidades do catalogo e da equipe.
+        'site.manage' => 'Editar o conteúdo e as imagens do site público',
         // Configuracoes gerais (fases seguintes)
         'settings.manage' => 'Alterar configurações do estabelecimento',
     ],
@@ -191,6 +194,7 @@ return [
             'communications.view', 'communications.retry', 'communications.settings',
             'campaigns.view', 'campaigns.manage', 'campaigns.send',
             'reviews.view', 'reviews.moderate', 'reviews.reply',
+            'site.manage',
             'settings.manage',
         ],
 
@@ -216,6 +220,7 @@ return [
             'communications.view', 'communications.retry',
             'campaigns.view', 'campaigns.manage', 'campaigns.send',
             'reviews.view', 'reviews.moderate', 'reviews.reply',
+            'site.manage',
         ],
 
         // Recepcao: agenda, clientes, atendimento e caixa do dia. Catalogo,

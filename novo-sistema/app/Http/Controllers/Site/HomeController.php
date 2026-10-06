@@ -3,22 +3,34 @@
 namespace App\Http\Controllers\Site;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\RedirectResponse;
+use App\Modules\SiteContent\Services\PublicSite;
+use App\Modules\SiteContent\Support\StructuredData;
 use Illuminate\View\View;
 
+/**
+ * Inicio do site publico (Fase 11; home.md). So leitura, a partir do
+ * conteudo real (PublicSite): nenhum dado ficticio. As paginas de referencia
+ * da Fase 1 continuam em /prototipos (so com a flag ligada).
+ */
 class HomeController extends Controller
 {
-    /**
-     * O site publico definitivo e a Fase 11. Ate la, onde os prototipos estao
-     * ligados a raiz leva a home de referencia; nos demais ambientes mostra
-     * uma pagina neutra "em construcao" (sem dado ficticio).
-     */
-    public function __invoke(): View|RedirectResponse
+    public function __invoke(PublicSite $site): View
     {
-        if (config('barbearia.prototypes_enabled')) {
-            return redirect()->route('prototypes.home');
-        }
+        $horas = $site->hours();
 
-        return view('site.coming-soon');
+        return view('site.home', [
+            'cfg' => $site->settings(),
+            'hero' => $site->image('hero'),
+            'about' => $site->images('about'),
+            'gallery' => $site->gallery(),
+            'services' => $site->featuredServices(),
+            'plans' => $site->plans(),
+            'team' => $site->team(),
+            'reviews' => $site->featuredReviews(),
+            'rating' => $site->rating(),
+            'hours' => $horas,
+            'status' => $horas->status(),
+            'jsonLd' => StructuredData::encode(StructuredData::barberShop($site)),
+        ]);
     }
 }

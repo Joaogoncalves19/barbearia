@@ -36,7 +36,7 @@ final class ProfessionalAdmin
             $this->assertUserAvailable($p->user_id, null);
             $p->sort_order = Ordering::next(Professional::query());
             if ($photo !== null) {
-                $p->photo_path = ImageStore::replace($photo, 'professionals', null);
+                $p->photo_path = ImageStore::store($photo, 'professionals', 'portrait')->path;
             }
             $p->save();
 
@@ -58,7 +58,7 @@ final class ProfessionalAdmin
 
             if ($photo !== null) {
                 $antiga = $p->photo_path;
-                $p->photo_path = $photo->store('professionals', ImageStore::disk()) ?: null;
+                $p->photo_path = ImageStore::store($photo, 'professionals', 'portrait')->path;
             } elseif ($removePhoto) {
                 $antiga = $p->photo_path;
                 $p->photo_path = null;

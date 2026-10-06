@@ -1,0 +1,22 @@
+/* Painel -> Imagens do site (Fase 11): miniatura + formulario + acoes. */
+.site-image-row {
+    display: grid;
+    gap: var(--space-4);
+    padding-bottom: var(--space-6);
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.site-image-row__thumb {
+    width: 100%;
+    max-width: 16rem;
+    height: auto;
+    border-radius: var(--radius-media);
+    object-fit: cover;
+}
+
+@media (min-width: 64rem) {
+    .site-image-row {
+        grid-template-columns: 16rem minmax(0, 1fr) auto;
+        align-items: start;
+    }
+}

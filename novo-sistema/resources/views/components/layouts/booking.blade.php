@@ -11,8 +11,9 @@
             : ['label' => 'Entrar', 'href' => route('customer.login')],
     ];
     $etapas = [1 => 'Serviço', 2 => 'Profissional', 3 => 'Dia e horário', 4 => 'Confirmação'];
+    $marca = \App\Modules\SiteContent\Support\Brand::current();
 @endphp
-<x-layouts.site :title="$title" :brand="config('app.name')" :nav="$nav" :booking-url="route('booking.services')" :bottom-bar="false" :home-url="route('home')">
+<x-layouts.site :title="$title" :brand="$marca['name']" :logo="$marca['logo']" :site-name="$marca['name']" :nav="$nav" :booking-url="route('booking.services')" :bottom-bar="false" :home-url="route('home')">
     <div class="section section--tight">
         <div class="container-narrow stack stack-lg">
             <ol class="steps" aria-label="Etapas do agendamento">

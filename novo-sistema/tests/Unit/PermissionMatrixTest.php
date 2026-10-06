@@ -183,6 +183,8 @@ class PermissionMatrixTest extends TestCase
             'reviews.view_own' => ['professional'],
             'reviews.moderate' => ['owner', 'manager'],
             'reviews.reply' => ['owner', 'manager'],
+            // Fase 11: conteudo e imagens do site (servicos e equipe ficam nos proprios cadastros).
+            'site.manage' => ['owner', 'manager'],
             'settings.manage' => ['owner'],
         ];
 

@@ -52,7 +52,7 @@ final class Availability
      */
     public function check(Service $service, Professional $professional, CarbonImmutable $start, Channel $channel, ?Appointment $ignore = null, ?int $durationMinutes = null): AvailabilityResult
     {
-        $motivos = $this->staticReasons($service, $professional);
+        $motivos = $this->staticReasons($service, $professional, $channel);
         if ($motivos !== []) {
             return AvailabilityResult::unavailable($motivos);
         }
@@ -77,8 +77,8 @@ final class Availability
         }
 
         $candidatos = $professional !== null
-            ? ($this->staticReasons($service, $professional) === [] ? [$professional] : [])
-            : $this->directory->bookableFor($service)->all();
+            ? ($this->staticReasons($service, $professional, $channel) === [] ? [$professional] : [])
+            : array_values(array_filter($this->directory->bookableFor($service)->all(), fn (Professional $p) => $this->staticReasons($service, $p, $channel) === []));
 
         $politica = BookingPolicy::current();
         $minutos = $durationMinutes ?? $service->duration_minutes;
@@ -132,9 +132,19 @@ final class Availability
      *
      * @return list<string>
      */
-    private function staticReasons(Service $service, Professional $professional): array
+    private function staticReasons(Service $service, Professional $professional, Channel $channel): array
     {
         $motivos = [];
+        // Fase 11: pelo site (canal do cliente) so o que aparece no site:
+        // servico e profissional publicos. A equipe continua agendando tudo.
+        if ($channel === Channel::Customer) {
+            if (! $service->is_public) {
+                $motivos[] = 'service_not_public';
+            }
+            if (! $professional->is_public) {
+                $motivos[] = 'professional_not_public';
+            }
+        }
 
         if (! Service::query()->whereKey($service->id)->bookable()->exists()) {
             $motivos[] = 'service_unavailable';

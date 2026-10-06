@@ -47,14 +47,11 @@ class ApplicationTest extends TestCase
             ->assertDontSee('Symfony');
     }
 
-    public function test_raiz_leva_a_home_de_referencia_quando_prototipos_ligados(): void
+    public function test_raiz_e_o_site_publico_com_ou_sem_prototipos(): void
     {
-        $this->get('/')->assertRedirect(route('prototypes.home'));
-    }
-
-    public function test_raiz_mostra_pagina_neutra_quando_prototipos_desligados(): void
-    {
+        // Fase 11: a raiz e o site real; as referencias continuam em /prototipos.
+        $this->get('/')->assertOk()->assertSee('Agendar horário')->assertDontSee('Novo site em construção');
         config(['barbearia.prototypes_enabled' => false]);
-        $this->get('/')->assertOk()->assertSee('Novo site em construção');
+        $this->get('/')->assertOk()->assertSee('Agendar horário');
     }
 }

@@ -12,6 +12,8 @@ final class AvailabilityResult
         'service_unavailable' => 'Este serviço não está disponível para agendamento.',
         'professional_unavailable' => 'Este profissional não está recebendo agendamentos.',
         'professional_not_qualified' => 'Este profissional não executa este serviço.',
+        'service_not_public' => 'Este serviço não é agendado pelo site. Fale com a barbearia.',
+        'professional_not_public' => 'Este profissional não recebe agendamentos pelo site. Fale com a barbearia.',
         'invalid_time' => 'Horário inválido.',
         'past' => 'Este horário já passou.',
         'too_soon' => 'Este horário está muito próximo. Escolha um horário com mais antecedência.',

@@ -13,6 +13,8 @@
     'bodyClass' => null,
     'noindex' => false,
     'csrf' => true,
+    // Fase 11: nome do site no titulo (site publico usa o nome da barbearia).
+    'siteName' => null,
 ])
 @php
     // Direcao B e so referencia historica: fora dos prototipos, sempre A.
@@ -23,7 +25,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>{{ $title ? $title.' · ' : '' }}{{ config('app.name') }}</title>
+    <title>{{ $title ? $title.' · ' : '' }}{{ $siteName ?? config('app.name') }}</title>
     @if ($description)<meta name="description" content="{{ $description }}">@endif
     @if ($noindex)<meta name="robots" content="noindex, nofollow">@endif
     @if ($csrf)<meta name="csrf-token" content="{{ csrf_token() }}">@endif

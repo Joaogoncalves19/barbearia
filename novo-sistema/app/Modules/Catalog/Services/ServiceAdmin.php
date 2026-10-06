@@ -32,7 +32,7 @@ final class ServiceAdmin
             $s = new Service($data);
             $s->sort_order = Ordering::next(Service::query()->where('category_id', $data['category_id'] ?? null));
             if ($image !== null) {
-                $s->image_path = ImageStore::replace($image, 'services', null);
+                $s->image_path = ImageStore::store($image, 'services', 'card')->path;
             }
             $s->save();
 
@@ -61,7 +61,7 @@ final class ServiceAdmin
             }
             if ($image !== null) {
                 $antigo = $s->image_path;
-                $s->image_path = $image->store('services', ImageStore::disk()) ?: null;
+                $s->image_path = ImageStore::store($image, 'services', 'card')->path;
             } elseif ($removeImage) {
                 $antigo = $s->image_path;
                 $s->image_path = null;

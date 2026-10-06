@@ -48,12 +48,13 @@ final class ProfessionalDirectory
     }
 
     /**
-     * Equipe do site: ativos e publicos, na ordem definida.
+     * Equipe do site (Fase 11, decisao do dono): ativos, que recebem
+     * agendamentos e marcados para aparecer no site, na ordem definida.
      *
      * @return Collection<int, Professional>
      */
     public function publicTeam(): Collection
     {
-        return Professional::query()->shownPublicly()->ordered()->get();
+        return Professional::query()->shownPublicly()->bookable()->ordered()->get();
     }
 }

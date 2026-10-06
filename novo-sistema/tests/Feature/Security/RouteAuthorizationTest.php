@@ -31,6 +31,15 @@ class RouteAuthorizationTest extends TestCase
     /** Rotas publicas conhecidas e o motivo de serem publicas. */
     private const PUBLICAS = [
         'home' => 'pagina inicial',
+        // Site publico (Fase 11): so leitura do conteudo publicado.
+        'site.services' => 'servicos e precos publicados',
+        'site.team' => 'equipe publicada',
+        'site.professional' => 'pagina do profissional publicado (404 se fora do site)',
+        'site.plans' => 'planos ativos (404 sem planos)',
+        'site.privacy' => 'politica de privacidade (404 se vazia)',
+        'site.terms' => 'termos de uso (404 se vazio)',
+        'sitemap' => 'mapa do site para buscadores',
+        'robots' => 'instrucoes para buscadores',
         // Equipe: acesso (guest:web)
         'staff.login' => 'formulario de login da equipe',
         'staff.login.attempt' => 'envio do login (throttle:login)',

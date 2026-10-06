@@ -183,6 +183,12 @@ class AppServiceProvider extends ServiceProvider
             Limit::perHour(60)->by('email-act-h|'.$request->user()?->getAuthIdentifier()),
         ]);
 
+        // Fase 11: envio de imagens (reprocessar imagem custa CPU e memoria).
+        RateLimiter::for('uploads', fn (Request $request) => [
+            Limit::perMinute(10)->by('upload|'.$request->user()?->getAuthIdentifier()),
+            Limit::perHour(100)->by('upload-h|'.$request->user()?->getAuthIdentifier()),
+        ]);
+
         // Fase 10: avaliacao e preferencias do cliente.
         RateLimiter::for('account-actions', fn (Request $request) => Limit::perMinute(10)->by(
             'acct|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()

@@ -82,7 +82,7 @@ class ServiceRequest extends FormRequest
             }],
             'is_public' => ['sometimes', 'boolean'],
             'is_featured' => ['sometimes', 'boolean'],
-            'image' => ['nullable', 'file', ...ImageStore::RULES],
+            'image' => ['nullable', 'file', ...ImageStore::rules()],
             'remove_image' => ['sometimes', 'boolean'],
             'version' => $s === null ? ['prohibited'] : ['required', 'integer', 'min:0'],
         ];

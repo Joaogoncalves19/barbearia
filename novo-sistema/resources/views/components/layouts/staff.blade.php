@@ -94,6 +94,13 @@
         $comunicacao[] = $item('Lembretes e avisos', 'bell', 'panel.communication.settings', 'panel.communication.*');
     }
 
+    // Site publico (Fase 11).
+    $site = [];
+    if ($user->can('site.manage')) {
+        $site[] = $item('Conteúdo do site', 'store', 'panel.site.content', 'panel.site.content*');
+        $site[] = $item('Imagens do site', 'image', 'panel.site.images', 'panel.site.images*');
+    }
+
     $configAgenda = [];
     if ($user->can('schedule.settings')) {
         $configAgenda[] = $item('Funcionamento', 'clock', 'panel.schedule.settings', 'panel.schedule.settings*');
@@ -125,6 +132,9 @@
     }
     if ($comunicacao !== []) {
         $nav[] = ['group' => 'Comunicação', 'items' => $comunicacao];
+    }
+    if ($site !== []) {
+        $nav[] = ['group' => 'Site', 'items' => $site];
     }
     if ($configAgenda !== []) {
         $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];

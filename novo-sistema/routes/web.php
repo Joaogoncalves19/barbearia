@@ -51,6 +51,7 @@ use App\Http\Controllers\Panel\Promotions\CustomerLoyaltyController;
 use App\Http\Controllers\Panel\Promotions\GiftCardController;
 use App\Http\Controllers\Panel\Promotions\PromotionSettingsController;
 use App\Http\Controllers\Panel\ReceiptController as PanelReceiptController;
+use App\Http\Controllers\Panel\Site\SiteContentController;
 use App\Http\Controllers\Panel\Subscriptions\PlanController;
 use App\Http\Controllers\Panel\Subscriptions\SubscriptionController as PanelSubscriptionController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
@@ -58,6 +59,7 @@ use App\Http\Controllers\Panel\UserController;
 use App\Http\Controllers\Prototypes\PrototypeController;
 use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Http\Controllers\Site\HomeController;
+use App\Http\Controllers\Site\PagesController;
 use App\Http\Controllers\Site\PresenceController;
 use App\Http\Controllers\Site\UnsubscribeController;
 use App\Modules\Checkout\Models\Attendance;
@@ -83,7 +85,16 @@ use Illuminate\Support\Facades\Route;
 */
 
 // --- Publico ----------------------------------------------------------------
+// Site publico (Fase 11): so leitura do conteudo real; nada aqui grava.
 Route::get('/', HomeController::class)->name('home');
+Route::get('/servicos', [PagesController::class, 'services'])->name('site.services');
+Route::get('/equipe', [PagesController::class, 'team'])->name('site.team');
+Route::get('/equipe/{professional}', [PagesController::class, 'professional'])->where('professional', '[a-z0-9-]+')->name('site.professional');
+Route::get('/assinatura', [PagesController::class, 'plans'])->name('site.plans');
+Route::get('/privacidade', [PagesController::class, 'privacy'])->name('site.privacy');
+Route::get('/termos', [PagesController::class, 'terms'])->name('site.terms');
+Route::get('/sitemap.xml', [PagesController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [PagesController::class, 'robots'])->name('robots');
 
 // --- Agendamento pelo site (Fase 5): sem login ate a confirmacao ---------------
 // So LEITURA (servicos, profissionais, horarios livres calculados pelo
@@ -436,6 +447,15 @@ Route::prefix('painel')
 
         Route::get('/comunicacao', [CommunicationSettingsController::class, 'edit'])->middleware('can:communications.settings')->name('communication.settings');
         Route::put('/comunicacao', [CommunicationSettingsController::class, 'update'])->middleware(['can:communications.settings', 'throttle:money'])->name('communication.settings.update');
+
+        // --- Site publico (Fase 11): textos, contatos, paginas legais e imagens ---
+        Route::get('/site', [SiteContentController::class, 'edit'])->middleware('can:site.manage')->name('site.content');
+        Route::put('/site', [SiteContentController::class, 'update'])->middleware(['can:site.manage', 'throttle:money'])->name('site.content.update');
+        Route::get('/site/imagens', [SiteContentController::class, 'images'])->middleware('can:site.manage')->name('site.images');
+        Route::post('/site/imagens', [SiteContentController::class, 'storeImage'])->middleware(['can:site.manage', 'throttle:uploads'])->name('site.images.store');
+        Route::put('/site/imagens/{image}', [SiteContentController::class, 'updateImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.update');
+        Route::post('/site/imagens/{image}/ordem', [SiteContentController::class, 'moveImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.move');
+        Route::delete('/site/imagens/{image}', [SiteContentController::class, 'destroyImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.destroy');
 
         // --- Comprovantes impressos e por e-mail (Fase 8) ---
         // Mesmo acesso da tela do documento; envio com limite proprio.
