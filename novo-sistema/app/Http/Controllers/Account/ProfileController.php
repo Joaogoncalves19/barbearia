@@ -17,7 +17,7 @@ use Illuminate\View\View;
  *
  * Fora daqui, de proposito:
  * - CPF: obrigatorio e fixo depois de informado (correcao so pela equipe);
- * - e-mail: trocar exige confirmar o novo endereco (Fase 12);
+ * - e-mail: troca propria, confirmada pelo link no endereco novo (EmailController);
  * - status, consentimentos, mesclagem: acoes explicitas de outros fluxos.
  * O registro alterado e sempre o do cliente logado (nunca um id enviado).
  */
@@ -25,7 +25,13 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('account.profile', ['customer' => $this->customer($request)]);
+        $cliente = $this->customer($request);
+
+        return view('account.profile', [
+            'customer' => $cliente,
+            // Troca de e-mail pedida e ainda valendo (Fase 12).
+            'pendingEmail' => $cliente->pending_email !== null && $cliente->pending_email_expires_at?->isFuture() ? $cliente->pending_email : null,
+        ]);
     }
 
     public function update(Request $request, DuplicateCustomerFinder $duplicates): RedirectResponse

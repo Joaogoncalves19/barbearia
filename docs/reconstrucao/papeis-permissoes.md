@@ -282,3 +282,14 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
 - Páginas públicas são só leitura e não exigem conta; tudo que não está publicado responde 404.
 - O canal do cliente só agenda serviço e profissional publicados (regra na `Availability`); a equipe agenda
   qualquer um ativo.
+
+## Fase 12 — área do cliente
+
+- O cliente não tem papel nem habilidades além de `account.access`: tudo o que ele faz parte do próprio
+  cadastro, e cada registro na URL passa pela Policy (`AppointmentPolicy`, `AttendancePolicy`,
+  `CustomerPolicy`): alheio = 404. Ações sensíveis (exportar dados, excluir a conta, trocar e-mail) pedem a
+  senha de novo (`customer.reauth`). Detalhes: [area-do-cliente.md](area-do-cliente.md).
+- `customers.anonymize` (só o proprietário): o serviço de anonimização (`CustomerErasure`) aceita um usuário
+  da equipe com essa habilidade como autor; não há tela de clientes no painel (P12-03).
+- Pelo canal do cliente, a remarcação só oferece profissional publicado (P11-03); a equipe remarca com
+  qualquer profissional ativo (`appointments.manage`).

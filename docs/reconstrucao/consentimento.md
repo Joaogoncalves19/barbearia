@@ -62,5 +62,7 @@ A URL leva o **identificador público** do cliente (nunca o id interno nem o e-m
 | Registro de e-mails, destinatários de campanha e avisos | **12 meses** (P10-03, decisão do dono); depois a rotina diária anonimiza o e-mail (endereço, nome, assunto, erro) e o destinatário, e apaga os avisos. Fica o necessário para auditoria |
 
 A política completa de retenção está em [retencao-lgpd.md](retencao-lgpd.md). A **anonimização do cliente**
-(exclusão de conta, Fase 12) deve anonimizar também `email_messages.to_email/to_name` dele (atualização
-direta, porque o model só deixa mudar a situação) e manter a prova de consentimento.
+(exclusão de conta, Fase 12, `CustomerErasure`) anonimiza também `email_messages.to_email/to_name` dele,
+mantém a prova de consentimento e acrescenta uma revogação "exclusão da conta" sem o endereço (o opt-out da
+R-33). Na conta, **Privacidade** mostra o histórico das escolhas do cliente; abrir qualquer tela nunca muda
+consentimento (testado).

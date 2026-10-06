@@ -34,6 +34,23 @@ final class ProfessionalDirectory
     }
 
     /**
+     * O mesmo, pelo canal do CLIENTE (site e conta): so servico e
+     * profissional publicados no site (Fase 11; P11-03 vale tambem para a
+     * remarcacao pela conta). A Availability recusa o resto de qualquer jeito;
+     * esta lista so evita oferecer o que seria recusado.
+     *
+     * @return Collection<int, Professional>
+     */
+    public function customerBookableFor(Service $service): Collection
+    {
+        if (! $service->is_public) {
+            return new Collection;
+        }
+
+        return $this->bookableFor($service)->filter(fn (Professional $p) => $p->is_public)->values();
+    }
+
+    /**
      * Servicos que o profissional pode executar num agendamento NOVO.
      *
      * @return Collection<int, Service>

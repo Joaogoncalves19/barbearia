@@ -190,6 +190,9 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         // Fase 10: avaliacao e preferencias do cliente.
+        // Fase 12: exportar os proprios dados (arquivo grande, gerado na hora).
+        RateLimiter::for('data-export', fn (Request $request) => Limit::perHour(5)->by('export|'.$request->user()?->getAuthIdentifier()));
+
         RateLimiter::for('account-actions', fn (Request $request) => Limit::perMinute(10)->by(
             'acct|'.$request->user()?->getAuthIdentifier().'|'.$request->ip()
         ));

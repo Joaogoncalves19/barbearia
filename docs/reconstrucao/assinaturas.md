@@ -98,6 +98,7 @@ Stripe seguem o estado do Stripe (o benefício já acaba pela data).
 | Gerar link de assinatura | `subscriptions.create` |
 | Eventos do Stripe | `subscriptions.history` |
 | Planos | `plans.manage` (só o proprietário) |
+| Conta do cliente › Assinatura (Fase 12) | o próprio cliente: plano, situação, benefício hoje, período, próxima cobrança (só quando renova), incluídos, histórico relevante (sem eventos técnicos nem observações da equipe), pagamentos e reembolsos, cancelar renovação, manter assinatura. Nenhuma mudança direta de situação ([area-do-cliente.md](area-do-cliente.md)) |
 | Minha conta › Assinatura (situação, benefício, pagamentos, pagar link, cancelar renovação, manter assinatura) | o próprio cliente |
 
 **MRR** (receita mensal recorrente): soma do preço contratado das assinaturas ativas e em atraso. Cancelamento

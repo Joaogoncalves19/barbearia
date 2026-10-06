@@ -650,23 +650,227 @@
     }
 }
 
-/* --- Area do cliente ------------------------------------------------------------------ */
-/* Atalhos da conta no celular (no desktop o menu do cabecalho aparece). */
-.account-nav {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 100%;
+/* --- Area do cliente (Fase 12) -------------------------------------------------------- */
+/* Desktop: menu lateral + conteudo em coluna estreita. Celular: o menu vira uma faixa de
+   atalhos que rola SO dentro dela (a pagina nunca rola de lado). */
+.account-shell {
+    display: grid;
+    /* minmax(0, ...): a coluna nao cresce com a faixa de atalhos (senao ela seria
+       cortada em vez de rolar dentro dela). */
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
 }
 
-.account-nav .segmented__item {
+.account-menu {
+    min-width: 0;
+}
+
+.account-content {
+    min-width: 0;
+    width: 100%;
+    max-width: var(--container-narrow);
+}
+
+.account-menu ul {
+    position: relative; /* referencia do offsetLeft dos itens (account-menu.js) */
+    display: flex;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0 0 var(--space-2);
+    list-style: none;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+}
+
+.account-menu a {
     display: inline-flex;
     align-items: center;
+    gap: var(--space-2);
     min-height: var(--touch);
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-pill);
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
     text-decoration: none;
+    white-space: nowrap;
+}
+
+.account-menu a:hover {
+    color: var(--c-text);
+    border-color: var(--c-text-muted);
+}
+
+.account-menu a[aria-current='page'] {
+    background: var(--c-surface-raised);
+    border-color: var(--c-accent);
+    color: var(--c-text);
+}
+
+.account-menu svg {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+}
+
+.account-menu__count {
+    min-width: 1.4em;
+    padding: 0 var(--space-1);
+    border-radius: var(--radius-pill);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+    font-size: var(--fs-xs);
+    text-align: center;
 }
 
 @media (min-width: 64rem) {
-    .account-nav {
+    .account-shell {
+        grid-template-columns: 14rem minmax(0, 1fr);
+        gap: var(--space-10);
+    }
+
+    .account-shell--single {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .account-menu {
+        position: sticky;
+        top: var(--space-6);
+    }
+
+    .account-menu ul {
+        flex-direction: column;
+        gap: var(--space-1);
+        overflow: visible;
+        padding: 0;
+    }
+
+    .account-menu a {
+        display: flex;
+        border-color: transparent;
+        border-radius: var(--radius-control);
+    }
+
+    .account-menu a[aria-current='page'] {
+        border-color: transparent;
+        box-shadow: inset 3px 0 0 var(--c-accent);
+    }
+
+    .account-menu__count {
+        margin-left: auto;
+    }
+}
+
+/* No celular o "Agendar" do cabecalho some quando o espaco aperta (fica no inicio da conta). */
+@media (max-width: 23rem) {
+    .account-header__cta {
         display: none;
     }
+}
+
+/* Horario (proximos): data em destaque, o que e com quem, seta. Cartao inteiro clicavel. */
+.account-appt {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-4);
+    align-items: center;
+    padding: var(--space-4);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+    color: var(--c-text);
+    text-decoration: none;
+}
+
+.account-appt:hover {
+    border-color: var(--c-text-muted);
+}
+
+.account-appt--next {
+    border-color: var(--c-accent);
+    background: var(--c-surface-raised);
+}
+
+.account-appt__when {
+    display: grid;
+    justify-items: center;
+    min-width: 4rem;
+    padding-right: var(--space-4);
+    border-right: var(--border-width) solid var(--c-border);
+}
+
+.account-appt__day {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    line-height: var(--lh-tight);
+}
+
+.account-appt__time {
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.account-appt__what {
+    display: grid;
+    gap: var(--space-1);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Resumo da conta: blocos que levam para cada parte. */
+.account-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.account-tile {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--space-3);
+    align-items: center;
+    height: 100%;
+    padding: var(--space-4);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+    color: var(--c-text);
+    text-decoration: none;
+}
+
+.account-tile:hover {
+    border-color: var(--c-text-muted);
+}
+
+.account-tile svg {
+    grid-row: span 2;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--c-accent);
+}
+
+.account-tile__label {
+    font-weight: var(--fw-semibold);
+}
+
+.account-tile__value {
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+    overflow-wrap: anywhere;
+}
+
+/* Formulario de um botao dentro de um texto (ex.: cancelar pedido). */
+.inline-form {
+    display: inline;
+}
+
+/* Recado depois de uma acao (ex.: conta excluida). */
+.site-flash {
+    padding-block: var(--space-4);
 }

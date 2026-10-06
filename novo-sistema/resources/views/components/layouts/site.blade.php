@@ -60,6 +60,12 @@
     </header>
 
     <main id="conteudo">
+        {{-- Recado de uma acao que terminou fora da conta (ex.: conta excluida, Fase 12). --}}
+        @if (session('status'))
+            <div class="container site-flash">
+                <x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>
+            </div>
+        @endif
         {{ $slot }}
     </main>
 

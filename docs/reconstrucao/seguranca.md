@@ -271,3 +271,19 @@ Deve ser configurável (e opcional).
 10. Log de auditoria de ações administrativas (quem, o quê, antes/depois), sem segredos.
 11. Backups automáticos criptografados, com restauração testada.
 12. Dados mínimos no frontend público.
+
+## 6.5 Área do cliente (Fase 12)
+
+Revisão da conta do cliente ([area-do-cliente.md](area-do-cliente.md#7-segurança-resumo)):
+
+| Risco | Controle | Teste |
+|---|---|---|
+| IDOR (trocar o código na URL) | Policies com 404 para registro alheio; consultas a partir do cliente logado; toda rota `account.*` com parâmetro conferida | `CustomerAreaAccessTest` |
+| IDs previsíveis | Agendamento e atendimento pela URL só pelo código aleatório; id numérico = 404 | `test_urls_usam_codigo_e_nao_o_id_sequencial` |
+| Sessão esquecida em aparelho emprestado | Exportar, excluir conta e trocar e-mail pedem a senha de novo (15 min) | `AccountErasureTest`, `EmailChangeAndExportTest` |
+| Tomada de conta pela troca de e-mail | Link só no endereço novo, hash do token, 60 min, uso único, mesma conta conectada, POST; aviso ao endereço antigo; links antigos invalidados | `EmailChangeAndExportTest` |
+| Enumeração de e-mail | Troca para endereço de outro cadastro tem a mesma resposta e não envia nada | idem |
+| Valores do navegador | Preço, desconto, pontos e elegibilidade recalculados no servidor | `test_beneficio_nao_vem_do_navegador` |
+| Exposição de dados | CPF sempre mascarado (telas e exportação); exportação sem dados de outras pessoas nem internos | `test_cpf_nunca_aparece_inteiro_em_tela_da_conta`, `test_exportacao_traz_so_os_dados_do_proprio_cliente` |
+| Ação por GET | Excluir conta e confirmar troca de e-mail só por POST/DELETE com CSRF | `RouteAuthorizationTest::test_nenhuma_rota_altera_dados_por_get` |
+| Abuso | Limites em exportar (5/h), troca de e-mail, link, senha, ações da conta | — |

@@ -116,6 +116,36 @@ final class PromotionEngine
     }
 
     /**
+     * Fase 12: o que ESTE cliente tem direito de usar num atendimento na data
+     * (tela "Benefícios" da conta). As mesmas regras do orcamento, sem itens:
+     * so diz se o beneficio vale, nao quanto (o valor depende dos servicos e
+     * e calculado na confirmacao, que continua escolhendo UM desconto, o maior).
+     * Cupom nao entra: e um codigo divulgado, conferido quando informado.
+     *
+     * @return list<array{kind: AdjustmentKind, label: string}>
+     */
+    public function entitlements(Customer $customer, string $localDate): array
+    {
+        $politica = PromotionPolicy::current();
+        $direitos = [];
+
+        if (($s = $this->benefits->rightOn($customer->id, $localDate)) !== null) {
+            $direitos[] = ['kind' => AdjustmentKind::Subscription, 'label' => 'Assinatura '.$s->planName().': os serviços incluídos no plano saem de graça.'];
+        }
+        if ($this->birthdayCandidate($customer, [], $localDate, null, $politica) !== null) {
+            $direitos[] = ['kind' => AdjustmentKind::Birthday, 'label' => 'Mês do seu aniversário: '.Discount::percent($politica->int('birthday_percent_bp'))->label().' de desconto em um atendimento este mês.'];
+        }
+        if ($this->referralCandidate($customer, [], null, $politica) !== null) {
+            $direitos[] = ['kind' => AdjustmentKind::Referral, 'label' => 'Você veio por indicação: '.Discount::percent($politica->int('referral_percent_bp'))->label().' de desconto no primeiro atendimento.'];
+        }
+        if ($politica->bool('loyalty_enabled') && $this->ledger->available($customer) >= $politica->int('loyalty_points_required')) {
+            $direitos[] = ['kind' => AdjustmentKind::Loyalty, 'label' => 'Você já tem '.$politica->int('loyalty_points_required').' pontos para trocar por um desconto.'];
+        }
+
+        return $direitos;
+    }
+
+    /**
      * Linhas para o motor a partir dos itens (agendamento ou atendimento).
      *
      * @param  iterable<object>  $items  com item_type, total_cents, unit_price_cents, service_id

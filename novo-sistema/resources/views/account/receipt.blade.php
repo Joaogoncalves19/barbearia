@@ -7,7 +7,7 @@
 @endphp
 <x-layouts.account title="Comprovante {{ $a->code }}">
     <header class="stack stack-sm">
-        <a class="link-arrow text-sm" href="{{ route('account.home') }}">Voltar para minha conta</a>
+        <a class="link-arrow text-sm" href="{{ route('account.receipts.index') }}">Voltar para comprovantes</a>
         <h1 class="h2">Comprovante {{ $a->code }}</h1>
         <p class="text-muted">Atendimento concluído em {{ $a->completed_at ? BusinessTime::formatLocal($a->completed_at, 'd/m/Y \à\s H:i') : '—' }} com {{ $a->professional_name ?? '—' }}.</p>
     </header>

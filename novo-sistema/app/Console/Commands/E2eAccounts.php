@@ -146,6 +146,50 @@ class E2eAccounts extends Command
         $avaliador->forceFill(['marketing_email_consent' => MarketingConsent::Unknown, 'email_reminders_enabled' => true])->save();
         EmailSuppression::query()->where('email', $avaliador->email)->where('reason', 'marketing_opt_out')->delete();
         $this->atendimentoConcluidoOntem($s, $avaliador, $s === 'celular' ? $a : $b, $corte);
+
+        // Area do cliente (Fase 12): cliente com horario daqui a 3 dias (com o
+        // servico, para remarcar e cancelar) e um atendimento concluido ontem
+        // (comprovante); outra cliente para tentar abrir o horario alheio; e uma
+        // conta para exportar e excluir (a da execucao anterior foi anonimizada,
+        // sem e-mail: o mesmo endereco vira uma conta nova).
+        $area = $this->cliente("e2e-area-{$s}@exemplo.test", 'Cliente Área E2E', $senha);
+        $this->cliente("e2e-area-outra-{$s}@exemplo.test", 'Outra Área E2E', $senha);
+        // Profissional proprio: remarcar e cancelar aqui nao mexe na agenda dos testes da Fase 5.
+        $proArea = $this->barbeiro("e2e-area-pro-{$s}", "Área E2E {$s}", $senha);
+        $proArea->services()->syncWithoutDetaching([$corte->id]);
+        $this->horarioFuturo($s, $area, $proArea, $corte);
+        $this->atendimentoConcluidoOntem($s, $area, $proArea, $corte);
+        $this->cliente("e2e-excluir-{$s}@exemplo.test", 'Cliente Exclusão E2E', $senha);
+    }
+
+    /**
+     * Horario confirmado daqui a 3 dias as 16:00 (fuso da barbearia), com o
+     * servico de teste. O da execucao anterior (remarcado ou nao) e cancelado
+     * antes, pela transicao permitida.
+     */
+    private function horarioFuturo(string $s, Customer $cliente, Professional $pro, Service $servico): void
+    {
+        Appointment::query()->where('customer_id', $cliente->id)
+            ->whereIn('status', [AppointmentStatus::Confirmed->value, AppointmentStatus::Pending->value])->get()
+            ->each(fn (Appointment $velho) => $velho->forceFill(['status' => AppointmentStatus::Cancelled, 'cancelled_at' => now(), 'cancellation_reason' => 'Sobra de teste E2E'])->save());
+
+        $inicio = BusinessTime::at(CarbonImmutable::parse(BusinessTime::today())->addDays(3)->toDateString(), '16:00');
+        $ag = Appointment::query()->create([
+            'code' => 'AG-E2E-AR-'.mb_substr($s, 0, 3).'-'.now()->format('ymdHis'),
+            'customer_id' => $cliente->id,
+            'customer_name' => $cliente->name,
+            'professional_id' => $pro->id,
+            'professional_name' => $pro->display_name,
+            'starts_at' => $inicio,
+            'ends_at' => $inicio->addMinutes(30),
+            'status' => AppointmentStatus::Confirmed,
+            'source' => AppointmentSource::Staff,
+        ]);
+        $ag->items()->create([
+            'item_type' => ItemType::Service, 'service_id' => $servico->id, 'name' => $servico->name, 'quantity' => 1,
+            'unit_price_cents' => $servico->price_cents, 'duration_minutes' => $servico->duration_minutes, 'price_source' => PriceSource::CatalogAtBooking,
+        ]);
+        app(AppointmentPricing::class)->refresh($ag);
     }
 
     /**

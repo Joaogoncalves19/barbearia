@@ -5,9 +5,12 @@ use App\Http\Controllers\Account\AccountPasswordController;
 use App\Http\Controllers\Account\AppointmentController as AccountAppointmentController;
 use App\Http\Controllers\Account\BookingController as AccountBookingController;
 use App\Http\Controllers\Account\CompleteProfileController;
+use App\Http\Controllers\Account\ConfirmPasswordController as AccountConfirmPasswordController;
+use App\Http\Controllers\Account\EmailController as AccountEmailController;
 use App\Http\Controllers\Account\LoyaltyController as AccountLoyaltyController;
 use App\Http\Controllers\Account\NotificationController as AccountNotificationController;
 use App\Http\Controllers\Account\PreferencesController as AccountPreferencesController;
+use App\Http\Controllers\Account\PrivacyController as AccountPrivacyController;
 use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Account\ReceiptController as AccountReceiptController;
 use App\Http\Controllers\Account\ReviewController as AccountReviewController;
@@ -172,6 +175,9 @@ Route::prefix('minha-conta')
             Route::post('/agendamentos', [AccountBookingController::class, 'store'])
                 ->middleware('throttle:booking')->name('booking.store');
 
+            // Fase 12: lista de agendamentos (proximos e historico) e de comprovantes.
+            Route::get('/agendamentos', [AccountAppointmentController::class, 'index'])->name('appointments.index');
+            Route::get('/comprovantes', [AccountReceiptController::class, 'index'])->name('receipts.index');
             Route::get('/agendamentos/{appointment:code}', [AccountAppointmentController::class, 'show'])
                 ->middleware('can:view,appointment')->name('appointments.show');
             Route::post('/agendamentos/{appointment:code}/cancelar', [AccountAppointmentController::class, 'cancel'])
@@ -204,6 +210,21 @@ Route::prefix('minha-conta')
             Route::get('/avaliacoes', [AccountReviewController::class, 'index'])->name('reviews.index');
             Route::get('/avaliacoes/{attendance}', [AccountReviewController::class, 'create'])->middleware('can:view,attendance')->name('reviews.create');
             Route::post('/avaliacoes/{attendance}', [AccountReviewController::class, 'store'])->middleware(['can:view,attendance', 'throttle:account-actions'])->name('reviews.store');
+
+            // Fase 12: acoes sensiveis pedem a senha de novo (customer.reauth).
+            Route::get('/confirmar-senha', [AccountConfirmPasswordController::class, 'show'])->name('confirm.show');
+            Route::post('/confirmar-senha', [AccountConfirmPasswordController::class, 'store'])->middleware('throttle:password-check')->name('confirm.store');
+            // Privacidade (LGPD): consentimentos, exportar os dados, excluir a conta.
+            Route::get('/privacidade', [AccountPrivacyController::class, 'show'])->name('privacy');
+            Route::post('/privacidade/exportar', [AccountPrivacyController::class, 'export'])->middleware(['customer.reauth', 'throttle:data-export'])->name('privacy.export');
+            Route::get('/encerrar-conta', [AccountPrivacyController::class, 'confirmClose'])->middleware('customer.reauth')->name('close');
+            Route::delete('/encerrar-conta', [AccountPrivacyController::class, 'destroy'])->middleware(['customer.reauth', 'throttle:account-actions'])->name('close.destroy');
+            // Troca de e-mail: so vale depois de confirmada pelo link enviado ao endereco novo.
+            Route::get('/email', [AccountEmailController::class, 'edit'])->middleware('customer.reauth')->name('email.edit');
+            Route::put('/email', [AccountEmailController::class, 'update'])->middleware(['customer.reauth', 'throttle:email-requests'])->name('email.update');
+            Route::delete('/email/pedido', [AccountEmailController::class, 'cancel'])->middleware('throttle:account-actions')->name('email.cancel');
+            Route::get('/email/confirmar/{token}', [AccountEmailController::class, 'show'])->middleware('throttle:token-use')->where('token', '[A-Za-z0-9]{64}')->name('email.confirm.show');
+            Route::post('/email/confirmar/{token}', [AccountEmailController::class, 'confirm'])->middleware('throttle:token-use')->where('token', '[A-Za-z0-9]{64}')->name('email.confirm');
         });
     });
 

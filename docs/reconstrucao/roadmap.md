@@ -341,9 +341,11 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
-## Fase 11 — Site público
+## Fase 11 — Site público ✅
 
-> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-11.md](relatorio-fase-11.md)). Início,
+> **Status: concluída e aprovada (2026-10-06)**; decisões P11-01 a P11-05 em
+> [decisoes-pendentes.md](decisoes-pendentes.md). Situação original
+> ([relatorio-fase-11.md](relatorio-fase-11.md)): início,
 > serviços, equipe, página do profissional, assinatura e páginas legais com conteúdo real (nada inventado),
 > direção A com elementos gráficos próprios e versão tipográfica sem foto; conteúdo e imagens no painel
 > (`site.manage`); imagens reprocessadas (WebP, tamanhos, sem metadados, tipo pelo conteúdo); SEO básico
@@ -367,6 +369,14 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 ---
 
 ## Fase 12 — Área do cliente
+
+> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-12.md](relatorio-fase-12.md)). Conta
+> do cliente sobre o mesmo domínio: início com próximos horários e resumo; agendamentos (próximos e histórico,
+> remarcar/cancelar pela política de sempre; P11-03 na remarcação); comprovantes; benefícios calculados pelo
+> motor único; assinatura (período, próxima cobrança, histórico); avaliações; avisos (só transacionais); dados
+> pessoais e troca de e-mail confirmada; privacidade: histórico de consentimentos, **exportar meus dados** e
+> **excluir a conta** (anonimização). Ações sensíveis pedem a senha de novo. IDOR testado em toda rota com
+> registro. Docs: [area-do-cliente.md](area-do-cliente.md), [retencao-lgpd.md](retencao-lgpd.md).
 
 - **Escopo:** meus agendamentos (remarcar/cancelar conforme política), histórico e
   comprovantes, fidelidade, indicação, assinatura, avaliações, perfil, preferências de
@@ -397,6 +407,11 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 Itens candidatos, cada um com problema, dono e critério de aceite antes de entrar:
 assistente/chatbot (usando os serviços do sistema), IA no painel, lista de espera, CRM,
 WhatsApp oficial, pagamento avulso online (Pix), várias unidades.
+
+**Item futuro registrado (P11-05, aprovação da Fase 11): "barbeiro em destaque".** Não implementado; nenhuma
+regra provisória pela maior nota. Se for retomado, a escolha precisa considerar ao menos: quantidade mínima de
+avaliações, nota, período das avaliações, empates, profissionais ativos, profissionais exibidos no site e
+auditoria da escolha.
 
 ---
 

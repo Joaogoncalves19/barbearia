@@ -11,7 +11,6 @@
         <h1 class="h2">Assinatura</h1>
     </header>
 
-    @if (session('status'))<x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>@endif
     @error('subscription')<x-ui.alert variant="danger">{{ $message }}</x-ui.alert>@enderror
     @if ($paymentReturn === 'ok' && $st === SubscriptionStatus::Pending)
         <x-ui.alert>Recebemos o seu retorno do Stripe. A assinatura ativa assim que o Stripe confirmar o pagamento (normalmente em instantes): atualize esta página.</x-ui.alert>
@@ -29,8 +28,15 @@
             <dl class="summary-list">
                 <div><dt>Situação</dt><dd>{{ $st?->label() }}</dd></div>
                 <div><dt>Benefício hoje</dt><dd>{{ $benefitToday ? 'Sim' : 'Não' }}</dd></div>
+                @if ($s->starts_on && $s->ends_on)
+                    <div><dt>Período atual</dt><dd>{{ $s->starts_on->format('d/m/Y') }} a {{ $s->ends_on->format('d/m/Y') }}</dd></div>
+                @endif
                 @if ($s->ends_on)
                     <div><dt>Benefício até</dt><dd>{{ $s->ends_on->format('d/m/Y') }}</dd></div>
+                @endif
+                {{-- Proxima cobranca: so quando renova (ativa ou em atraso, sem cancelamento agendado). Data do Stripe quando houver. --}}
+                @if (in_array($st, [SubscriptionStatus::Active, SubscriptionStatus::PastDue], true) && ! $s->cancel_at_period_end && ($s->gateway_period_end_at || $s->ends_on))
+                    <div data-next-charge><dt>Próxima cobrança</dt><dd>{{ $s->gateway_period_end_at ? BusinessTime::formatLocal($s->gateway_period_end_at, 'd/m/Y') : $s->ends_on->format('d/m/Y') }}@if ($s->planVersion) · <span class="numeric">{{ $s->planVersion->priceLabel() }}</span>@endif</dd></div>
                 @endif
                 @if ($s->planVersion)
                     <div><dt>Valor</dt><dd class="numeric">{{ $s->planVersion->priceLabel() }}</dd></div>
@@ -65,6 +71,16 @@
                 <p>Não haverá nova cobrança. Seus benefícios continuam até {{ $s->ends_on?->format('d/m/Y') ?? 'o fim do período pago' }}. Você pode desfazer até lá.</p>
             </x-ui.confirm>
         @endif
+    @endif
+
+    @if ($events->isNotEmpty())
+        <x-ui.card title="Histórico da assinatura">
+            <ul class="stack stack-sm" role="list" data-subscription-history>
+                @foreach ($events as $ev)
+                    <li class="cluster"><span class="text-sm text-muted numeric">{{ $ev->effective_at ? BusinessTime::formatLocal($ev->effective_at, 'd/m/Y') : '' }}</span> <span>{{ $ev->kind->label() }}</span></li>
+                @endforeach
+            </ul>
+        </x-ui.card>
     @endif
 
     <x-ui.card title="Pagamentos">

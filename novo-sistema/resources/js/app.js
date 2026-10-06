@@ -12,6 +12,7 @@ import booking from './components/booking';
 import { dropdown, disclosure, tabs } from './components/ui';
 import { initDialogs } from './components/dialog';
 import { initPrint } from './components/print';
+import { initAccountMenu } from './components/account-menu';
 
 Alpine.data('dropdown', dropdown);
 Alpine.data('disclosure', disclosure);
@@ -23,3 +24,4 @@ Alpine.start();
 
 initDialogs();
 initPrint();
+initAccountMenu();

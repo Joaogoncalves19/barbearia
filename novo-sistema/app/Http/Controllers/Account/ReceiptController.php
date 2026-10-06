@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Receipts\Enums\ReceiptType;
@@ -20,6 +21,16 @@ use InvalidArgumentException;
 class ReceiptController extends Controller
 {
     public function __construct(private readonly Receipts $receipts) {}
+
+    /** Fase 12: comprovantes = atendimentos concluidos do proprio cliente (com ou sem agendamento). */
+    public function index(Request $request): View
+    {
+        return view('account.receipts', [
+            'attendances' => Attendance::query()->where('customer_id', $this->customer($request)->id)
+                ->where('status', AttendanceStatus::Completed->value)
+                ->orderByDesc('completed_at')->orderByDesc('id')->paginate(15),
+        ]);
+    }
 
     public function show(Request $request, Attendance $attendance): View
     {

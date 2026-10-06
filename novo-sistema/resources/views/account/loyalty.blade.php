@@ -13,13 +13,25 @@
             'total' => 'no total dos serviços', 'most_expensive' => 'no serviço mais caro', default => 'no serviço mais barato' },
     };
 @endphp
-<x-layouts.account title="Fidelidade">
+<x-layouts.account title="Benefícios">
     <header class="stack stack-sm">
         <p class="eyebrow">Minha conta</p>
-        <h1 class="h2">Fidelidade</h1>
+        <h1 class="h2">Benefícios e fidelidade</h1>
     </header>
 
-    @if (session('status'))<x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>@endif
+    {{-- Fase 12: so o que o cliente tem direito hoje, calculado no servidor (PromotionEngine). --}}
+    <x-ui.card title="Vale para você hoje">
+        @if ($entitlements === [])
+            <p class="text-sm text-muted" data-entitlements-empty>Nenhum benefício disponível hoje.</p>
+        @else
+            <ul class="stack stack-sm" data-entitlements>
+                @foreach ($entitlements as $e)
+                    <li>{{ $e['label'] }}</li>
+                @endforeach
+            </ul>
+            <p class="text-sm text-muted">Vale um desconto por atendimento: ao agendar, o sistema aplica o maior. Cupons divulgados pela barbearia são informados na confirmação.</p>
+        @endif
+    </x-ui.card>
 
     <x-ui.card title="Seus pontos">
         @if ($p->bool('loyalty_enabled'))

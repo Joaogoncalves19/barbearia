@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureCustomerRecentlyConfirmed;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Identity\Services\PasswordManager;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,8 @@ class AccountPasswordController extends Controller
 
         $passwords->change($customer, $request->string('password')->value());
         $request->session()->regenerate();
+        // Acabou de provar a senha (ou de criar uma): vale como confirmacao recente.
+        EnsureCustomerRecentlyConfirmed::markConfirmed($request);
 
         return redirect()->route('account.password.edit')->with('status', 'Senha alterada. Os outros aparelhos conectados foram desconectados.');
     }

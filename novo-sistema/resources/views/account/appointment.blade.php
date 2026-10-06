@@ -5,7 +5,7 @@
 @endphp
 <x-layouts.account title="Horário {{ $appointment->code }}">
     <header class="stack stack-sm">
-        <a class="link-arrow text-sm" href="{{ route('account.home') }}">Voltar para minha conta</a>
+        <a class="link-arrow text-sm" href="{{ route('account.appointments.index') }}">Voltar para agendamentos</a>
         <h1 class="h2">Horário {{ $appointment->code }}</h1>
     </header>
 
@@ -45,8 +45,12 @@
                 </x-ui.confirm>
             @endif
         </div>
-        <p class="text-sm text-muted">
-            Pela conta, você cancela ou remarca até {{ intdiv($policy->int('customer_cancel_notice_minutes'), 60) > 0 ? intdiv($policy->int('customer_cancel_notice_minutes'), 60).' h' : $policy->int('customer_cancel_notice_minutes').' min' }} antes.
+        @php
+            $prazo = fn (int $min) => intdiv($min, 60) > 0 && $min % 60 === 0 ? intdiv($min, 60).' h' : $min.' min';
+        @endphp
+        <p class="text-sm text-muted" data-change-rules>
+            Pela conta, você cancela até {{ $prazo($policy->int('customer_cancel_notice_minutes')) }} antes e remarca até {{ $prazo($policy->int('customer_reschedule_notice_minutes')) }} antes,
+            no máximo {{ $policy->int('customer_max_reschedules') }} {{ $policy->int('customer_max_reschedules') === 1 ? 'vez' : 'vezes' }} por horário (usadas: {{ (int) $appointment->customer_reschedules }}).
             Depois disso, fale com a barbearia.
         </p>
     @endif

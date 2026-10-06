@@ -12,6 +12,7 @@ use App\Modules\Reviews\Models\Review;
 use App\Modules\Reviews\Models\ReviewReply;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\System\Services\AuditTrail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -33,6 +34,21 @@ final class Reviews
     public const MAX_COMMENT = 1000;
 
     /** Motivo pelo qual o atendimento nao pode ser avaliado agora, ou nulo. */
+    /**
+     * Atendimentos do cliente que ainda podem ser avaliados (concluidos, com
+     * profissional, dentro do prazo, sem avaliacao). Lista da conta e o
+     * resumo do inicio usam esta mesma consulta.
+     *
+     * @return Builder<Attendance>
+     */
+    public function pendingFor(Customer $customer): Builder
+    {
+        return Attendance::query()->where('customer_id', $customer->id)->where('status', AttendanceStatus::Completed->value)
+            ->whereNotNull('professional_id')
+            ->where('completed_at', '>=', BusinessTime::now()->subDays(self::WINDOW_DAYS))
+            ->whereNotIn('id', Review::query()->where('customer_id', $customer->id)->whereNotNull('attendance_id')->select('attendance_id'));
+    }
+
     public function ineligibilityReason(Attendance $at): ?string
     {
         if ($at->status !== AttendanceStatus::Completed || $at->completed_at === null) {

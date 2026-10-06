@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Account;
 use App\Http\Controllers\Controller;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Scheduling\Support\BusinessTime;
+use App\Modules\Subscriptions\Enums\SubscriptionEventKind;
 use App\Modules\Subscriptions\Enums\SubscriptionStatus;
 use App\Modules\Subscriptions\Exceptions\SubscriptionRuleViolation;
 use App\Modules\Subscriptions\Models\Subscription;
+use App\Modules\Subscriptions\Models\SubscriptionEvent;
 use App\Modules\Subscriptions\Models\SubscriptionPayment;
 use App\Modules\Subscriptions\Services\SubscriptionBenefits;
 use App\Modules\Subscriptions\Services\SubscriptionManager;
@@ -36,6 +38,10 @@ class SubscriptionController extends Controller
             'subscription' => $atual?->load(['plan', 'planVersion.services']),
             'benefitToday' => $atual !== null && $this->benefits->validOn($atual, BusinessTime::today()),
             'payments' => SubscriptionPayment::query()->where('customer_id', $cliente->id)->with('refunds')->latest('paid_at')->limit(24)->get(),
+            // Fase 12: historico relevante para o cliente (sem sincronizacoes tecnicas nem observacoes da equipe).
+            'events' => $atual === null ? collect() : SubscriptionEvent::query()->where('subscription_id', $atual->id)
+                ->whereNotIn('kind', [SubscriptionEventKind::StatusSynced->value, SubscriptionEventKind::CheckoutStarted->value, SubscriptionEventKind::PaymentPending->value])
+                ->orderByDesc('effective_at')->orderByDesc('id')->limit(30)->get(),
             'paymentReturn' => (string) $request->query('pagamento', ''),
         ]);
     }

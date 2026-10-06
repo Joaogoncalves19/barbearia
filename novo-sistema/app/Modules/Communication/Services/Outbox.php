@@ -208,6 +208,11 @@ final class Outbox
      */
     private function blockReason(EmailMessage $m): ?string
     {
+        // Fase 12: conta excluida (anonimizada) ou registro ja anonimizado nao recebe nada.
+        if ($m->to_email === CommunicationRetention::REDACTED
+            || ($m->customer_id !== null && Customer::query()->whereKey($m->customer_id)->whereNotNull('anonymized_at')->exists())) {
+            return 'Conta do cliente excluída (dados anonimizados).';
+        }
         $supressao = EmailSuppression::query()->where('email', $m->to_email)->value('reason');
         if ($m->category === MessageCategory::Marketing) {
             $cliente = $m->customer_id !== null ? Customer::query()->find($m->customer_id) : null;

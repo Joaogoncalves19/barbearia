@@ -168,7 +168,6 @@ test('cliente: entra, vê só o próprio horário e não abre o de outra pessoa 
     // A lista traz o link do proprio horario e nenhum da outra cliente.
     await expect(page.locator(`a[href$="/minha-conta/agendamentos/AG-E2E-A-${s}"]`)).toBeVisible();
     await expect(page.locator(`a[href*="AG-E2E-B-${s}"]`)).toHaveCount(0);
-    await expect(page.getByText(/\d{3}\.\*\*\*\.\*\*\*-\d{2}/)).toBeVisible();
     await verificarTela(page, info, 'Minha conta (cliente)');
 
     let r = await page.goto(`/minha-conta/agendamentos/AG-E2E-A-${s}`);
@@ -181,6 +180,8 @@ test('cliente: entra, vê só o próprio horário e não abre o de outra pessoa 
     erros.length = 0; // o 404 acima e esperado (o navegador o registra no console)
 
     await page.goto('/minha-conta/dados');
+    // CPF sempre mascarado (desde a Fase 12 ele fica em "Meus dados", nao no inicio).
+    await expect(page.getByText(/\d{3}\.\*\*\*\.\*\*\*-\d{2}/)).toBeVisible();
     await verificarTela(page, info, 'Meus dados');
 
     // Sessão de cliente não abre o painel da equipe.

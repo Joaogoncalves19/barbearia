@@ -30,5 +30,9 @@ os publicados.
 ## 3. Remarcação pelo cliente
 
 A remarcação pela conta passa pela mesma regra: se o profissional ou o serviço saiu do site depois do
-agendamento, o cliente não remarca pelo site com ele (fala com a barbearia; a equipe remarca). Registrado
-como ponto de atenção em [relatorio-fase-11.md](relatorio-fase-11.md#3-decisões).
+agendamento, o cliente não remarca pelo site com ele (fala com a barbearia; a equipe remarca).
+**P11-03 (confirmado pelo dono na aprovação da Fase 11):** profissional fora do site não aparece no site, não
+é selecionável no agendamento público nem na remarcação pela conta; a equipe opera normalmente; o histórico
+fica intacto. Desde a Fase 12 a lista da remarcação vem de `ProfessionalDirectory::customerBookableFor` (a
+mesma do site) e a tela avisa quando o profissional do horário não está disponível
+([area-do-cliente.md](area-do-cliente.md#3-agendamentos-cancelamento-e-remarcação)).

@@ -1,19 +1,24 @@
 {{--
-    Area do CLIENTE (fundacao da Fase 3; a area completa e da Fase 12).
-    Mesma marca do site (superficie escura), conteudo em coluna estreita.
+    Area do CLIENTE (Fase 12). Mesma marca do site (superficie escura).
+    Desktop: menu lateral + conteudo em coluna estreita. Celular: o menu vira
+    uma faixa de atalhos que rola SO dentro dela (a pagina nunca rola de lado).
 --}}
 @props(['title' => null])
 @php
+    $cliente = auth('customer')->user();
+    $naoLidos = $cliente ? \App\Modules\Customers\Models\CustomerNotification::query()->where('customer_id', $cliente->id)->whereNull('read_at')->count() : 0;
     $nav = [
-        ['label' => 'Minha conta', 'route' => 'account.home', 'pattern' => 'account.home'],
-        ['label' => 'Meus dados', 'route' => 'account.profile.edit', 'pattern' => 'account.profile.*'],
-        ['label' => 'Fidelidade', 'route' => 'account.loyalty', 'pattern' => 'account.loyalty*'],
-        ['label' => 'Assinatura', 'route' => 'account.subscription', 'pattern' => 'account.subscription*'],
-        ['label' => 'Avaliações', 'route' => 'account.reviews.index', 'pattern' => 'account.reviews.*'],
-        ['label' => 'Avisos'.(($naoLidos = \App\Modules\Customers\Models\CustomerNotification::query()->where('customer_id', auth('customer')->id())->whereNull('read_at')->count()) > 0 ? ' ('.$naoLidos.')' : ''), 'route' => 'account.notifications', 'pattern' => 'account.notifications*'],
-        ['label' => 'Senha', 'route' => 'account.password.edit', 'pattern' => 'account.password.*'],
+        ['label' => 'Início', 'icon' => 'house', 'route' => 'account.home', 'pattern' => 'account.home'],
+        ['label' => 'Agendamentos', 'icon' => 'calendar', 'route' => 'account.appointments.index', 'pattern' => ['account.appointments.*', 'account.booking.*']],
+        ['label' => 'Comprovantes', 'icon' => 'receipt', 'route' => 'account.receipts.index', 'pattern' => ['account.receipts.*', 'account.attendances.*']],
+        ['label' => 'Benefícios', 'icon' => 'sparkles', 'route' => 'account.loyalty', 'pattern' => 'account.loyalty*'],
+        ['label' => 'Assinatura', 'icon' => 'badge-check', 'route' => 'account.subscription', 'pattern' => 'account.subscription*'],
+        ['label' => 'Avaliações', 'icon' => 'star', 'route' => 'account.reviews.index', 'pattern' => 'account.reviews.*'],
+        ['label' => 'Avisos', 'icon' => 'bell', 'route' => 'account.notifications', 'pattern' => 'account.notifications*', 'count' => $naoLidos],
+        ['label' => 'Meus dados', 'icon' => 'user', 'route' => 'account.profile.edit', 'pattern' => ['account.profile.*', 'account.password.*', 'account.email.*']],
+        ['label' => 'Privacidade', 'icon' => 'shield-check', 'route' => 'account.privacy', 'pattern' => ['account.privacy*', 'account.close*', 'account.confirm.*']],
     ];
-    $completo = ! auth('customer')->user()?->needsProfileCompletion();
+    $completo = $cliente !== null && ! $cliente->needsProfileCompletion();
 @endphp
 <x-layouts.document :title="$title" surface="escura" area="site" :noindex="true">
     <header class="site-header">
@@ -23,37 +28,46 @@
                 <span class="brand__name">{{ config('app.name') }}</span>
             </a>
 
-            @if ($completo)
-                <nav class="site-nav" aria-label="Minha conta">
-                    @foreach ($nav as $item)
-                        <a href="{{ route($item['route']) }}" @if (request()->routeIs($item['pattern'])) aria-current="page" @endif>{{ $item['label'] }}</a>
-                    @endforeach
-                </nav>
-            @endif
-
-            <form method="POST" action="{{ route('account.logout') }}">
-                @csrf
-                <x-ui.button type="submit" variant="ghost" size="sm" icon="log-out">Sair</x-ui.button>
-            </form>
+            <div class="cluster">
+                @if ($completo)
+                    <x-ui.button :href="route('booking.services')" variant="accent" size="sm" icon="calendar-plus" class="account-header__cta">Agendar</x-ui.button>
+                @endif
+                <form method="POST" action="{{ route('account.logout') }}">
+                    @csrf
+                    <x-ui.button type="submit" variant="ghost" size="sm" icon="log-out">Sair</x-ui.button>
+                </form>
+            </div>
         </div>
     </header>
 
     <main id="conteudo" class="section section--tight">
-        <div class="container-narrow stack stack-lg">
+        <div class="container account-shell @if (! $completo) account-shell--single @endif">
             @if ($completo)
-                {{-- No celular o menu do cabecalho some: os mesmos links ficam aqui. --}}
-                <nav class="segmented account-nav" aria-label="Minha conta (atalhos)">
-                    @foreach ($nav as $item)
-                        <a class="segmented__item" href="{{ route($item['route']) }}" @if (request()->routeIs($item['pattern'])) aria-current="page" @endif>{{ $item['label'] }}</a>
-                    @endforeach
+                <nav class="account-menu" aria-label="Minha conta">
+                    <ul role="list">
+                        @foreach ($nav as $item)
+                            @php $atual = request()->routeIs(...(array) $item['pattern']); @endphp
+                            <li>
+                                <a href="{{ route($item['route']) }}" @if ($atual) aria-current="page" @endif>
+                                    <x-icon :name="$item['icon']" />
+                                    <span>{{ $item['label'] }}</span>
+                                    @if (($item['count'] ?? 0) > 0)
+                                        <span class="account-menu__count">{{ $item['count'] }}<span class="visually-hidden"> não lidos</span></span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
                 </nav>
             @endif
 
-            @if (session('status'))
-                <x-ui.alert variant="success">{{ session('status') }}</x-ui.alert>
-            @endif
+            <div class="account-content stack stack-lg">
+                @if (session('status'))
+                    <x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>
+                @endif
 
-            {{ $slot }}
+                {{ $slot }}
+            </div>
         </div>
     </main>
 </x-layouts.document>

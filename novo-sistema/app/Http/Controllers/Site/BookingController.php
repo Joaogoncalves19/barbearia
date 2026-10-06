@@ -34,7 +34,7 @@ class BookingController extends Controller
 
         return view('site.booking.professional', [
             'service' => $service,
-            'professionals' => $directory->bookableFor($service)->filter(fn (Professional $p) => $p->is_public)->values(),
+            'professionals' => $directory->customerBookableFor($service),
         ]);
     }
 
@@ -66,7 +66,7 @@ class BookingController extends Controller
             return null;
         }
 
-        $pro = $directory->bookableFor($service)->first(fn (Professional $p) => $p->slug === $slug && $p->is_public);
+        $pro = $directory->customerBookableFor($service)->first(fn (Professional $p) => $p->slug === $slug);
         abort_if($pro === null, 404);
 
         return $pro;

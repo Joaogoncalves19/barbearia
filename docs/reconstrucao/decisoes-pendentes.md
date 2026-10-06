@@ -99,6 +99,19 @@
 > **Fase 11 (site público):** direção oficial A ("Ofício contemporâneo"), nada inventado (números,
 > depoimentos, endereço, horários, preços). Pontos marcados **PRECISA DE DECISÃO**: ver
 > [relatorio-fase-11.md](relatorio-fase-11.md#3-decisões).
+>
+> **Aprovação da Fase 11 (2026-10-06):** **P11-01** páginas de privacidade e termos só com texto preenchido
+> no painel; antes da publicação definitiva os textos precisam estar preenchidos e revisados; nada de texto
+> jurídico inventado. **P11-02** fotos e logo **reais** são a direção definitiva (D-07/D-08), cadastrados pelo
+> painel quando fornecidos; até lá, os estados sem imagem. **P11-03** profissional fora do site não aparece,
+> não é selecionável no agendamento público nem na remarcação pela conta; a equipe opera normalmente; histórico
+> intacto (testado na Fase 12). **P11-04** mínimos mantidos (nota média com 3 avaliações publicadas; galeria
+> com 3 fotos), sem seção vazia nem conteúdo fictício. **P11-05 / D-09** "barbeiro em destaque" **não**
+> implementado; item futuro no roadmap. Pendências de homologação: entrega real pelo Resend, aprovação visual
+> dos e-mails, ciclo do Stripe em modo teste, webhook real do Stripe, teste com usuários reais, Lighthouse.
+>
+> **Fase 12 (área do cliente):** pontos marcados **PRECISA DE DECISÃO**: ver
+> [relatorio-fase-12.md](relatorio-fase-12.md#decisões-necessárias).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
@@ -113,7 +126,7 @@ que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.
 | D-05 | **Provedor de e-mail** | Gmail SMTP (atual), provedor transacional (ex.: Amazon SES, Brevo, Postmark) | Provedor transacional com domínio próprio (SPF/DKIM/DMARC): melhor entrega e campanhas sem limite do Gmail | **Decidida (aprovação da Fase 10): Resend, atrás de uma abstração.** Pendente só a entrega real na homologação |
 | D-06 | **Aprovação de agendamento** | Automática (atual) ou manual pela recepção | Manter automática; aprovação manual vira opção por serviço/profissional, se necessário | Fase 5 |
 | D-08 | **Fotografia** | Sessão profissional, fotos próprias da equipe, sem fotos (versão tipográfica) | Sessão profissional curta (ambiente, equipe, trabalhos). É o maior ganho visual possível | Fase 11 |
-| D-09 | **"Barbeiro em destaque"** por nota no site | Manter, remover, destaque editorial escolhido pelo dono | Remover a comparação por nota; se desejar, destaque editorial | Fase 11 |
+| ~~D-09~~ | **"Barbeiro em destaque"** por nota no site — **decidida (P11-05): não implementar agora**; item futuro no roadmap (Fase 14) | Manter, remover, destaque editorial escolhido pelo dono | Remover a comparação por nota; se desejar, destaque editorial | — |
 | D-10 | **Login da equipe** | Por e-mail (padrão) ou por usuário | E-mail (permite redefinir senha sozinho). Requer e-mail de cada membro da equipe | Fase 3 |
 | D-11 | **Funcionalidades abandonadas** | Lista de espera, CRM (tags/status), metas por profissional, retenção, conciliação de pagamentos, ações em lote na agenda | Aprovar **lista de espera** (útil em barbearia) e metas; descartar CRM/retenção/conciliação como módulos (as partes úteis viram tags e anotações do cliente) | Fase 2 |
 | D-12 | **Login do cliente** | Senha (atual); link mágico por e-mail; ambos. Identificador: e-mail, telefone, CPF | E-mail + senha, com link mágico opcional; telefone como contato, não como login; **CPF só se houver motivo fiscal** (dado sensível) | Fase 3 |

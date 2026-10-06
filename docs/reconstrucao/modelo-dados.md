@@ -442,6 +442,14 @@ Decisões da aprovação da Fase 10: `email_messages.provider`/`provider_message
 `marketing_cleared_at` (P10-01) e `purged_at` (P10-03); `campaign_recipients.purged_at` (P10-03);
 `customers.communication_version` (trava do limite de campanhas).
 
+**Fase 12 (área do cliente; [area-do-cliente.md](area-do-cliente.md)):** `customers.pending_email` (N),
+`pending_email_token` (U, N: **só o hash** SHA-256 do token do link) e `pending_email_expires_at` (N) — troca de
+e-mail que só vale depois de confirmada pelo link no endereço novo. **customer_erasures** — prova de cada
+exclusão de conta, **sem dado pessoal**: `customer_id` (U, FK restrict), `requested_by` (`customer`|`staff`),
+`staff_user_id` (N), `counts` (json: quantos registros de cada tipo foram tratados), `erased_at`, timestamps.
+A exclusão é uma anonimização: o cadastro fica (com `anonymized_at`, nome "Cliente removido", sem e-mail,
+celular, CPF, nascimento, senha) para que agendamentos, atendimentos e pagamentos continuem ligados a ele.
+
 **settings** — `key` (U), `value` (json), timestamps. **Nunca** guarda segredo (teste de varredura).
 
 **audit_logs** (só inclusão) — `actor_type` (N), `actor_id` (N), `actor_label` (N), `action`,
@@ -471,7 +479,7 @@ A lista completa de colunas, tipos, índices e FKs é gerada do banco migrado po
 
 ## Apêndice — esquema físico (gerado)
 
-Gerado por `php artisan app:schema-doc` (68 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
+Gerado por `php artisan app:schema-doc` (69 tabelas de dominio; tabelas tecnicas do Laravel omitidas).
 ### `advances`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -929,6 +937,18 @@ Unicos: (active_key)
 | `version` | integer | nao | `0` | |
 | `created_by_user_id` | integer | sim | | users.id (set null) |
 Unicos: (code)
+### `customer_erasures`
+| Coluna | Tipo | Nulo | Padrao | FK |
+|---|---|---|---|---|
+| `id` | integer | nao | | |
+| `customer_id` | integer | nao | | customers.id (restrict) |
+| `requested_by` | varchar | nao | | |
+| `staff_user_id` | integer | sim | | users.id (set null) |
+| `counts` | text | nao | | |
+| `erased_at` | datetime | nao | | |
+| `created_at` | datetime | sim | | |
+| `updated_at` | datetime | sim | | |
+Unicos: (customer_id)
 ### `customer_favorite_professionals`
 | Coluna | Tipo | Nulo | Padrao | FK |
 |---|---|---|---|---|
@@ -1018,7 +1038,10 @@ Indices: (customer_id, read_at)
 | `loyalty_version` | integer | nao | `0` | |
 | `email_reminders_enabled` | tinyint | nao | `1` | |
 | `communication_version` | integer | nao | `0` | |
-Unicos: (cpf) · (email) · (phone) · (public_id) · (referral_code)
+| `pending_email` | varchar | sim | | |
+| `pending_email_token` | varchar | sim | | |
+| `pending_email_expires_at` | datetime | sim | | |
+Unicos: (cpf) · (email) · (pending_email_token) · (phone) · (public_id) · (referral_code)
 Indices: (name)
 ### `email_messages`
 | Coluna | Tipo | Nulo | Padrao | FK |

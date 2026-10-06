@@ -2,8 +2,8 @@
 
 > Política de retenção do novo sistema, reunida num lugar só. Princípio do dono: **não guardar dados pessoais
 > indefinidamente por conveniência**; guardar o necessário para auditoria técnica, financeira ou obrigação
-> legal. Toda rotina é **automática, idempotente e auditável**. Exclusão de conta e "exportar meus dados" são
-> da Fase 12.
+> legal. Toda rotina é **automática, idempotente e auditável**. Exclusão de conta e "exportar meus dados":
+> §5 e §6 (Fase 12).
 
 ## 1. Prazos
 
@@ -35,9 +35,38 @@ ser tratado (R51 e R52, com um dia de folga).
 Ver [consentimento.md](consentimento.md): "desconhecido" nunca vira "concedido"; marketing só com
 consentimento concedido; descadastro em um clique; prova de cada mudança.
 
-## 4. Pendências (Fase 12)
+## 4. Pendências
 
-- Exclusão de conta (anonimização do cliente), incluindo `email_messages.to_email/to_name` do cliente.
-- Exportar meus dados.
-- Política de privacidade publicada no site: o texto é do dono (página `/privacidade` só aparece quando
-  preenchida no painel; ver [relatorio-fase-11.md](relatorio-fase-11.md#3-decisões)).
+- Política de privacidade publicada no site: o texto é do dono e precisa estar preenchido e revisado antes
+  da publicação definitiva (P11-01); a página `/privacidade` só aparece quando preenchida no painel.
+- Dados no Stripe (cliente, cartão, faturas) ficam com o Stripe: a exclusão de conta aqui não apaga lá
+  (P12-04).
+
+## 5. Exclusão de conta
+
+Fase 12, `CustomerErasure` (R-33; telas em [area-do-cliente.md](area-do-cliente.md#excluir-a-conta)). É uma
+**anonimização**: o cadastro continua existindo, sem nada que identifique a pessoa, para que o histórico
+financeiro continue ligado a ele.
+
+| Onde | O que acontece |
+|---|---|
+| Cadastro (`customers`) | Nome vira "Cliente removido"; e-mail, confirmação, celular, CPF, nascimento, foto (arquivo apagado), senha, "lembrar-me", código de indicação e troca de e-mail pendente apagados; marketing revogado, lembretes desligados, inativo, `anonymized_at` |
+| Agendamentos e atendimentos | Ficam (agenda, caixa, comissão, relatórios), com o nome trocado, sem e-mail, celular e observações; no histórico de eventos, o autor vira "Cliente" |
+| Pagamentos, comissões, assinaturas e pagamentos da assinatura | **Mantidos** sem alteração (obrigação fiscal; não têm o nome) |
+| Avaliações | Ficam, **anônimas** (no site o autor aparece como "Cliente"), com nota e comentário (R-33) |
+| E-mails (`email_messages`), destinatários de campanha, comprovantes enviados | Endereço vira `[removido]`; nome, assunto e erro apagados; os que estavam na fila não saem |
+| Eventos do Stripe das assinaturas dele | Corpo apagado (como na retenção P9-10) |
+| Avisos, anotações da equipe, favoritos, links de acesso, pedidos de nova senha, candidatos a mesclagem pendentes | Apagados |
+| Auditoria | Os registros ficam (quem fez o quê e quando); saem nome, e-mail, celular, CPF mascarado, nascimento e observações dos valores do cadastro, dos agendamentos e dos atendimentos dele; nas ações feitas por ele, o autor vira "Cliente" e o IP sai |
+| Prova de consentimento | Mantida (obrigação legal) + uma revogação "exclusão da conta", sem o endereço |
+| Pessoas que ele indicou | Nada muda nelas |
+
+Bloqueia enquanto houver horário marcado, atendimento aberto ou assinatura vigente (inclusive aguardando
+pagamento). Prova do pedido em `customer_erasures` (quem pediu: cliente ou equipe; quantidades) e na
+auditoria (`customer.anonymized`), sem dado pessoal. Idempotente.
+
+## 6. Exportar meus dados
+
+Fase 12, `CustomerDataExport`: JSON gerado na hora e entregue para download (nada fica no servidor),
+pedido com a senha de novo, no máximo 5 por hora, registrado na auditoria (`customer.data_exported`, só
+quantidades). Conteúdo e o que fica de fora: [area-do-cliente.md](area-do-cliente.md#baixar-meus-dados-lgpd).

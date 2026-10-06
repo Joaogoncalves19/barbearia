@@ -27,6 +27,25 @@ use Illuminate\View\View;
  */
 class AppointmentController extends Controller
 {
+    /**
+     * Fase 12: proximos (abertos, ainda nao terminados) e historico (o resto),
+     * paginado. A consulta parte do cliente logado.
+     */
+    public function index(Request $request): View
+    {
+        $cliente = $this->customer($request);
+        $agora = BusinessTime::now();
+        $abertos = ['pending', 'confirmed'];
+
+        return view('account.appointments', [
+            'upcoming' => $cliente->appointments()->with('items')->whereIn('status', $abertos)->where('ends_at', '>', $agora)
+                ->orderBy('starts_at')->get(),
+            'history' => $cliente->appointments()->with(['items', 'attendance'])
+                ->where(fn ($q) => $q->whereNotIn('status', $abertos)->orWhere('ends_at', '<=', $agora))
+                ->orderByDesc('starts_at')->orderByDesc('id')->paginate(15)->withQueryString(),
+        ]);
+    }
+
     public function show(Appointment $appointment): View
     {
         $appointment->load(['items', 'attendance']);
@@ -68,11 +87,15 @@ class AppointmentController extends Controller
             $data = $dias[0] ?? BusinessTime::today();
         }
 
+        $possiveis = $servico !== null ? $directory->customerBookableFor($servico) : collect();
+
         return view('account.reschedule', [
             'appointment' => $appointment,
             'service' => $servico,
             'professional' => $pro,
-            'professionals' => $servico !== null ? $directory->bookableFor($servico) : collect(),
+            'professionals' => $possiveis,
+            // P11-03: profissional que saiu do site nao e oferecido pela conta.
+            'currentAvailable' => $possiveis->contains(fn (Professional $p) => $p->id === $appointment->professional_id),
             'days' => $dias,
             'date' => $data,
             'slots' => $servico !== null && $pro !== null ? $availability->slots($servico, $pro, $data, Channel::Customer, $appointment, $duracao) : [],
@@ -90,7 +113,7 @@ class AppointmentController extends Controller
 
         $servico = $this->serviceOf($appointment);
         abort_if($servico === null, 404);
-        $pro = $directory->bookableFor($servico)->first(fn (Professional $p) => $p->slug === $dados['profissional']);
+        $pro = $directory->customerBookableFor($servico)->first(fn (Professional $p) => $p->slug === $dados['profissional']);
         abort_if($pro === null, 404);
 
         try {
@@ -121,7 +144,7 @@ class AppointmentController extends Controller
         if ($service === null) {
             return null;
         }
-        $possiveis = $directory->bookableFor($service);
+        $possiveis = $directory->customerBookableFor($service);
         $slug = $request->query('profissional');
 
         return $slug !== null

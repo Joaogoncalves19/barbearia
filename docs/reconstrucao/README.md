@@ -1,7 +1,7 @@
 # Reconstrução do Sistema da Barbearia
 
-> **Status:** Fases 0 a 10 concluídas e aprovadas ([relatorio-fase-10.md](relatorio-fase-10.md)). **Fase 11
-> concluída, aguardando aprovação do dono** ([relatorio-fase-11.md](relatorio-fase-11.md)).
+> **Status:** Fases 0 a 11 concluídas e aprovadas ([relatorio-fase-11.md](relatorio-fase-11.md)). **Fase 12
+> concluída, aguardando aprovação do dono** ([relatorio-fase-12.md](relatorio-fase-12.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -150,6 +150,14 @@ plano para reconstruí-lo do zero, por etapas.
 | [agendamento-publico.md](agendamento-publico.md) | Entradas do site no fluxo real; só o que é publicado |
 | [retencao-lgpd.md](retencao-lgpd.md) | Prazos de retenção e rotinas (Stripe, e-mails, avisos), o que nunca é guardado |
 | [relatorio-fase-11.md](relatorio-fase-11.md) | Relatório final da Fase 11 |
+
+### Fase 12
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [area-do-cliente.md](area-do-cliente.md) | Telas da conta, dados pessoais, agendamentos, comprovantes, assinatura, benefícios, avaliações, avisos, ações sensíveis, segurança, testes |
+| [retencao-lgpd.md](retencao-lgpd.md) | §5 exclusão de conta (anonimização) e §6 exportar meus dados |
+| [relatorio-fase-12.md](relatorio-fase-12.md) | Relatório final da Fase 12 |
 
 ## Legenda usada em todos os documentos
 

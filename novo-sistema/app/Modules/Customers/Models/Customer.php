@@ -58,10 +58,12 @@ use Illuminate\Support\Str;
  * @property Carbon|null $password_changed_at
  * @property int|null $merged_into_customer_id
  * @property string|null $referral_code
+ * @property string|null $pending_email
+ * @property Carbon|null $pending_email_expires_at
  * @property int|null $referred_by_customer_id
  */
 #[Fillable(['name', 'email', 'phone', 'cpf', 'password', 'birth_date'])]
-#[Hidden(['password', 'remember_token', 'cpf'])]
+#[Hidden(['password', 'remember_token', 'cpf', 'pending_email_token'])]
 #[UseFactory(CustomerFactory::class)]
 class Customer extends Authenticatable implements MustVerifyEmail
 {
@@ -71,7 +73,7 @@ class Customer extends Authenticatable implements MustVerifyEmail
     protected $table = 'customers';
 
     /** @var list<string> */
-    protected array $auditExclude = ['password', 'remember_token', 'last_login_at'];
+    protected array $auditExclude = ['password', 'remember_token', 'last_login_at', 'pending_email_token'];
 
     /** @var list<string> */
     protected array $auditMask = ['cpf'];
@@ -92,6 +94,7 @@ class Customer extends Authenticatable implements MustVerifyEmail
             'anonymized_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password_changed_at' => 'datetime',
+            'pending_email_expires_at' => 'datetime',
         ];
     }
 

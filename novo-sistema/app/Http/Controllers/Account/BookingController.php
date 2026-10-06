@@ -175,7 +175,7 @@ class BookingController extends Controller
 
         $pro = null;
         if ($dados['profissional'] !== 'qualquer') {
-            $pro = $directory->bookableFor($servico)->first(fn (Professional $p) => $p->slug === $dados['profissional']);
+            $pro = $directory->customerBookableFor($servico)->first(fn (Professional $p) => $p->slug === $dados['profissional']);
             abort_if($pro === null, 404);
         }
 

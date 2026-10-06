@@ -159,7 +159,7 @@ final class PublicSite
     {
         return Review::query()->where('status', ReviewStatus::Approved->value)->where('is_featured', true)
             ->whereNotNull('comment')->where('comment', '<>', '')
-            ->with(['customer:id,name', 'professional:id,display_name'])->orderByDesc('reviewed_at')->orderByDesc('id')->limit(3)->get();
+            ->with(['customer:id,name,anonymized_at', 'professional:id,display_name'])->orderByDesc('reviewed_at')->orderByDesc('id')->limit(3)->get();
     }
 
     /** Ate duas iniciais, so de palavras que comecam com letra ("Joao (Navalha)" -> "JN"). */
@@ -173,6 +173,10 @@ final class PublicSite
     /** "Maria S." (primeiro nome e inicial): nunca nome completo, e-mail ou outro dado. */
     public static function reviewerName(Review $review): string
     {
+        // Conta excluida (Fase 12, R-33): a avaliacao continua, anonima.
+        if ($review->customer === null || $review->customer->anonymized_at !== null) {
+            return 'Cliente';
+        }
         $partes = preg_split('/\s+/', trim((string) ($review->customer->name ?? ''))) ?: [];
         $primeiro = $partes[0] ?? '';
         if ($primeiro === '') {

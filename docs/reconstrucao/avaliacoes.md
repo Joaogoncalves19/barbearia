@@ -23,6 +23,8 @@ A rota passa pela Policy do atendimento (atendimento de outra pessoa ou não con
 **Minha conta → Avaliações**: atendimentos que podem ser avaliados e as próprias avaliações com a situação
 (Em revisão, Publicada, Não publicada) e a resposta da barbearia (quando publicada). Nota de 1 a 5 e
 comentário opcional (até 1.000 caracteres). Nota e comentário não mudam depois de enviados.
+O início da conta mostra quantas avaliações estão pendentes (a mesma consulta, `Reviews::pendingFor`).
+Conta excluída (Fase 12, R-33): a avaliação continua, **anônima** (autor "Cliente" no site).
 
 ## 3. Moderação (painel → Comunicação → Avaliações)
 

@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\Account;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Reviews\Exceptions\ReviewRejected;
 use App\Modules\Reviews\Models\Review;
 use App\Modules\Reviews\Services\Reviews;
-use App\Modules\Scheduling\Support\BusinessTime;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,16 +19,12 @@ use Illuminate\View\View;
  */
 class ReviewController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, Reviews $reviews): View
     {
         $cliente = $this->customer($request);
-        $avaliados = Review::query()->where('customer_id', $cliente->id)->whereNotNull('attendance_id')->pluck('attendance_id')->all();
 
         return view('account.reviews.index', [
-            'pending' => Attendance::query()->where('customer_id', $cliente->id)->where('status', AttendanceStatus::Completed->value)
-                ->whereNotNull('professional_id')
-                ->where('completed_at', '>=', BusinessTime::now()->subDays(Reviews::WINDOW_DAYS))
-                ->whereNotIn('id', $avaliados)->with('professional')->orderByDesc('completed_at')->get(),
+            'pending' => $reviews->pendingFor($cliente)->with('professional')->orderByDesc('completed_at')->get(),
             'reviews' => Review::query()->where('customer_id', $cliente->id)->with(['professional', 'reply', 'attendance'])->orderByDesc('reviewed_at')->orderByDesc('id')->limit(50)->get(),
         ]);
     }

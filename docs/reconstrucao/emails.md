@@ -75,6 +75,8 @@ continua ([consentimento.md](consentimento.md)).
 `customer_notifications` (tipo, texto, link interno, chave de unicidade): lembretes, pedido de avaliação e
 assinatura. Tela **Minha conta → Avisos** (contador de não lidos no menu); marcar como lido vale só para os
 do próprio cliente. O link do aviso só é mostrado se for do próprio site.
+Avisos são sempre **transacionais**: marketing nunca vira aviso (só e-mail, com consentimento), e a tela diz
+isso (Fase 12). Conta excluída: nada mais é enviado, nem o que estava na fila (`Outbox::blockReason`).
 
 ## 6. Registro e painel
 

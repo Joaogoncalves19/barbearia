@@ -17,7 +17,7 @@
 
     {{-- Fase 10: preferencias de e-mail. Marketing so com escolha explicita; lembretes sao opcionais. --}}
     @php $consent = $customer->marketing_email_consent; @endphp
-    <x-ui.card title="E-mails que você recebe">
+    <x-ui.card title="E-mails que você recebe" id="emails">
         <form method="POST" action="{{ route('account.preferences.update') }}" class="stack" data-preferences>
             @csrf
             @method('PUT')
@@ -35,11 +35,30 @@
         </form>
     </x-ui.card>
 
-    <x-ui.card title="E-mail e CPF">
-        <dl class="summary-list">
-            <div><dt>E-mail</dt><dd>{{ $customer->email }}</dd></div>
-            <div><dt>CPF</dt><dd>{{ $customer->cpf ? \App\Modules\Customers\Support\Cpf::mask($customer->cpf) : 'Não informado' }}</dd></div>
-        </dl>
-        <p class="text-sm text-muted">Para corrigir o e-mail ou o CPF, fale com a barbearia.</p>
+    <x-ui.card title="Acesso">
+        <div class="stack">
+            <dl class="summary-list">
+                <div><dt>E-mail</dt><dd>{{ $customer->email }}</dd></div>
+                {{-- CPF sempre mascarado na tela. --}}
+                <div><dt>CPF</dt><dd data-cpf>{{ $customer->cpf ? \App\Modules\Customers\Support\Cpf::mask($customer->cpf) : 'Não informado' }}</dd></div>
+                <div><dt>Senha</dt><dd>{{ $customer->hasPassword() ? 'Definida' : 'Você entra pelo link do e-mail' }}</dd></div>
+            </dl>
+            @if ($pendingEmail)
+                <x-ui.alert data-pending-email>
+                    Troca de e-mail aguardando confirmação: enviamos um link para {{ $pendingEmail }}.
+                    <form method="POST" action="{{ route('account.email.cancel') }}" class="inline-form">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn--ghost btn--sm">Cancelar pedido</button>
+                    </form>
+                </x-ui.alert>
+            @endif
+            @error('email')<x-ui.alert variant="danger">{{ $message }}</x-ui.alert>@enderror
+            <div class="cluster">
+                <x-ui.button :href="route('account.email.edit')" variant="secondary" size="sm" icon="mail">Trocar e-mail</x-ui.button>
+                <x-ui.button :href="route('account.password.edit')" variant="secondary" size="sm" icon="key-round">{{ $customer->hasPassword() ? 'Alterar senha' : 'Criar senha' }}</x-ui.button>
+            </div>
+            <p class="text-sm text-muted">O CPF não muda pela conta: para corrigir, fale com a barbearia.</p>
+        </div>
     </x-ui.card>
 </x-layouts.account>

@@ -18,8 +18,10 @@ export default defineConfig({
     fullyParallel: true,
     // O servidor embutido do PHP atende UMA requisicao por vez: mais que 4
     // navegadores em paralelo so formam fila e estouram o tempo dos testes
-    // longos (visto na Fase 6, com 6 workers). No CI o runner ja usa menos.
-    workers: process.env.CI ? undefined : 4,
+    // longos (visto na Fase 6, com 6 workers; e na Fase 12, com 4, quando a suite
+    // passou de 120 testes: os mais longos de caixa e catalogo estouravam 90 s so na
+    // suite inteira e passavam sozinhos). No CI o runner ja usa menos.
+    workers: process.env.CI ? undefined : 3,
     forbidOnly: !!process.env.CI,
     retries: 0,
     // O servidor embutido do PHP atende uma requisicao por vez (no Windows sempre):

@@ -11,7 +11,10 @@
     @if ($service === null || $professional === null)
         <x-ui.empty-state title="Não é possível remarcar por aqui" icon="calendar">Fale com a barbearia para remarcar este horário.</x-ui.empty-state>
     @else
-        @if ($professionals->count() > 1)
+        @if (! $currentAvailable)
+            <x-ui.alert>{{ $appointment->professional_name ?? 'O profissional deste horário' }} não está disponível para remarcação pela conta. Escolha outro profissional abaixo ou fale com a barbearia.</x-ui.alert>
+        @endif
+        @if ($professionals->count() > 1 || ! $currentAvailable)
             <div class="cluster" role="group" aria-label="Profissional">
                 @foreach ($professionals as $p)
                     <x-ui.button :href="route('account.appointments.reschedule', ['appointment' => $appointment, 'profissional' => $p->slug, 'data' => $date])" :variant="$p->is($professional) ? 'accent' : 'secondary'" size="sm" :aria-current="$p->is($professional) ? 'true' : null">{{ $p->display_name }}</x-ui.button>

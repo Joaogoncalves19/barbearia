@@ -1,6 +1,9 @@
 # Relatório da Fase 11 — Site público
 
-> **Status: concluída, aguardando aprovação explícita do dono para a Fase 12.** Branch
+> **Status: concluída e APROVADA pelo dono (2026-10-06)**, com as decisões P11-01 a P11-05 registradas em
+> [decisoes-pendentes.md](decisoes-pendentes.md) (P11-03 testada na Fase 12; P11-05 virou item futuro no
+> roadmap). A falha única da 1ª rodada de navegador fica registrada como instabilidade não reproduzida, sem
+> causa comprovada. Branch
 > `claude/fase-11-site-publico`, criada a partir de `claude/fase-10-comunicacao`. Só dados fictícios; nenhum
 > banco real; nenhuma credencial (Resend e Stripe só por variável de ambiente, vazias aqui); nenhuma
 > migração real; sistema antigo não alterado (lido só como fonte do conteúdo e das regras).

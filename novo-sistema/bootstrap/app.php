@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureCustomerIsActive;
 use App\Http\Middleware\EnsureCustomerProfileIsComplete;
+use App\Http\Middleware\EnsureCustomerRecentlyConfirmed;
 use App\Http\Middleware\EnsurePrototypesEnabled;
 use App\Http\Middleware\EnsureStaffIsActive;
 use App\Http\Middleware\EnsureStaffPasswordIsCurrent;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff.password' => EnsureStaffPasswordIsCurrent::class,
             'customer.active' => EnsureCustomerIsActive::class,
             'customer.complete' => EnsureCustomerProfileIsComplete::class,
+            'customer.reauth' => EnsureCustomerRecentlyConfirmed::class,
             'no-store' => PreventCaching::class,
             'prototypes' => EnsurePrototypesEnabled::class,
         ]);

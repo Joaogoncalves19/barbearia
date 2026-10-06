@@ -131,7 +131,11 @@ class HorizontalAccessTest extends TestCase
     {
         $ana = Customer::factory()->create(['cpf' => '52998224725']);
 
-        $this->actingAs($ana, 'customer')->get(route('account.home'))->assertSee('529.***.***-25')->assertDontSee('52998224725');
+        // Fase 12: o CPF fica em "Meus dados"; nenhuma tela da conta mostra o numero inteiro.
+        $this->actingAs($ana, 'customer')->get(route('account.profile.edit'))->assertSee('529.***.***-25')->assertDontSee('52998224725');
+        foreach (['account.home', 'account.privacy', 'account.appointments.index', 'account.receipts.index'] as $rota) {
+            $this->actingAs($ana, 'customer')->get(route($rota))->assertOk()->assertDontSee('52998224725');
+        }
     }
 
     // --- Profissional x profissional ------------------------------------------------------

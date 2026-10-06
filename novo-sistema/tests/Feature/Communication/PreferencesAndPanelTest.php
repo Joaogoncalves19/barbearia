@@ -80,7 +80,7 @@ class PreferencesAndPanelTest extends TestCase
         CustomerNotification::query()->create(['customer_id' => $outro->id, 'kind' => 'reminder', 'message' => 'Aviso de outra pessoa']);
 
         $this->actingAs($this->cliente, 'customer')->get(route('account.notifications'))->assertOk()->assertSee('Aviso do cliente')->assertDontSee('Aviso de outra pessoa');
-        $this->actingAs($this->cliente, 'customer')->get(route('account.home'))->assertSee('Avisos (1)');
+        $this->actingAs($this->cliente, 'customer')->get(route('account.home'))->assertSee('account-menu__count">1', false)->assertSee('1 novo');
         $this->actingAs($this->cliente, 'customer')->post(route('account.notifications.read'))->assertRedirect();
 
         $this->assertNotNull(CustomerNotification::query()->where('customer_id', $this->cliente->id)->value('read_at'));

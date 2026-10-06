@@ -70,6 +70,13 @@ return [
 
         // Validade do link de confirmacao de e-mail (minutos).
         'email_verification_minutes' => (int) env('AUTH_EMAIL_VERIFICATION_MINUTES', 60 * 24),
+
+        // Fase 12: acoes sensiveis da conta do cliente (exportar dados, excluir
+        // a conta, trocar o e-mail) pedem a senha de novo depois deste tempo.
+        'customer_reauth_minutes' => (int) env('AUTH_CUSTOMER_REAUTH_MINUTES', 15),
+
+        // Validade do link de confirmacao da troca de e-mail (minutos).
+        'email_change_minutes' => (int) env('AUTH_EMAIL_CHANGE_MINUTES', 60),
     ],
 
 ];
