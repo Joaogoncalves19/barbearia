@@ -24,6 +24,7 @@
     color: var(--btn-fg);
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
+    letter-spacing: 0.01em;
     line-height: 1.2;
     text-decoration: none;
     white-space: nowrap;
@@ -51,7 +52,11 @@
     --btn-bg: transparent;
     --btn-bg-hover: var(--c-surface-sunken);
     --btn-fg: var(--c-text);
-    --btn-border: var(--c-border-control);
+    --btn-border: var(--c-border-strong);
+}
+
+.btn--secondary:hover {
+    --btn-border: var(--c-text);
 }
 
 .btn--ghost {
@@ -73,9 +78,25 @@
 }
 
 .btn--lg {
-    min-height: 3.25rem;
+    min-height: 3.5rem;
     padding: var(--space-3) var(--space-8);
     font-size: var(--fs-base);
+}
+
+/* Acao de texto (sem caixa), para acoes secundarias em linha. */
+.btn--link {
+    --btn-bg: transparent;
+    --btn-bg-hover: transparent;
+    --btn-fg: var(--c-text);
+    min-height: auto;
+    padding: var(--space-1) 0;
+    text-decoration: underline;
+    text-decoration-color: var(--c-border-strong);
+    text-underline-offset: 0.25em;
+}
+
+.btn--link:hover {
+    text-decoration-color: currentColor;
 }
 
 .btn--block {

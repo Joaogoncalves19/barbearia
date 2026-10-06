@@ -80,7 +80,7 @@
     color: var(--c-text);
     font-family: var(--font-display);
     font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
+    font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
     text-decoration: none;
 }
@@ -250,7 +250,7 @@
 .menu-item__name {
     font-family: var(--font-display);
     font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
+    font-stretch: var(--font-display-stretch);
     letter-spacing: var(--font-display-tracking);
     font-size: var(--fs-lg);
     line-height: var(--lh-snug);
@@ -329,7 +329,7 @@
 .pro-card__name {
     font-family: var(--font-display);
     font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
+    font-stretch: var(--font-display-stretch);
     letter-spacing: var(--font-display-tracking);
     font-size: var(--fs-lg);
 }
@@ -421,7 +421,7 @@
 .quote blockquote {
     font-family: var(--font-display);
     font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
+    font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
     line-height: var(--lh-snug);
 }

@@ -36,7 +36,7 @@ body {
     font-family: var(--font-body);
     font-size: var(--fs-base);
     line-height: var(--lh-normal);
-    font-feature-settings: 'cv11', 'ss01';
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
@@ -106,14 +106,18 @@ a:hover {
     border-radius: 2px;
 }
 
-/* --- Tipografia ------------------------------------------------------------ */
+/* --- Tipografia ------------------------------------------------------------
+   Titulos e numeros: Archivo condensada (precisa, urbana). Texto: Inter.
+   .display e .h1 do site vao em caixa alta (classe .caps); o painel usa a
+   mesma familia em caixa normal, com a largura um pouco mais aberta. */
 .display,
 .h1,
 .h2,
-.h3 {
+.h3,
+.figure {
     font-family: var(--font-display);
     font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
+    font-stretch: var(--font-display-stretch);
     letter-spacing: var(--font-display-tracking);
     text-transform: var(--font-display-case);
     text-wrap: balance;
@@ -122,6 +126,8 @@ a:hover {
 .display {
     font-size: var(--fs-display);
     line-height: var(--lh-tight);
+    font-weight: 700;
+    letter-spacing: -0.015em;
 }
 
 .h1 {
@@ -131,7 +137,7 @@ a:hover {
 
 .h2 {
     font-size: var(--fs-2xl);
-    line-height: var(--lh-snug);
+    line-height: 1.02;
 }
 
 .h3 {
@@ -139,19 +145,73 @@ a:hover {
     line-height: var(--lh-snug);
 }
 
-/* Titulos do painel usam a fonte de texto: leitura rapida, sem personalidade demais. */
-.title {
-    font-size: var(--fs-lg);
-    font-weight: var(--fw-semibold);
-    line-height: var(--lh-snug);
-    letter-spacing: -0.01em;
+.caps {
+    text-transform: uppercase;
 }
 
+/* Numero de destaque: preco, hora, valor financeiro. Sempre tabular. */
+.figure {
+    font-size: var(--fs-figure);
+    line-height: 1;
+    font-variant-numeric: tabular-nums lining-nums;
+    text-wrap: nowrap;
+}
+
+.figure--sm {
+    font-size: var(--fs-figure-sm);
+}
+
+.figure--lg {
+    font-size: var(--fs-figure-lg);
+}
+
+/* Moeda pequena antes do numero ("R$" menor, alinhado ao topo). */
+.figure__unit {
+    margin-right: 0.12em;
+    font-size: 0.5em;
+    vertical-align: 0.6em;
+    letter-spacing: 0.02em;
+}
+
+/* Titulo de bloco do painel: condensada, caixa normal. */
+.title {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 620;
+    font-stretch: 85%;
+    line-height: var(--lh-snug);
+    letter-spacing: 0;
+}
+
+/* Rotulo de secao: pequeno, espacado, com o "fio" (marca da linguagem). */
 .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
+    color: var(--c-accent-text);
+}
+
+.eyebrow::before {
+    content: '';
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+}
+
+.eyebrow--plain::before {
+    display: none;
+}
+
+/* Indice editorial ("01", "02") das secoes do site. */
+.index-number {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
     color: var(--c-accent-text);
 }
 
@@ -186,6 +246,20 @@ a:hover {
 
 .prose p + p {
     margin-top: var(--space-4);
+}
+
+/* "Regua" (assinatura grafica): marcas finas de medida, como a escala de um
+   pente ou de uma fita de alfaiate. Divisor de secao e eixo da agenda. */
+.ruler {
+    height: 0.75rem;
+    background:
+        linear-gradient(var(--c-line), var(--c-line)) bottom / 100% 1px no-repeat,
+        repeating-linear-gradient(90deg, var(--c-ruler, var(--c-line)) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
+        repeating-linear-gradient(90deg, var(--c-ruler, var(--c-line)) 0 1px, transparent 1px 2.5rem) bottom / 100% 0.75rem no-repeat;
+}
+
+.ruler--accent {
+    --c-ruler: color-mix(in srgb, var(--c-accent) 70%, transparent);
 }
 
 /* --- Utilitarios (poucos e sem valores soltos) ----------------------------- */
@@ -237,6 +311,10 @@ a:hover {
 
 .stack-lg {
     --stack-space: var(--space-8);
+}
+
+.stack-xl {
+    --stack-space: var(--space-12);
 }
 
 .cluster {

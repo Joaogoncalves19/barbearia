@@ -1,6 +1,9 @@
 {{--
-    Layout do PAINEL (superficie clara, produtividade).
-    :nav = [['group' => 'Operação', 'items' => [['label','href','icon','current']]]]
+    Layout do PAINEL (redesign "Oficio"): barra lateral GRAFITE com o menu
+    por tarefa, conteudo claro. O topo mostra so o que serve: o dia de hoje e
+    o menu da pessoa (minha conta, senha, sair). Nada de controle de enfeite:
+    a busca e o sino de prototipo sairam (nao faziam nada).
+    :nav = [['group' => 'Hoje', 'items' => [['label','href','icon','current']]]]
 --}}
 @props([
     'title' => null,
@@ -11,15 +14,19 @@
     'userRole' => null,
     'logoutUrl' => null,
     'accountUrl' => null,
+    'passwordUrl' => null,
     'prototype' => false,
 ])
+@php
+    $hoje = \Carbon\CarbonImmutable::now(config('barbearia.display_timezone', 'America/Sao_Paulo'))->locale('pt_BR');
+@endphp
 <x-layouts.document :title="$title" :direction="$direction" surface="clara" area="panel" :noindex="true">
     @if ($prototype)
         @include('partials.prototype-banner', ['direcao' => $direction])
     @endif
 
     <div class="panel-shell" x-data="disclosure" x-on:keydown.escape="close">
-        <aside class="sidebar" x-bind:class="panelClass" id="menu-painel" aria-label="Menu do painel">
+        <aside class="sidebar" data-superficie="escura" x-bind:class="panelClass" id="menu-painel" aria-label="Menu do painel">
             <div class="sidebar__brand">
                 <span class="brand">
                     <span class="brand__mark" aria-hidden="true">{{ mb_substr($brand, 0, 1) }}</span>
@@ -30,7 +37,7 @@
                 </button>
             </div>
 
-            <nav>
+            <nav class="sidebar__nav">
                 @foreach ($nav as $grupo)
                     <div class="nav-group">
                         @if (! empty($grupo['group']))<p class="nav-group__title">{{ $grupo['group'] }}</p>@endif
@@ -52,13 +59,8 @@
                 <button type="button" class="btn btn--ghost btn--icon topbar__menu" x-on:click="toggle" x-bind:aria-expanded="expanded" aria-controls="menu-painel">
                     <x-icon name="menu" label="Abrir menu" />
                 </button>
-                <form class="topbar__search" role="search">
-                    <x-icon name="search" />
-                    <label class="visually-hidden" for="busca-painel">Buscar clientes, agendamentos…</label>
-                    <input id="busca-painel" class="control" type="search" placeholder="Buscar clientes, agendamentos…" autocomplete="off">
-                </form>
+                <p class="topbar__date"><span class="topbar__weekday">{{ \Illuminate\Support\Str::ucfirst($hoje->translatedFormat('l')) }}</span>, {{ $hoje->translatedFormat('d \\d\\e F') }}</p>
                 <div class="topbar__actions">
-                    <button type="button" class="btn btn--ghost btn--icon"><x-icon name="bell" label="Notificações" /></button>
                     <x-ui.dropdown label="Menu do usuário">
                         <x-slot:trigger>
                             <x-ui.avatar :name="$userName" size="sm" />
@@ -67,6 +69,7 @@
                         </x-slot:trigger>
                         @if ($userRole)<p class="dropdown__item text-muted">{{ $userRole }}</p><div class="dropdown__separator"></div>@endif
                         @if ($accountUrl)<a class="dropdown__item" href="{{ $accountUrl }}"><x-icon name="settings" /> Minha conta</a>@endif
+                        @if ($passwordUrl)<a class="dropdown__item" href="{{ $passwordUrl }}"><x-icon name="key-round" /> Senha</a>@endif
                         @if ($logoutUrl)
                             <form method="POST" action="{{ $logoutUrl }}">
                                 @csrf

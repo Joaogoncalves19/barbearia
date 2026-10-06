@@ -3,8 +3,11 @@
  * Nada de Google Fonts em tempo de execucao: mais rapido, sem terceiros e
  * sem enviar o IP do visitante para fora (LGPD).
  *
- * Direcao oficial A: Inter (texto) + Fraunces (titulos). A fonte da direcao B
- * (Bricolage Grotesque) so e carregada por prototypes/direcao-b.css.
+ * Linguagem "Oficio" (redesign): Inter (interface e texto) + Archivo variavel
+ * com eixo de largura (titulos e numeros, condensada). Duas familias; o
+ * navegador baixa so os blocos de caracteres usados (unicode-range).
+ * A fonte da direcao B (Bricolage Grotesque) so e carregada por
+ * prototypes/direcao-b.css.
  */
 @import '@fontsource-variable/inter/index.css';
-@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/archivo/wdth.css';

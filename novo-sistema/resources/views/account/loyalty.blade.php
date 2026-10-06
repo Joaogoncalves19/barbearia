@@ -49,7 +49,7 @@
         <x-ui.card title="Indique um amigo">
             @if ($customer->referral_code)
                 <p>Seu código: <strong class="numeric">{{ $customer->referral_code }}</strong></p>
-                <p class="text-sm">Quem se cadastrar com o seu código ganha {{ Discount::percent($p->int('referral_percent_bp'))->label() }} de desconto no primeiro atendimento@if ($p->int('referral_bonus_points') > 0), e você ganha {{ $p->int('referral_bonus_points') }} ponto(s) quando ele for atendido@endif.</p>
+                <p class="text-sm">Quem se cadastrar com o seu código ganha {{ Discount::percent($p->int('referral_percent_bp'))->label() }} de desconto no primeiro atendimento{{ $p->int('referral_bonus_points') > 0 ? ', e você ganha '.$p->int('referral_bonus_points').' ponto(s) quando ele for atendido' : '' }}.</p>
             @else
                 <form method="POST" action="{{ route('account.loyalty.code') }}">
                     @csrf

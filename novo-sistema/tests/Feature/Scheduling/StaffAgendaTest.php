@@ -51,7 +51,7 @@ class StaffAgendaTest extends TestCase
         $b = $this->book($this->terca, '15:00', $this->maria);
 
         $this->actingAs($this->recepcao, 'web')->get(route('panel.agenda', ['data' => $this->terca]))
-            ->assertOk()->assertSee($a->customer_name)->assertSee($b->customer_name)->assertSee('14:00')->assertSee('até 14:30');
+            ->assertOk()->assertSee($a->customer_name)->assertSee($b->customer_name)->assertSee('14:00–14:30'); // redesign: linha do tempo mostra inicio e fim
     }
 
     public function test_profissional_ve_so_a_propria_agenda_mesmo_manipulando_o_filtro(): void

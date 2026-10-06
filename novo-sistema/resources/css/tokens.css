@@ -1,86 +1,88 @@
 /* ==========================================================================
-   TOKENS DE DESIGN
+   TOKENS DE DESIGN — linguagem "Oficio" (redesign; evolucao da Direcao A)
    --------------------------------------------------------------------------
    Tres camadas:
-     1. Primitivos   (--p-*)  paleta crua da direcao visual oficial (A)
+     1. Primitivos   (--p-*)  paleta crua
      2. Semanticos   (--c-*)  o que os componentes usam (texto, superficie...)
      3. Escalas              tipografia, espaco, raio, sombra, movimento
 
    Componentes NUNCA usam primitivos nem valores soltos: so --c-* e escalas.
 
-   Direcao oficial: A "Oficio contemporaneo" (aprovada na Fase 2). A direcao
-   B "Urbano grafico" ficou apenas como referencia historica dos prototipos,
-   em resources/css/prototypes/direcao-b.css, carregada so nas paginas de
-   referencia (flag BARBEARIA_PROTOTYPES) e nunca no produto.
+   Ideia da linguagem (redesign-visual.md): grafite e osso, como o preto da
+   cadeira e o branco da toalha; o LATAO (cobre refinado) e a unica cor de
+   marca e aparece so onde tem funcao: a acao que converte (Agendar), o item
+   ativo, o "agora" da agenda, o foco. Titulos e numeros em grotesca
+   condensada (Archivo), precisa como uma navalha; interface em Inter.
 
    data-superficie vai no <html> ou num trecho da pagina (escura/clara): trocar
    de superficie nao exige mexer em componente nenhum.
-
-   Contraste de cada par texto/fundo documentado em identidade-visual.md.
+   Contraste de cada par texto/fundo: redesign-visual.md §3.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. PRIMITIVOS — Direcao A "Oficio contemporaneo" (oficial)
-   Carvao quente + osso + cobre. Referencia: couro, madeira escura, latao,
-   luz quente -- traduzidos em cores lisas e contemporaneas, sem textura vintage.
+   1. PRIMITIVOS
    -------------------------------------------------------------------------- */
 :root,
 [data-direcao='a'] {
-    --p-ink-950: #121110;
-    --p-ink-900: #1b1917;
-    --p-ink-800: #25221f;
-    --p-ink-700: #35312c;
-    --p-ink-600: #4a443d;
+    /* Grafite (do mais escuro ao mais claro) */
+    --p-ink-950: #121211;
+    --p-ink-900: #1b1a19;
+    --p-ink-800: #252321;
+    --p-ink-700: #34312e;
+    --p-ink-600: #46423d;
 
-    --p-stone-600: #6a6258; /* texto secundario sobre claro (5,5:1) */
-    --p-stone-500: #8c8377; /* borda de controle sobre claro (3,6:1) */
-    --p-stone-400: #8a8177; /* borda de controle sobre escuro (4,6:1) */
-    --p-stone-300: #b8afa2; /* texto secundario sobre escuro (8,7:1) */
+    /* Pedra: textos secundarios e bordas de controle */
+    --p-stone-600: #625c55; /* texto secundario sobre claro (6,4:1) */
+    --p-stone-500: #8e867c; /* borda de controle sobre claro (3,5:1) */
+    --p-stone-400: #7d766d; /* borda de controle sobre escuro (4,2:1) */
+    --p-stone-300: #a8a095; /* texto secundario sobre escuro (7,3:1) */
 
-    --p-paper-200: #ddd5c8;
-    --p-paper-100: #efe9df;
-    --p-paper-50: #f8f5ef;
-    --p-paper-0: #fffdf9;
+    /* Osso */
+    --p-paper-200: #ddd6cb;
+    --p-paper-100: #ede8e0;
+    --p-paper-50: #f5f2ec;
+    --p-paper-0: #fcfbf8;
 
-    --p-accent-300: #e2b37d; /* acento como TEXTO sobre escuro (9,9:1) */
-    --p-accent-500: #bd8246; /* acento SOLIDO (botao) com texto escuro (5,6:1) */
-    --p-accent-600: #9a6632;
-    --p-accent-700: #80532a; /* acento como TEXTO/FOCO sobre claro (6,1:1) */
-    --p-accent-100: #f5e6d3;
+    /* Latao: a unica cor de marca */
+    --p-accent-300: #ddae72; /* como TEXTO sobre escuro (9,3:1) */
+    --p-accent-500: #b5814a; /* SOLIDO (botao) com texto grafite (5,5:1) */
+    --p-accent-600: #9a6a37;
+    --p-accent-700: #7a4f25; /* como TEXTO/FOCO sobre claro (6,8:1) */
+    --p-accent-100: #f3e6d4;
 
-    --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-    --font-display-weight: 520;
-    --font-display-settings: 'opsz' 144;
-    --font-display-tracking: -0.02em;
+    --font-display: 'Archivo Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    --font-display-weight: 640;
+    --font-display-stretch: 72%;
+    --font-display-settings: normal;
+    --font-display-tracking: -0.005em;
     --font-display-case: none;
 
-    --radius-control: 6px;
-    --radius-card: 10px;
-    --radius-media: 4px;
+    --radius-control: 4px;
+    --radius-card: 6px;
+    --radius-media: 2px;
     --radius-pill: 999px;
 }
 
 /* --------------------------------------------------------------------------
-   Cores de ESTADO (iguais nas duas direcoes; so o matiz do fundo muda com a
-   superficie). Sempre acompanhadas de icone e texto -- nunca so cor.
+   Cores de ESTADO: sempre com icone e texto, nunca so cor.
    -------------------------------------------------------------------------- */
 :root {
-    --p-success-700: #2b7350;
-    --p-success-100: #e4f1e8;
-    --p-success-300: #72cb9a;
+    --p-success-700: #2e6a4e;
+    --p-success-100: #e2efe6;
+    --p-success-300: #78c79c;
     --p-warning-700: #8a5a12;
-    --p-warning-100: #faefd9;
-    --p-warning-300: #e9b863;
-    --p-danger-700: #a8342a;
-    --p-danger-100: #fae7e3;
-    --p-danger-300: #f0907f;
-    --p-info-700: #2a617e;
-    --p-info-100: #e3eff5;
-    --p-info-300: #86bedc;
+    --p-warning-100: #f8ecd5;
+    --p-warning-300: #e6b765;
+    --p-danger-700: #a23a2d;
+    --p-danger-100: #f8e4df;
+    --p-danger-300: #ef9482;
+    --p-info-700: #2e5d77;
+    --p-info-100: #e1ecf2;
+    --p-info-300: #8bbfdb;
 }
 
 /* --------------------------------------------------------------------------
-   2. SEMANTICOS — superficie CLARA (padrao: painel, formularios, secoes claras)
+   2. SEMANTICOS — superficie CLARA (painel, conteudo claro do site)
    -------------------------------------------------------------------------- */
 :root,
 [data-superficie='clara'] {
@@ -93,7 +95,9 @@
     --c-text: var(--p-ink-950);
     --c-text-muted: var(--p-stone-600);
     --c-border: var(--p-paper-200);
+    --c-border-strong: var(--p-stone-500);
     --c-border-control: var(--p-stone-500);
+    --c-line: color-mix(in srgb, var(--p-ink-950) 9%, transparent);
 
     --c-primary: var(--p-ink-900);
     --c-primary-hover: var(--p-ink-700);
@@ -117,13 +121,13 @@
     --c-info: var(--p-info-700);
     --c-info-bg: var(--p-info-100);
 
-    --c-overlay: rgb(18 17 16 / 0.55);
+    --c-overlay: rgb(18 18 17 / 0.55);
     --c-placeholder-a: var(--p-paper-100);
     --c-placeholder-b: var(--p-paper-200);
 }
 
 /* --------------------------------------------------------------------------
-   SEMANTICOS — superficie ESCURA (padrao do site publico)
+   SEMANTICOS — superficie ESCURA (site publico, barra do painel, faixas)
    -------------------------------------------------------------------------- */
 [data-superficie='escura'] {
     color-scheme: dark;
@@ -135,7 +139,9 @@
     --c-text: var(--p-paper-50);
     --c-text-muted: var(--p-stone-300);
     --c-border: var(--p-ink-700);
+    --c-border-strong: var(--p-ink-600);
     --c-border-control: var(--p-stone-400);
+    --c-line: color-mix(in srgb, var(--p-paper-50) 11%, transparent);
 
     --c-primary: var(--p-paper-50);
     --c-primary-hover: var(--p-paper-200);
@@ -151,17 +157,17 @@
     --c-selection: color-mix(in srgb, var(--p-accent-500) 35%, transparent);
 
     --c-success: var(--p-success-300);
-    --c-success-bg: rgb(114 203 154 / 0.12);
+    --c-success-bg: rgb(120 199 156 / 0.12);
     --c-warning: var(--p-warning-300);
-    --c-warning-bg: rgb(233 184 99 / 0.12);
+    --c-warning-bg: rgb(230 183 101 / 0.12);
     --c-danger: var(--p-danger-300);
-    --c-danger-bg: rgb(240 144 127 / 0.12);
+    --c-danger-bg: rgb(239 148 130 / 0.12);
     --c-info: var(--p-info-300);
-    --c-info-bg: rgb(134 190 220 / 0.12);
+    --c-info-bg: rgb(139 191 219 / 0.12);
 
     --c-overlay: rgb(0 0 0 / 0.7);
-    --c-placeholder-a: var(--p-ink-800);
-    --c-placeholder-b: var(--p-ink-700);
+    --c-placeholder-a: var(--p-ink-900);
+    --c-placeholder-b: var(--p-ink-800);
 }
 
 /* --------------------------------------------------------------------------
@@ -172,19 +178,23 @@
     --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 
-    /* Escala modular ~1,2 no texto; titulos fluidos (clamp) do celular ao desktop */
-    --fs-xs: 0.75rem;     /* 12px — legendas, rotulos de tabela */
+    --fs-xs: 0.75rem;     /* 12px — rotulos, legendas */
     --fs-sm: 0.875rem;    /* 14px — interface densa (painel) */
     --fs-base: 1rem;      /* 16px — texto corrido; minimo para inputs no celular */
     --fs-md: 1.125rem;    /* 18px — texto de destaque no site */
-    --fs-lg: 1.25rem;     /* 20px — titulo de card */
-    --fs-xl: clamp(1.375rem, 1.1rem + 1vw, 1.625rem);  /* H3 */
-    --fs-2xl: clamp(1.75rem, 1.3rem + 1.8vw, 2.375rem); /* H2 de secao */
-    --fs-3xl: clamp(2.25rem, 1.5rem + 3vw, 3.5rem);     /* H1 de pagina */
-    --fs-display: clamp(2.75rem, 1.6rem + 5.2vw, 5.5rem); /* hero */
+    --fs-lg: 1.25rem;     /* 20px — titulo de bloco */
+    --fs-xl: clamp(1.5rem, 1.2rem + 1vw, 1.875rem);    /* H3 (condensada) */
+    --fs-2xl: clamp(2rem, 1.4rem + 2.2vw, 3rem);        /* H2 de secao */
+    --fs-3xl: clamp(2.5rem, 1.6rem + 3.6vw, 4.25rem);   /* H1 de pagina */
+    --fs-display: clamp(3.25rem, 1.6rem + 7vw, 8rem);   /* hero */
 
-    --lh-tight: 1.05;
-    --lh-snug: 1.25;
+    /* Numeros (preco, hora, valor): condensada e tabular */
+    --fs-figure-sm: 1.25rem;
+    --fs-figure: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+    --fs-figure-lg: clamp(2.5rem, 1.8rem + 2.4vw, 3.75rem);
+
+    --lh-tight: 0.95;
+    --lh-snug: 1.2;
     --lh-normal: 1.5;
     --lh-relaxed: 1.65;
 
@@ -207,34 +217,30 @@
     --space-16: 4rem;    /* 64 */
     --space-20: 5rem;    /* 80 */
     --space-24: 6rem;    /* 96 */
-    --space-section: clamp(4rem, 2.5rem + 6vw, 8rem); /* respiro entre secoes do site */
+    --space-section: clamp(4.5rem, 2.5rem + 7vw, 9rem);
 
     /* Larguras */
-    --container: 76rem;      /* 1216px */
+    --container: 80rem;      /* 1280px */
     --container-narrow: 46rem;
-    --measure: 68ch;         /* linha de leitura confortavel */
+    --measure: 64ch;
 
-    /* Alvos de toque */
     --touch: 2.75rem;        /* 44px */
 
-    /* Bordas */
     --border-width: 1px;
-    --focus-width: 3px;
+    --focus-width: 2px;
     --focus-offset: 2px;
 
-    /* Sombras — SO para o que flutua sobre a pagina (menu, modal, toast).
-       Cards e secoes usam borda ou mudanca de superficie, nunca sombra. */
-    --shadow-sm: 0 1px 2px rgb(18 17 16 / 0.08);
-    --shadow-md: 0 8px 24px rgb(18 17 16 / 0.14), 0 2px 6px rgb(18 17 16 / 0.08);
-    --shadow-lg: 0 24px 60px rgb(18 17 16 / 0.28), 0 4px 12px rgb(18 17 16 / 0.12);
+    /* Sombras — SO para o que flutua (menu, modal, toast, barra fixa). */
+    --shadow-sm: 0 1px 2px rgb(18 18 17 / 0.08);
+    --shadow-md: 0 10px 30px rgb(18 18 17 / 0.14), 0 2px 6px rgb(18 18 17 / 0.08);
+    --shadow-lg: 0 28px 70px rgb(18 18 17 / 0.3), 0 4px 12px rgb(18 18 17 / 0.12);
 
-    /* Movimento */
+    /* Movimento: curto e sem enfeite */
     --dur-fast: 120ms;
     --dur-base: 200ms;
-    --dur-slow: 320ms;
+    --dur-slow: 360ms;
     --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* Camadas */
     --z-sticky: 20;
     --z-dropdown: 40;
     --z-overlay: 60;

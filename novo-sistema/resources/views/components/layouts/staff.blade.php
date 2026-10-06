@@ -120,39 +120,35 @@
         $admin[] = $item('Auditoria', 'history', 'panel.audit.index', 'panel.audit.*');
     }
 
-    $nav = [['group' => '', 'items' => $operacao]];
+    // Redesign: menu agrupado pelo TRABALHO de quem usa (o dia, clientes e
+    // vendas, equipe e catalogo, dinheiro, configuracoes), nao pela fase em
+    // que cada tela foi construida. So aparece o que a pessoa pode usar.
+    $clientes = array_merge($assinaturas, $promocoes, $comunicacao);
+    $clientes = array_values(array_filter($clientes, fn ($i) => ! in_array($i['label'], ['Planos', 'Fidelidade e aniversário', 'Lembretes e avisos', 'E-mails enviados'], true)));
+    $configuracoes = array_merge(
+        $configAgenda,
+        array_values(array_filter(array_merge($assinaturas, $promocoes, $comunicacao), fn ($i) => in_array($i['label'], ['Planos', 'Fidelidade e aniversário', 'Lembretes e avisos', 'E-mails enviados'], true))),
+        $site,
+        $admin,
+    );
+
+    $nav = [['group' => 'Hoje', 'items' => $operacao]];
+    if ($clientes !== []) {
+        $nav[] = ['group' => 'Clientes e vendas', 'items' => $clientes];
+    }
+    if ($cadastros !== []) {
+        $nav[] = ['group' => 'Equipe e catálogo', 'items' => $cadastros];
+    }
     if ($financeiro !== []) {
         $nav[] = ['group' => 'Financeiro', 'items' => $financeiro];
     }
-    if ($promocoes !== []) {
-        $nav[] = ['group' => 'Promoções', 'items' => $promocoes];
+    if ($configuracoes !== []) {
+        $nav[] = ['group' => 'Configurações', 'items' => $configuracoes];
     }
-    if ($assinaturas !== []) {
-        $nav[] = ['group' => 'Assinaturas', 'items' => $assinaturas];
-    }
-    if ($comunicacao !== []) {
-        $nav[] = ['group' => 'Comunicação', 'items' => $comunicacao];
-    }
-    if ($site !== []) {
-        $nav[] = ['group' => 'Site', 'items' => $site];
-    }
-    if ($configAgenda !== []) {
-        $nav[] = ['group' => 'Configurar agenda', 'items' => $configAgenda];
-    }
-    if ($cadastros !== []) {
-        $nav[] = ['group' => 'Cadastros', 'items' => $cadastros];
-    }
-    if ($admin !== []) {
-        $nav[] = ['group' => 'Administração', 'items' => $admin];
-    }
-    $nav[] = ['group' => 'Conta', 'items' => [
-        $item('Minha conta', 'settings', 'panel.account.edit', 'panel.account.*'),
-        $item('Senha', 'key-round', 'panel.password.edit', 'panel.password.*'),
-    ]];
 @endphp
-<x-layouts.panel :title="$title" :brand="config('app.name')" :nav="$nav" :user-name="$user->name" :user-role="$user->role?->label()" :logout-url="route('staff.logout')" :account-url="route('panel.account.edit')">
+<x-layouts.panel :title="$title" :brand="config('app.name')" :nav="$nav" :user-name="$user->name" :user-role="$user->role?->label()" :logout-url="route('staff.logout')" :account-url="route('panel.account.edit')" :password-url="route('panel.password.edit')">
     @if (session('status'))
-        <x-ui.alert variant="success">{{ session('status') }}</x-ui.alert>
+        <x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>
     @endif
 
     {{ $slot }}

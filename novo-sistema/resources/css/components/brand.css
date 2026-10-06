@@ -10,26 +10,30 @@
     text-decoration: none;
 }
 
+/* Selo da marca enquanto o logo real nao chega: a inicial num quadrado de fio
+   fino (como um carimbo), nunca um desenho inventado. */
 .brand__mark {
     display: grid;
     place-items: center;
     width: 2.25rem;
     height: 2.25rem;
-    border: 1.5px solid var(--c-accent);
-    border-radius: 50%;
+    border: 1px solid var(--c-accent);
+    border-radius: 2px;
     color: var(--c-accent-text);
     font-family: var(--font-display);
-    font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
-    font-size: 1rem;
+    font-weight: 700;
+    font-stretch: var(--font-display-stretch);
+    font-size: 1.125rem;
+    line-height: 1;
 }
 
 .brand__name {
     font-family: var(--font-display);
-    font-weight: var(--font-display-weight);
-    font-variation-settings: var(--font-display-settings);
-    letter-spacing: var(--font-display-tracking);
-    font-size: 1.2rem;
+    font-weight: 680;
+    font-stretch: var(--font-display-stretch);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-size: 1.125rem;
     line-height: 1;
 }
 
@@ -87,7 +91,11 @@
     font-weight: var(--fw-semibold);
 }
 
-.summary-total strong {
-    font-size: var(--fs-xl);
+.summary-total strong,
+.summary-total dd {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-figure-sm);
+    font-weight: 650;
     font-variant-numeric: tabular-nums;
 }
