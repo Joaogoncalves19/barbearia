@@ -1,0 +1,1347 @@
+/* ==========================================================================
+   SITE PUBLICO — linguagem "Oficio" (redesign)
+   Pagina de marca, nao de sistema: titulos condensados em caixa alta, a
+   regua como assinatura grafica, capitulos numerados (01, 02...), preco
+   como numero de destaque, fotografia como protagonista quando existir.
+   Sem barber pole, sem tesoura desenhada: a barbearia aparece no tom, na
+   precisao e no "letreiro" de precos, nao em enfeite.
+   ========================================================================== */
+
+/* As faixas listradas da versao anterior saem (pedido do redesign). */
+.barber-stripe {
+    display: none;
+}
+
+/* --- Cabecalho --------------------------------------------------------------------- */
+.site-header {
+    border-bottom-color: var(--c-border);
+    background: color-mix(in srgb, var(--c-bg) 90%, transparent);
+}
+
+.site-header__inner {
+    min-height: 4.5rem;
+}
+
+.site-nav a {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.site-nav a[aria-current='page'] {
+    box-shadow: inset 0 -2px 0 var(--c-accent);
+}
+
+.mobile-menu a {
+    font-size: var(--fs-xl);
+    text-transform: uppercase;
+}
+
+/* Recado depois de uma acao (ex.: conta excluida). */
+.site-flash {
+    padding-block: var(--space-4);
+}
+
+/* --- Topo (abertura) ---------------------------------------------------------------- */
+.opening {
+    position: relative;
+    padding-block: clamp(3.5rem, 2rem + 6vw, 7rem) var(--space-10);
+    overflow: hidden;
+}
+
+/* A regua corre no pe do topo: a medida da casa. */
+.opening::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 0.75rem;
+    background:
+        linear-gradient(var(--c-border), var(--c-border)) bottom / 100% 1px no-repeat,
+        repeating-linear-gradient(90deg, var(--c-border-strong) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
+        repeating-linear-gradient(90deg, var(--c-accent) 0 1px, transparent 1px 4rem) bottom / 100% 0.75rem no-repeat;
+}
+
+.opening__grid {
+    display: grid;
+    gap: var(--space-12);
+    align-items: end;
+}
+
+@media (min-width: 64rem) {
+    .opening__grid {
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+        gap: var(--space-16);
+    }
+}
+
+.opening__text {
+    display: grid;
+    gap: var(--space-6);
+    justify-items: start;
+}
+
+.opening__title {
+    max-width: 11ch;
+}
+
+.opening__name {
+    margin-top: calc(-1 * var(--space-3));
+    color: var(--c-accent-text);
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.opening__lead {
+    max-width: 46ch;
+}
+
+.opening__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4) var(--space-6);
+}
+
+/* Foto do topo: retrato alto, moldura de fio fino. */
+.opening__photo {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-media);
+    background: var(--c-surface);
+}
+
+.opening__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.9) contrast(1.04);
+}
+
+.opening__photo::after {
+    content: '';
+    position: absolute;
+    inset: var(--space-3);
+    border: var(--border-width) solid color-mix(in srgb, var(--p-paper-50) 35%, transparent);
+    pointer-events: none;
+}
+
+/* Letreiro: o quadro de precos da parede, com os servicos reais. */
+.signboard {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6) var(--space-6) var(--space-5);
+    border: var(--border-width) solid var(--c-border-strong);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+}
+
+.signboard__head {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-width) solid var(--c-border);
+    color: var(--c-accent-text);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+
+.signboard__list {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+}
+
+.signboard__list li {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+}
+
+.signboard__name {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 620;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.signboard__dots {
+    flex: 1;
+    min-width: 1rem;
+    border-bottom: 1px dotted var(--c-border-strong);
+    transform: translateY(-0.3em);
+}
+
+.signboard__price {
+    font-size: var(--fs-xl);
+}
+
+.signboard__foot .ruler {
+    display: block;
+}
+
+/* Ficha rapida: tres fatos, separados por fios (nao cards). */
+.facts {
+    display: grid;
+    margin: var(--space-12) 0 0;
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+@media (min-width: 48rem) {
+    .facts {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.facts__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4) var(--space-5) var(--space-4) 0;
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+@media (min-width: 48rem) {
+    .facts__item {
+        border-bottom: 0;
+    }
+
+    .facts__item + .facts__item {
+        padding-left: var(--space-5);
+        border-left: var(--border-width) solid var(--c-border);
+    }
+}
+
+.facts dt {
+    color: var(--c-text-muted);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.facts dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-3);
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.facts strong {
+    color: var(--c-text);
+    font-size: var(--fs-base);
+}
+
+.facts strong.is-open {
+    color: var(--c-success);
+}
+
+/* --- Capitulos numerados ------------------------------------------------------------ */
+main {
+    counter-reset: capitulo;
+}
+
+.chapter {
+    padding-block: var(--space-section);
+    counter-increment: capitulo;
+}
+
+.chapter + .chapter:not(.chapter--band):not(.chapter--paper) {
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+.chapter--flush {
+    padding-block: var(--space-12);
+}
+
+.chapter--band {
+    background: var(--c-surface);
+}
+
+.chapter--paper {
+    background: var(--c-bg);
+    color: var(--c-text);
+}
+
+.chapter__grid {
+    display: grid;
+    gap: var(--space-10);
+}
+
+@media (min-width: 64rem) {
+    .chapter__grid {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr);
+        gap: var(--space-16);
+        align-items: start;
+    }
+
+    .chapter__grid > .chapter__head {
+        position: sticky;
+        top: calc(4.5rem + var(--space-8));
+    }
+}
+
+.chapter__head {
+    display: grid;
+    gap: var(--space-4);
+    justify-items: start;
+    align-content: start;
+}
+
+.chapter__head--row {
+    margin-bottom: var(--space-10);
+}
+
+@media (min-width: 48rem) {
+    .chapter__head--row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+    }
+}
+
+.chapter__head .text-muted {
+    max-width: 38ch;
+}
+
+/* "01 —" automatico: nunca pula numero quando um bloco nao aparece. */
+.chapter__index {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--c-accent-text);
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-base);
+    font-weight: 650;
+    letter-spacing: 0.08em;
+}
+
+.chapter__index::before {
+    content: counter(capitulo, decimal-leading-zero);
+}
+
+.chapter__index::after {
+    content: '';
+    width: 2.5rem;
+    height: 1px;
+    background: currentColor;
+}
+
+/* --- Servicos: linhas grandes, preco como numero -------------------------------------- */
+.service-list {
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--c-text);
+}
+
+.service-row a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-1) var(--space-6);
+    align-items: baseline;
+    padding: var(--space-5) 0;
+    border-bottom: var(--border-width) solid var(--c-border);
+    color: var(--c-text);
+    text-decoration: none;
+    transition: padding var(--dur-base) var(--ease-out), background-color var(--dur-base);
+}
+
+.service-row a.has-photo {
+    grid-template-columns: 5rem minmax(0, 1fr) auto;
+}
+
+.service-row__photo {
+    grid-row: span 3;
+    align-self: start;
+    width: 5rem;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-media);
+}
+
+.service-row__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.service-row__name {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+    font-weight: 640;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+
+.service-row__price {
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+}
+
+.service-row__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.service-row__desc {
+    grid-column: 1;
+    max-width: 56ch;
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.has-photo .service-row__desc {
+    grid-column: 2;
+}
+
+.service-row__cta {
+    grid-column: -2;
+    grid-row: 2;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--c-accent-text);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.service-row__cta .icon {
+    transition: transform var(--dur-base) var(--ease-out);
+}
+
+.service-row a:hover {
+    padding-inline: var(--space-3);
+    background: var(--c-surface);
+}
+
+.service-row a:hover .service-row__cta .icon {
+    transform: translateX(3px);
+}
+
+.tag {
+    display: inline-block;
+    margin-left: var(--space-2);
+    padding: 0.125rem 0.375rem;
+    border: var(--border-width) solid var(--c-accent);
+    border-radius: 2px;
+    color: var(--c-accent-text);
+    font-family: var(--font-body);
+    font-size: 0.625rem;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1em;
+    vertical-align: middle;
+}
+
+/* --- Equipe: retratos 4:5; sem foto, o monograma vira uma placa de grafite ---------- */
+.team {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-8) var(--space-6);
+    padding: 0;
+    list-style: none;
+}
+
+.pro-card {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.pro-card__media {
+    display: block;
+    text-decoration: none;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-media);
+    background: var(--c-surface-raised);
+}
+
+.pro-card__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.9);
+    transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.pro-card:hover .pro-card__media img {
+    transform: scale(1.03);
+}
+
+.monogram {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    background:
+        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--p-accent-500) 14%, transparent), transparent 60%),
+        var(--p-ink-900);
+    color: var(--p-paper-50);
+}
+
+.monogram::after {
+    content: '';
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-5);
+    left: var(--space-5);
+    height: 0.75rem;
+    background:
+        linear-gradient(color-mix(in srgb, var(--p-paper-50) 25%, transparent), color-mix(in srgb, var(--p-paper-50) 25%, transparent)) bottom / 100% 1px no-repeat,
+        repeating-linear-gradient(90deg, color-mix(in srgb, var(--p-paper-50) 30%, transparent) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
+        repeating-linear-gradient(90deg, var(--p-accent-500) 0 1px, transparent 1px 2.5rem) bottom / 100% 0.75rem no-repeat;
+}
+
+.monogram__letters {
+    font-family: var(--font-display);
+    font-stretch: 62%;
+    font-size: clamp(4rem, 3rem + 5vw, 7rem);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1;
+}
+
+.pro-card__body {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.pro-card__name {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-xl);
+    font-weight: 650;
+    line-height: 1.05;
+    text-transform: uppercase;
+}
+
+.pro-card__name a {
+    color: var(--c-text);
+    text-decoration: none;
+}
+
+.pro-card__name a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+}
+
+.pro-card__role {
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.pro-card .link-arrow {
+    min-height: 2.25rem;
+    color: var(--c-accent-text);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+/* --- A casa (secao clara) ------------------------------------------------------------- */
+.about__lead {
+    color: var(--c-text);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    line-height: 1.45;
+}
+
+.values {
+    display: grid;
+    gap: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--c-text);
+}
+
+@media (min-width: 48rem) {
+    .values {
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    }
+}
+
+.values__item {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-5) var(--space-5) 0;
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.values__n {
+    color: var(--c-accent-text);
+    font-size: var(--fs-lg);
+}
+
+.values__title {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    text-transform: uppercase;
+}
+
+.values__item p {
+    margin-top: var(--space-1);
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.about-photos {
+    display: grid;
+    gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+    .about-photos {
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    }
+}
+
+.about-photos img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius-media);
+}
+
+/* --- Avaliacoes ------------------------------------------------------------------------- */
+.score {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+}
+
+.quotes {
+    display: grid;
+    gap: var(--space-8);
+}
+
+.quote {
+    display: grid;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+.quote blockquote {
+    margin: 0;
+}
+
+.quote blockquote p {
+    font-family: var(--font-display);
+    font-stretch: 85%;
+    font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2rem);
+    font-weight: 500;
+    line-height: 1.2;
+    text-wrap: pretty;
+}
+
+.quote figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.stars {
+    display: inline-flex;
+    gap: 2px;
+    color: var(--c-accent-text);
+}
+
+.stars .icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    fill: currentColor;
+}
+
+/* --- Assinatura -------------------------------------------------------------------------- */
+.plan-list {
+    display: grid;
+    gap: var(--space-4);
+    padding: 0;
+    list-style: none;
+}
+
+@media (min-width: 48rem) {
+    .plan-list {
+        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    }
+}
+
+.plan-card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border: var(--border-width) solid var(--c-border-strong);
+    border-top: 2px solid var(--c-accent);
+    border-radius: var(--radius-card);
+    background: var(--c-bg);
+}
+
+.plan-card__name {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-xl);
+    font-weight: 650;
+    text-transform: uppercase;
+}
+
+.plan-card__price {
+    font-size: var(--fs-figure);
+}
+
+.plan-card__items {
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+}
+
+.plan-card__list {
+    display: grid;
+    gap: var(--space-2);
+    margin: 0;
+    padding: var(--space-3) 0 0;
+    list-style: none;
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+.plan-card__list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+}
+
+.plan-card__list .icon {
+    color: var(--c-accent-text);
+}
+
+.how-to {
+    display: grid;
+    gap: var(--space-3);
+    max-width: 60ch;
+}
+
+/* --- Visite: endereco e horarios -------------------------------------------------------- */
+.visit {
+    display: grid;
+    gap: var(--space-10);
+}
+
+@media (min-width: 48rem) {
+    .visit {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+}
+
+.visit__address {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-2xl);
+    font-weight: 650;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+/* --- Chamada final ------------------------------------------------------------------------ */
+.closing {
+    padding-block: var(--space-section);
+    border-top: var(--border-width) solid var(--c-border);
+    text-align: center;
+}
+
+.closing__inner {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-6);
+}
+
+.closing__ruler {
+    display: block;
+    width: min(100%, 24rem);
+}
+
+.closing__title {
+    max-width: 14ch;
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 6rem);
+}
+
+/* --- Cabeca das paginas internas --------------------------------------------------------- */
+.masthead {
+    position: relative;
+    padding-block: clamp(3rem, 2rem + 4vw, 5.5rem) var(--space-10);
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.masthead__inner {
+    display: grid;
+    gap: var(--space-5);
+    justify-items: start;
+}
+
+.masthead__title {
+    font-size: clamp(2.75rem, 1.6rem + 5vw, 6rem);
+}
+
+.page-body {
+    padding-block: var(--space-12) var(--space-section);
+}
+
+.page-body > .chapter--flush:first-child {
+    padding-top: 0;
+}
+
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.category-chips a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;
+    padding: 0 var(--space-4);
+    border: var(--border-width) solid var(--c-border-strong);
+    border-radius: var(--radius-pill);
+    color: var(--c-text);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.category-chips a:hover {
+    border-color: var(--c-text);
+}
+
+/* --- Perfil do profissional ----------------------------------------------------------------- */
+.profile {
+    padding-block: var(--space-12) var(--space-section);
+}
+
+.profile__grid {
+    display: grid;
+    gap: var(--space-10);
+}
+
+@media (min-width: 64rem) {
+    .profile__grid {
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
+        gap: var(--space-16);
+        align-items: start;
+    }
+
+    .profile__media {
+        position: sticky;
+        top: calc(4.5rem + var(--space-8));
+    }
+}
+
+.profile__media {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-radius: var(--radius-media);
+}
+
+.profile__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile__name {
+    font-size: clamp(2.75rem, 1.6rem + 4.5vw, 5.5rem);
+}
+
+.back-link {
+    min-height: auto;
+    color: var(--c-text-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+}
+
+/* --- Rodape --------------------------------------------------------------------------------- */
+.site-footer {
+    padding-top: 0;
+}
+
+.site-footer__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-6);
+    padding-block: var(--space-12);
+    margin-bottom: var(--space-12);
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.site-footer__claim {
+    max-width: 18ch;
+    color: var(--c-text);
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-2xl);
+    font-weight: 680;
+    line-height: 1;
+}
+
+.site-footer .eyebrow::before {
+    display: none;
+}
+
+.site-footer .btn {
+    color: var(--btn-fg);
+}
+
+.site-footer .brand {
+    color: var(--c-text);
+}
+
+/* Na pagina que ja termina com a chamada final, o rodape nao repete o botao. */
+main:has(.closing) + .site-footer .site-footer__top .btn {
+    display: none;
+}
+
+/* ==========================================================================
+   AGENDAMENTO pelo site
+   ========================================================================== */
+.booking-page {
+    padding-block: var(--space-10) var(--space-section);
+}
+
+.booking-head {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+}
+
+.booking-head .h1 {
+    font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+}
+
+/* O que ja foi escolhido: nome, duracao, preco/profissional em linha, com fios. */
+.booking-pick {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-1) var(--space-4);
+    color: var(--c-text-muted);
+}
+
+.booking-pick strong {
+    color: var(--c-text);
+}
+
+.booking-pick > * + * {
+    padding-left: var(--space-4);
+    border-left: var(--border-width) solid var(--c-border-strong);
+}
+
+/* Etapas numeradas: 1 Servico, 2 Profissional... */
+.steps__item {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-2);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.steps__item::before {
+    grid-column: 1 / -1;
+    height: 2px;
+}
+
+.steps__n {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-base);
+    font-weight: 700;
+}
+
+.steps__item[aria-current='step'] .steps__n,
+.steps__item.is-done .steps__n {
+    color: var(--c-accent-text);
+}
+
+.service-list--compact .service-row__name,
+.service-list--compact .service-row__price {
+    font-size: var(--fs-xl);
+}
+
+/* Escolha do profissional */
+.choice-list {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+}
+
+.choice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+    color: var(--c-text);
+    text-decoration: none;
+    transition: border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+}
+
+.choice:hover {
+    border-color: var(--c-accent);
+}
+
+.choice__mark {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: var(--border-width) dashed var(--c-border-strong);
+    border-radius: 50%;
+    color: var(--c-accent-text);
+}
+
+.choice__text {
+    display: grid;
+    gap: 2px;
+}
+
+.choice__text strong {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    text-transform: uppercase;
+}
+
+/* Dias e horarios */
+.days {
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: thin;
+}
+
+.day {
+    display: grid;
+    justify-items: center;
+    flex: none;
+    min-width: 4.25rem;
+    padding: var(--space-3) var(--space-2);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-control);
+    color: var(--c-text-muted);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+.day strong {
+    color: var(--c-text);
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-figure-sm);
+    font-weight: 680;
+    letter-spacing: 0;
+    line-height: 1.1;
+}
+
+.day:hover {
+    border-color: var(--c-text-muted);
+}
+
+.day[aria-current='date'] {
+    border-color: var(--c-accent);
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+}
+
+.day[aria-current='date'] strong {
+    color: var(--c-on-accent);
+}
+
+.slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+    gap: var(--space-2);
+}
+
+.slot {
+    display: grid;
+    place-items: center;
+    min-height: 3.25rem;
+    border: var(--border-width) solid var(--c-border-strong);
+    border-radius: var(--radius-control);
+    color: var(--c-text);
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    text-decoration: none;
+    transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.slot:hover {
+    border-color: var(--c-accent);
+    background: var(--c-accent-soft);
+}
+
+/* ==========================================================================
+   PAGINA DE ERRO: o numero grande faz o papel da imagem
+   ========================================================================== */
+.error-page {
+    display: grid;
+    min-height: 100dvh;
+}
+
+.error-page__inner {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: var(--space-10);
+    padding-block: var(--space-6) var(--space-10);
+}
+
+.error-page__body {
+    display: grid;
+    align-items: center;
+    gap: var(--space-8);
+}
+
+@media (min-width: 64rem) {
+    .error-page__body {
+        grid-template-columns: auto minmax(0, 1fr);
+        gap: var(--space-16);
+    }
+}
+
+.error-page__code {
+    color: transparent;
+    font-family: var(--font-display);
+    font-stretch: 62%;
+    font-size: clamp(7rem, 4rem + 14vw, 16rem);
+    font-weight: 800;
+    line-height: 0.8;
+    -webkit-text-stroke: 1px var(--c-accent);
+}
+
+/* ==========================================================================
+   AREA DO CLIENTE (redesign): produto de consumo, nao painel simplificado
+   ========================================================================== */
+.account-hello {
+    display: grid;
+    gap: var(--space-2);
+}
+
+.account-hello .h1 {
+    font-size: clamp(2.5rem, 1.8rem + 3vw, 4rem);
+}
+
+.account-content > header .h2 {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
+    font-weight: 680;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+/* Proximo horario: o cartao que responde quando, o que, com quem e quanto. */
+.next-visit {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    border: var(--border-width) solid var(--c-accent);
+    border-radius: var(--radius-card);
+    background:
+        radial-gradient(90% 120% at 100% 0%, color-mix(in srgb, var(--c-accent) 12%, transparent), transparent 60%),
+        var(--c-surface);
+    color: var(--c-text);
+    text-decoration: none;
+}
+
+.next-visit__label,
+.next-visit__k {
+    color: var(--c-accent-text);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.next-visit__k {
+    margin-right: var(--space-2);
+    color: var(--c-text-muted);
+}
+
+.next-visit__when {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-6);
+}
+
+.next-visit__day {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: 680;
+    line-height: 1;
+}
+
+.next-visit__time {
+    color: var(--c-accent-text);
+}
+
+.next-visit__what {
+    display: grid;
+    gap: var(--space-1);
+    color: var(--c-text-muted);
+}
+
+.next-visit__what strong {
+    color: var(--c-text);
+    font-size: var(--fs-md);
+}
+
+.next-visit__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-3) var(--space-6);
+    padding-top: var(--space-4);
+    border-top: var(--border-width) solid var(--c-border);
+    font-size: var(--fs-sm);
+}
+
+.next-visit__go {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+    font-weight: var(--fw-semibold);
+}
+
+.next-visit:hover .next-visit__go .icon {
+    transform: translateX(3px);
+}
+
+.next-visit__go .icon {
+    transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* Beneficios de hoje */
+.perks {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5) var(--space-6);
+    border-left: 2px solid var(--c-accent);
+    background: var(--c-accent-soft);
+    border-radius: 0 var(--radius-card) var(--radius-card) 0;
+}
+
+.perks__list {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    list-style: none;
+}
+
+.perks__list li {
+    display: flex;
+    gap: var(--space-3);
+}
+
+.perks__list .icon {
+    margin-top: 0.15em;
+    color: var(--c-accent-text);
+}
+
+/* Lista de horarios e blocos da conta, na linguagem do site */
+.account-appt {
+    border-radius: var(--radius-card);
+}
+
+.account-appt__day {
+    font-stretch: var(--font-display-stretch);
+    font-weight: 680;
+}
+
+.account-tile {
+    border-radius: var(--radius-card);
+}
+
+.account-tile__label {
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: var(--fs-lg);
+    font-weight: 650;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.account-menu a {
+    border-radius: var(--radius-control);
+}
+
+.account-content .card {
+    background: var(--c-surface);
+}
+
+.account-content .summary-total {
+    border-top-color: var(--c-border-strong);
+}
+
+.account-content [data-total],
+.account-content .summary-total dd {
+    color: var(--c-text);
+}
+
+/* Cabecalho no celular: nome da marca numa linha so (corta com reticencias). */
+.site-header__inner > .cluster {
+    flex-wrap: nowrap;
+}
+
+@media (max-width: 30rem) {
+    .site-header .brand {
+        min-width: 0;
+    }
+
+    .site-header .brand__name {
+        overflow: hidden;
+        max-width: 10.5rem;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: 0.9375rem;
+    }
+}

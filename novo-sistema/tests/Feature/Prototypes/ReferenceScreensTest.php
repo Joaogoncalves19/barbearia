@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Prototypes;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ReferenceScreensTest extends TestCase
 {
+    // As telas de acesso leem o nome e o logo da marca (redesign): precisam do banco de teste.
+    use RefreshDatabase;
+
     private const TELAS = [
         '/prototipos', '/prototipos/home', '/prototipos/servicos', '/prototipos/agendamento',
         '/prototipos/painel', '/prototipos/agenda', '/prototipos/agenda?visao=lista', '/design-system',

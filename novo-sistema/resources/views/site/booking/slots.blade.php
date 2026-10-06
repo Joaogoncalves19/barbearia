@@ -3,10 +3,10 @@
     $proSlug = $professional?->slug ?? 'qualquer';
 @endphp
 <x-layouts.booking :title="'Horários: '.$service->name" :step="3">
-    <header class="stack stack-sm">
-        <a class="link-arrow text-sm" href="{{ route('booking.professional', $service) }}">Trocar profissional</a>
-        <h1 class="h2">Escolha o dia e o horário</h1>
-        <p class="text-muted">{{ $service->name }} ({{ $service->durationLabel() }}) · {{ $professional?->display_name ?? 'Sem preferência de profissional' }}</p>
+    <header class="booking-head">
+        <a class="link-arrow back-link" href="{{ route('booking.professional', $service) }}"><x-icon name="chevron-left" /> Trocar profissional</a>
+        <h1 class="h1 caps">Escolha o dia e o horário</h1>
+        <p class="booking-pick"><strong>{{ $service->name }}</strong> <span>{{ $service->durationLabel() }}</span> <span>{{ $professional?->display_name ?? 'Sem preferência de profissional' }}</span></p>
     </header>
 
     @if ($days === [])
@@ -18,11 +18,19 @@
         ])
 
         <section class="stack stack-sm" aria-labelledby="horarios-titulo">
-            <h2 class="h3" id="horarios-titulo">
+            <h2 class="eyebrow eyebrow--plain" id="horarios-titulo">
                 Horários em {{ \Carbon\CarbonImmutable::createFromFormat('Y-m-d', $date, BusinessTime::zone())->locale('pt_BR')->translatedFormat('d/m (l)') }}
             </h2>
             @if ($slots === [])
-                <x-ui.empty-state title="Nenhum horário livre neste dia" icon="clock">Escolha outro dia acima.</x-ui.empty-state>
+                @php $proximo = collect($days)->first(fn ($d) => $d > $date); @endphp
+                <x-ui.empty-state title="Nenhum horário livre neste dia" icon="clock">
+                    Escolha outro dia acima{{ $proximo ? ' ou veja o próximo dia aberto' : '' }}.
+                    @if ($proximo)
+                        <x-slot:action>
+                            <x-ui.button :href="route('booking.slots', ['service' => $service, 'profissional' => $proSlug, 'data' => $proximo])" variant="secondary" icon-right="arrow-right">Ver {{ \Carbon\CarbonImmutable::createFromFormat('Y-m-d', $proximo, BusinessTime::zone())->locale('pt_BR')->translatedFormat('l, d/m') }}</x-ui.button>
+                        </x-slot:action>
+                    @endif
+                </x-ui.empty-state>
             @else
                 <div class="slots">
                     @foreach ($slots as $s)

@@ -40,8 +40,17 @@
                 <tbody>
                     @foreach ($g['services'] as $s)
                         <tr>
-                            <td data-label="Serviço"><strong>{{ $s->name }}</strong></td>
-                            <td data-label="Preço atual" class="numeric">{{ $s->price()->format() }}</td>
+                            <td data-label="Serviço">
+                                <span class="item-cell">
+                                    @if ($s->imageUrl())
+                                        <img class="thumb thumb--sm" src="{{ $s->imageUrl() }}" alt="" loading="lazy">
+                                    @else
+                                        <span class="thumb thumb--sm thumb--empty" aria-hidden="true"><x-icon name="scissors" /></span>
+                                    @endif
+                                    <strong>{{ $s->name }}</strong>
+                                </span>
+                            </td>
+                            <td data-label="Preço atual" class="numeric cell-figure">{{ $s->price()->format() }}</td>
                             <td data-label="Duração">{{ $s->durationLabel() }}</td>
                             <td data-label="Profissionais">{{ $s->professionals_count }}</td>
                             <td data-label="Situação">

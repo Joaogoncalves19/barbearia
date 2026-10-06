@@ -1,7 +1,10 @@
 {{-- Rodape do site publico: so dados reais (o que nao estiver configurado nao aparece). Sem link para o painel. --}}
 @php $status = $site->hours()->status(); @endphp
-<div class="barber-stripe" aria-hidden="true"></div>
 <footer class="site-footer">
+    <div class="container site-footer__top">
+        <p class="site-footer__claim caps">{{ $cfg->has('tagline') ? $cfg->get('tagline') : $marca['name'] }}</p>
+        <x-ui.button :href="route('booking.services')" variant="accent" icon="calendar">Agendar horário</x-ui.button>
+    </div>
     <div class="container site-footer__grid">
         <div class="stack">
             <a class="brand" href="{{ route('home') }}">

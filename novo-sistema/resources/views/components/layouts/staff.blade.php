@@ -146,7 +146,7 @@
         $nav[] = ['group' => 'Configurações', 'items' => $configuracoes];
     }
 @endphp
-<x-layouts.panel :title="$title" :brand="config('app.name')" :nav="$nav" :user-name="$user->name" :user-role="$user->role?->label()" :logout-url="route('staff.logout')" :account-url="route('panel.account.edit')" :password-url="route('panel.password.edit')">
+<x-layouts.panel :title="$title" :brand="\App\Modules\SiteContent\Support\Brand::current()['name']" :nav="$nav" :user-name="$user->name" :user-role="$user->role?->label()" :logout-url="route('staff.logout')" :account-url="route('panel.account.edit')" :password-url="route('panel.password.edit')">
     @if (session('status'))
         <x-ui.alert variant="success" role="status">{{ session('status') }}</x-ui.alert>
     @endif

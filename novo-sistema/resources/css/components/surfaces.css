@@ -235,8 +235,67 @@
 .auth-page {
     display: grid;
     min-height: 100dvh;
+    grid-template-rows: auto 1fr;
+}
+
+@media (min-width: 64rem) {
+    .auth-page {
+        grid-template-rows: none;
+        grid-template-columns: minmax(22rem, 0.9fr) minmax(0, 1.1fr);
+    }
+}
+
+/* Painel da marca (grafite). No celular, faixa curta; no desktop, a coluna inteira. */
+.auth-brand {
+    display: grid;
+    align-content: space-between;
+    gap: var(--space-6);
+    padding: var(--space-5) var(--space-4);
+    background: var(--c-bg);
+    color: var(--c-text);
+    border-bottom: var(--border-width) solid var(--c-border);
+}
+
+.auth-brand__claim,
+.auth-brand__ruler {
+    display: none;
+}
+
+@media (min-width: 64rem) {
+    .auth-brand {
+        padding: var(--space-10) var(--space-12);
+        border-bottom: 0;
+        border-right: var(--border-width) solid var(--c-border);
+    }
+
+    .auth-brand__claim {
+        display: grid;
+        gap: var(--space-5);
+    }
+
+    .auth-brand__ruler {
+        display: block;
+    }
+}
+
+.auth-brand__title {
+    max-width: 12ch;
+    font-family: var(--font-display);
+    font-stretch: var(--font-display-stretch);
+    font-size: clamp(2.5rem, 1.6rem + 3vw, 4.5rem);
+    font-weight: 700;
+    line-height: 0.95;
+}
+
+.auth-panel {
+    display: grid;
     place-items: center;
-    padding: var(--space-6) var(--space-4);
+    padding: var(--space-10) var(--space-4) var(--space-16);
+}
+
+.auth-card .h2 {
+    font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
+    text-transform: uppercase;
 }
 
 .auth-card {

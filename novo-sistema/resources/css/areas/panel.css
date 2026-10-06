@@ -627,53 +627,8 @@
    INICIO "HOJE" (redesign)
    ========================================================================== */
 
-/* Bloco sem moldura pesada: titulo + fio + conteudo. */
-.board {
-    display: grid;
-    gap: var(--space-4);
-}
-
-.board__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-3);
-    padding-bottom: var(--space-3);
-    border-bottom: var(--border-width) solid var(--c-text);
-}
-
-.board__head .title {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    font-size: var(--fs-xl);
-}
-
-/* Ponto "ao vivo" (em atendimento, caixa aberto): latao, pulsa devagar. */
-.live-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: var(--c-accent);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-accent) 55%, transparent);
-    animation: live 2.4s var(--ease-out) infinite;
-}
-
-@keyframes live {
-    0% {
-        box-shadow: 0 0 0 0 color-mix(in srgb, var(--c-accent) 55%, transparent);
-    }
-
-    70%,
-    100% {
-        box-shadow: 0 0 0 0.5rem transparent;
-    }
-}
-
 .now-list,
-.next-list,
-.todo-list {
+.next-list {
     margin: 0;
     padding: 0;
     list-style: none;
@@ -832,29 +787,6 @@
 .cash-tile__value {
     display: grid;
     gap: var(--space-1);
-}
-
-.todo-list li + li {
-    border-top: var(--border-width) solid var(--c-border);
-}
-
-.todo-list a {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    gap: var(--space-3);
-    min-height: var(--touch);
-    padding: var(--space-2) 0;
-    color: var(--c-text);
-    text-decoration: none;
-}
-
-.todo-list a > .icon:first-child {
-    color: var(--c-accent-text);
-}
-
-.todo-list a:hover span {
-    text-decoration: underline;
 }
 
 /* ==========================================================================

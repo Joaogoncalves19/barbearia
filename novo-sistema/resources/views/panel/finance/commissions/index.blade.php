@@ -25,7 +25,7 @@
         <div class="stat"><span class="stat__label">Comissão em aberto</span><span class="stat__value numeric">{{ $fmt($totals['commission']) }}</span></div>
         <div class="stat"><span class="stat__label">Gorjeta em aberto</span><span class="stat__value numeric">{{ $fmt($totals['tips']) }}</span></div>
         <div class="stat"><span class="stat__label">Vales a abater</span><span class="stat__value numeric">{{ $fmt($totals['advances']) }}</span></div>
-        <div class="stat"><span class="stat__label">Líquido a repassar</span><span class="stat__value numeric">{{ $fmt($totals['net']) }}</span><span class="stat__foot">comissão + gorjeta − vales</span></div>
+        <div class="stat stat--key"><span class="stat__label">Líquido a repassar</span><span class="stat__value numeric">{{ $fmt($totals['net']) }}</span><span class="stat__foot">comissão + gorjeta − vales</span></div>
     </div>
 
     <x-ui.card title="Por profissional">

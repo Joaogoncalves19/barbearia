@@ -16,7 +16,8 @@
         <span class="stat__label">Saídas</span>
         <span class="stat__value numeric">{{ Money::fromCents($summary['outflow'])->format() }}</span>
     </div>
-    <div class="stat">
+    {{-- O numero que manda no caixa: o que deve estar na gaveta. --}}
+    <div class="stat stat--key">
         <span class="stat__label">Dinheiro esperado na gaveta</span>
         <span class="stat__value numeric" data-expected-cash>{{ Money::fromCents($summary['expected_cash'])->format() }}</span>
         <span class="stat__foot">valor inicial + movimentos em dinheiro</span>

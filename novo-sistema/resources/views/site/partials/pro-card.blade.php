@@ -8,12 +8,12 @@
         @if ($pro->photo_path)
             <x-site.img :path="$pro->photo_path" alt="" sizes="(min-width: 64rem) 22vw, 70vw" />
         @else
-            <span class="monogram">{{ $iniciais }}</span>
+            <span class="monogram"><span class="monogram__letters">{{ $iniciais }}</span></span>
         @endif
     </a>
-    <div class="stack stack-sm">
+    <div class="pro-card__body">
         <h3 class="pro-card__name"><a href="{{ route('site.professional', $pro) }}">{{ $pro->display_name }}</a></h3>
         @if ($pro->headline)<p class="pro-card__role">{{ $pro->headline }}</p>@endif
+        <a class="link-arrow" href="{{ route('site.professional', $pro) }}">Agendar com {{ $primeiro }} <x-icon name="arrow-right" /></a>
     </div>
-    <a class="link-arrow" href="{{ route('site.professional', $pro) }}">Agendar com {{ $primeiro }} <x-icon name="arrow-right" /></a>
 </article>

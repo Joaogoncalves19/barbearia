@@ -24,8 +24,8 @@
     <header class="site-header">
         <div class="container site-header__inner">
             <a class="brand" href="{{ route('home') }}">
-                <span class="brand__mark" aria-hidden="true">{{ mb_substr(config('app.name'), 0, 1) }}</span>
-                <span class="brand__name">{{ config('app.name') }}</span>
+                <span class="brand__mark" aria-hidden="true">{{ mb_substr(\App\Modules\SiteContent\Support\Brand::current()['name'], 0, 1) }}</span>
+                <span class="brand__name">{{ \App\Modules\SiteContent\Support\Brand::current()['name'] }}</span>
             </a>
 
             <div class="cluster">
