@@ -1,6 +1,6 @@
 # Treinamento — Recepção
 
-**Você usa:** Hoje, Agenda, Atendimentos, Caixa, Clientes, Pontos de clientes, Vales-presente, cupons (só
+**Você usa:** Hoje, Agenda, Atendimentos, Caixa, Pontos de clientes, Vales-presente, cupons e serviços (só
 consulta) e o link de pagamento de assinatura.
 **Você não vê:** configurações, regras de comissão, repasses, relatórios financeiros, usuários. Desconto
 manual e estorno também não: chame o gerente/proprietário (desconto) ou o financeiro (estorno).
@@ -15,8 +15,10 @@ manual e estorno também não: chame o gerente/proprietário (desconto) ou o fin
 
 ## Agendar
 
-- *Agenda → Novo agendamento*: serviço → profissional → horário livre → cliente (busque pelo nome,
-  telefone ou CPF; se não existir, cadastre na hora: **CPF é obrigatório**). ✔
+- *Agenda → Novo agendamento*: serviço → profissional → horário livre → cliente (busque o cadastrado pelo
+  nome, e-mail ou telefone; quem não tem conta vai só com nome e telefone). ✔
+- O painel **ainda não tem tela de Clientes** (cadastrar/editar pelo balcão): o cliente cria a conta pelo
+  site. Ver P13-01 no relatório da Fase 13.
 - **Remarcar / cancelar**: abra o agendamento na agenda e use *Remarcar* ou *Cancelar* (informe o motivo).
   O cliente recebe o e-mail sozinho. ✔
 - **Faltou?** No agendamento, *Não compareceu*. ✔
@@ -24,8 +26,9 @@ manual e estorno também não: chame o gerente/proprietário (desconto) ou o fin
 
 ## Atender (comanda)
 
-1. Cliente chegou: no agendamento, *Abrir atendimento*. Sem agendamento: *Atendimentos → Novo*
-   (encaixe; ocupa a agenda do profissional). ✔
+1. Cliente chegou: no agendamento, *Cliente chegou: abrir atendimento*. Sem agendamento: *Atendimentos →
+   Novo* (encaixe; ocupa a agenda do profissional). Busque o cliente **antes** de escolher o serviço (a
+   busca recarrega a tela). ✔
 2. *Iniciar* quando ele sentar na cadeira.
 3. Acrescente serviços, produtos vendidos e materiais usados, se for o caso.
 4. **Cupom ou pontos**: *Aplicar promoção* (vale um desconto só, o maior).
@@ -39,7 +42,7 @@ Errou um item? Antes de concluir, remova o item. Depois de concluído, só o fin
 
 - **Vender vale-presente** — *Vales-presente → Vender*; o valor entra no caixa e o código sai no
   comprovante. Na hora de usar, ele é uma forma de pagamento. ✔
-- **Assinatura** — no cliente, *Gerar link de pagamento*; o link pode ir por e-mail. A assinatura só fica
+- **Assinatura** — *Assinaturas → Gerar link de assinatura*, busque o cliente; o link pode ir por e-mail. A assinatura só fica
   ativa quando o Stripe confirma o pagamento (a tela mostra a situação).
 - **Folga ou bloqueio de horário** — *Folgas* / *Bloqueios*.
 

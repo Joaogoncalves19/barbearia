@@ -1,7 +1,8 @@
 # Treinamento — Financeiro
 
 **Você usa:** Atendimentos (consulta), Caixa (consulta), Comissões, Repasses, Histórico financeiro,
-Relatórios, Assinaturas (pagamentos e reembolsos), estorno de pagamento e cancelamento de vale-presente.
+Assinaturas (pagamentos e reembolsos), estorno de pagamento e cancelamento de vale-presente. Relatórios
+gerais e despesas do sistema antigo ainda não existem no novo (P13-02).
 **Você não vê:** agenda e cadastro de clientes (não precisa deles para fechar as contas).
 
 ## Rotina

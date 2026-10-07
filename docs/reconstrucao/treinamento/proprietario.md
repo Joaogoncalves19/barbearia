@@ -22,15 +22,16 @@ seu e as rotinas de segurança da instalação.
 
 ## LGPD
 
-- **Excluir os dados de um cliente** (pedido dele): no cliente, *Anonimizar*. Irreversível; o histórico
-  financeiro fica, sem os dados pessoais. O próprio cliente também pode fazer isso pela conta.
+- **Excluir os dados de um cliente** (pedido dele): o próprio cliente faz pela conta (*Privacidade →
+  Encerrar conta*). Pedido feito na barbearia ainda não tem tela no painel (P12-03 / P13-01).
 
 ## Segurança da instalação (o que o dono precisa saber)
 
 1. **Cópia de segurança diária** acontece sozinha de madrugada. Uma vez por semana, olhe se a mais
    recente existe e foi aprovada (quem cuida do servidor roda `php artisan app:backup-verify`), e
-   guarde uma cópia **fora do servidor** (nuvem ou pendrive). A senha das cópias fica guardada com você,
-   não no servidor.
+   guarde uma cópia **fora do servidor** (nuvem ou pendrive). As cópias são cifradas: guarde a senha delas
+   (`BACKUP_PASSWORD`) e o `.env` também **fora do servidor** (gerenciador de senhas). Se o servidor se
+   perder, sem essa senha a cópia não abre.
 2. **Avisos de problema** chegam no e-mail de monitoramento (cron parado, cópia atrasada, e-mails
    falhando). Não ignore: repasse para quem cuida do servidor.
 3. **Nunca** compartilhe o seu usuário. Se alguém sair da equipe, desative no mesmo dia.
@@ -39,4 +40,4 @@ seu e as rotinas de segurança da instalação.
 ## Exercício final ✔
 
 Crie um usuário de recepção de teste, entre com ele numa janela anônima, veja que o menu é menor e que
-*Configurações* não aparece; depois desative esse usuário.
+*Usuários*, *Comissões* e *Campanhas* não aparecem; depois desative esse usuário.

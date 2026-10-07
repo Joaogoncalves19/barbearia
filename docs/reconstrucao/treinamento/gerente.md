@@ -1,7 +1,7 @@
 # Treinamento — Gerente
 
 **Você faz tudo o que a recepção faz** ([recepcao.md](recepcao.md)) e mais: desconto no atendimento,
-equipe e catálogo, agenda e expediente, estoque, cupons, campanhas, avaliações, site e relatórios.
+equipe e catálogo, agenda e expediente, estoque, cupons, campanhas, avaliações e site.
 **Não é com você:** usuários, auditoria, configurações gerais, regras de comissão, repasses/vales e
 LGPD (proprietário/financeiro).
 
@@ -11,7 +11,7 @@ LGPD (proprietário/financeiro).
 - **Desconto** — no atendimento, *Desconto*: valor ou percentual e **motivo obrigatório**. Vale um desconto
   só por atendimento (o maior entre cupom, pontos, assinatura e manual). ✔
 - **Avaliações** — *Avaliações*: aprovar, recusar (com motivo), destacar e responder. Só aparece no site o
-  que for aprovado. ✔
+  que for aprovado (as avaliações vindas do sistema antigo já chegam publicadas). ✔
 
 ## Equipe e catálogo
 
@@ -34,6 +34,8 @@ LGPD (proprietário/financeiro).
 - **E-mails enviados** — o que saiu, o que falhou e por quê; *Reenviar* o que falhou.
 - **Site** — textos e imagens (*Conteúdo do site*, *Imagens do site*).
 
-## Relatórios
+## Ainda não existe no sistema novo
 
-- *Relatórios*: faturamento, atendimentos e o que mais estiver no menu; filtros por período e profissional.
+- Tela de **Clientes** e **Relatórios gerais** (faturamento, ocupação...) do sistema antigo: decisão
+  pendente antes da virada (P13-01 e P13-02 no relatório da Fase 13). Hoje: *Comissões* e *Caixa* mostram
+  os números do dia a dia.

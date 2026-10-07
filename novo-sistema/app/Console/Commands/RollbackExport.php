@@ -41,6 +41,14 @@ class RollbackExport extends Command
             return self::FAILURE;
         }
         $utc = $desde->utc()->format('Y-m-d H:i:s');
+        // A importacao do sistema antigo roda DEPOIS do inicio da virada: o que
+        // ela gravou ja existe no antigo e nao pode ser relancado (duplicaria).
+        // O corte passa a ser o fim da ultima importacao (ensaio da Fase 13).
+        $importacao = DB::table('import_runs')->where('mode', 'import')->where('status', 'completed')->max('finished_at');
+        if (is_string($importacao) && $importacao >= $utc) {
+            $utc = CarbonImmutable::parse($importacao, 'UTC')->addSecond()->format('Y-m-d H:i:s');
+            $this->line('Corte no fim da importação do sistema antigo: '.$this->local($utc, 'd/m/Y H:i:s').' (o que veio da migração já existe no antigo).');
+        }
         $pasta = (string) ($this->option('dir') ?: storage_path('app/private/retorno/'.BusinessTime::now()->format('Ymd-His')));
         File::ensureDirectoryExists($pasta, 0700);
 
@@ -53,7 +61,7 @@ class RollbackExport extends Command
             'assinaturas' => $this->subscriptions($pasta, $utc),
         ];
 
-        $resumo = 'Exportado em '.BusinessTime::now()->format('d/m/Y H:i').' — gravações desde '.$desde->format('d/m/Y H:i').PHP_EOL;
+        $resumo = 'Exportado em '.BusinessTime::now()->format('d/m/Y H:i').' — gravações desde '.$this->local($utc, 'd/m/Y H:i:s').' (virada informada: '.$desde->format('d/m/Y H:i').')'.PHP_EOL;
         foreach ($totais as $nome => $n) {
             $resumo .= sprintf('%-14s %d%s', $nome, $n, PHP_EOL);
         }

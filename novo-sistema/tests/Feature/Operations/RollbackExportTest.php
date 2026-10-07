@@ -4,6 +4,7 @@ namespace Tests\Feature\Operations;
 
 use App\Modules\Customers\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Tests\Concerns\CheckoutFixtures;
 use Tests\TestCase;
@@ -82,6 +83,26 @@ class RollbackExportTest extends TestCase
             $this->assertFileExists($this->dir.DIRECTORY_SEPARATOR.$f);
         }
         $this->assertStringNotContainsString((string) $this->cliente->cpf, implode('', array_map(fn ($f) => (string) file_get_contents($f), glob($this->dir.'/*') ?: [])), 'CPF não sai na exportação');
+    }
+
+    public function test_o_que_veio_da_migracao_nao_e_exportado(): void
+    {
+        // Ensaio da Fase 13: a importacao roda depois do inicio da virada; o que
+        // ela gravou ja existe no sistema antigo e duplicaria se relancado.
+        $this->clockAt('09:00');
+        $importado = $this->todayAppointment('10:00');            // gravado "pela importacao" as 09:00
+        DB::table('import_runs')->insert(['mode' => 'import', 'status' => 'completed', 'source_path' => 'copia.sqlite', 'source_sha256' => str_repeat('a', 64),
+            'started_at' => now()->subSeconds(5), 'finished_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
+        $this->clockAt('09:30');
+        $novo = $this->todayAppointment('11:00');
+
+        $this->artisan('app:rollback-export', ['--since' => '2026-10-05 08:30', '--dir' => $this->dir])
+            ->expectsOutputToContain('Corte no fim da importação')
+            ->assertSuccessful();
+
+        $codigos = array_column(array_slice($this->ler('agendamentos.csv'), 1), 0);
+        $this->assertSame([$novo->code], $codigos);
+        $this->assertNotContains($importado->code, $codigos);
     }
 
     public function test_sem_data_da_virada_nao_exporta(): void
