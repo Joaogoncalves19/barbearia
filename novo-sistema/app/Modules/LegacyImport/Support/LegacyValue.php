@@ -57,6 +57,16 @@ final class LegacyValue
             return ['cents' => null, 'rounded' => false, 'divergent' => false];
         }
 
+        // O sistema antigo salvava o valor digitado com str_replace(',', '.'):
+        // "1.500,00" virava "1.500.00" (e ele mesmo lia como 1,50). O ultimo
+        // ponto e o decimal; os outros, milhar. Achado do ensaio da Fase 13.
+        if (preg_match('/^\d{1,3}(\.\d{3})+\.\d{1,2}$/', $s)) {
+            $s = preg_replace('/\.(?=.*\.)/', '', $s) ?? $s;
+            $r = Decimal::toScaledInt($s, 2);
+
+            return ['cents' => $r['value'], 'rounded' => $r['rounded'], 'divergent' => true];
+        }
+
         try {
             $r = Decimal::toScaledInt($s, 2);
         } catch (InvalidArgumentException) {

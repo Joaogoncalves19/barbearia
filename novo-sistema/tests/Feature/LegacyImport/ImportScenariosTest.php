@@ -211,6 +211,8 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertSame(4500, DB::table('services')->where('id', $this->ref('servicos', 'sv-1'))->value('price_cents'));
         $this->assertSame(3000, DB::table('services')->where('id', $this->ref('servicos', 'sv-2'))->value('price_cents'));
         $this->assertCount(1, $this->issues($this->r, 'money_format_divergent', 'sv-2'), '"30,00" o sistema antigo lia de outro jeito: pendencia');
+        $this->assertSame(150000, DB::table('expenses')->where('id', $this->ref('despesas', 'desp-6'))->value('amount_cents'), '"1.500.00" gravado pelo antigo = R$ 1.500,00');
+        $this->assertCount(1, $this->issues($this->r, 'money_format_divergent', 'desp-6'), 'o antigo exibia 1,50: pendencia');
         $this->assertSame(3334, DB::table('services')->where('id', $this->ref('servicos', 'sv-5'))->value('price_cents'));
         $this->assertNull($this->ref('servicos', 'sv-4'), 'servico sem preco nao entra com preco inventado');
         $this->assertSame(9990, DB::table('subscription_payments')->where('id', $this->ref('assinatura_pagamentos', 'pag-1'))->value('amount_cents'), 'REAL 99.9 -> 9990 sem float');

@@ -63,6 +63,17 @@ class DecimalAndLegacyValueTest extends TestCase
         $this->assertSame(9990, V::money('99.9')['cents']);
     }
 
+    public function test_dinheiro_com_milhar_gravado_pelo_sistema_antigo(): void
+    {
+        // Ensaio da Fase 13: o antigo trocava a virgula por ponto ao salvar
+        // ("1.500,00" -> "1.500.00") e exibia 1,50. Le-se o que foi digitado.
+        $this->assertSame(['cents' => 150000, 'rounded' => false, 'divergent' => true], V::money('1.500.00'));
+        $this->assertSame(['cents' => 123456789, 'rounded' => false, 'divergent' => true], V::money('1.234.567.89'));
+        $this->assertSame(['cents' => 250050, 'rounded' => false, 'divergent' => true], V::money('2.500.5'));
+        // "1.500" sem decimais continua como o antigo lia (1,50): ambiguo, sem adivinhar.
+        $this->assertSame(['cents' => 150, 'rounded' => false, 'divergent' => false], V::money('1.500'));
+    }
+
     public function test_percentual_em_pontos_base(): void
     {
         $this->assertSame(4000, V::percentBp('40'));
