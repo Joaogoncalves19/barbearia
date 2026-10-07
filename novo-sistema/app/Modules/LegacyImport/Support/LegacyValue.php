@@ -180,4 +180,23 @@ final class LegacyValue
     {
         return $hash !== null && preg_match('/^\$2[aby]\$\d{2}\$[.\/A-Za-z0-9]{53}$/', $hash) === 1;
     }
+
+    /** Fotos genericas do sistema antigo (nao sao foto de ninguem). */
+    public const PLACEHOLDER_PHOTOS = ['default-profile.jpg', 'default-profile.png', 'default.jpg', 'default.png', 'sem-foto.jpg'];
+
+    /**
+     * Caminho de foto do sistema antigo ("uploads/..."), ou null se vazio ou
+     * se for a foto generica padrao. Ensaio da Fase 13: importar a generica
+     * deixava imagem quebrada no site e no painel. O arquivo em si e
+     * reprocessado depois por `legacy:import-photos`.
+     */
+    public static function photoPath(mixed $v): ?string
+    {
+        $s = self::text($v);
+        if ($s === null || in_array(strtolower(basename(str_replace('\\', '/', $s))), self::PLACEHOLDER_PHOTOS, true)) {
+            return null;
+        }
+
+        return $s;
+    }
 }

@@ -93,7 +93,7 @@ final class ProfessionalsStep extends Step
             $id = $this->ctx->insert('professionals', [
                 'user_id' => $userId,
                 'display_name' => $nome,
-                'photo_path' => V::text($row['foto'] ?? null),
+                'photo_path' => V::photoPath($row['foto'] ?? null),
                 'is_active' => $ativo,
                 'is_bookable' => $ativo,
                 ...$this->stamps(),

@@ -34,7 +34,7 @@ echo "== CSS e JS compilados"
 (cd "$APP" && npm ci --no-audit --no-fund --loglevel=error && npm run build --silent && rm -rf node_modules)
 
 echo "== Limpeza"
-rm -rf "$APP/tests" "$APP/playwright.config.js" "$APP/playwright.visual.config.js" "$APP/phpunit.xml" "$APP/phpstan.neon" \
+rm -rf "$APP/tests" "$APP/playwright.config.js" "$APP/playwright.visual.config.js" "$APP/playwright.homologacao.config.js" "$APP/phpunit.xml" "$APP/phpstan.neon" \
        "$APP/scripts/copiar-icones.mjs" "$APP/scripts/ensaio" "$APP/.env" "$APP/database/database.sqlite"
 echo "$VERSAO" > "$APP/VERSION"
 

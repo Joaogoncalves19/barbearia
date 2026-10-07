@@ -101,7 +101,7 @@ final class CustomersStep extends Step
                 'cpf' => $campos['cpf'][0],
                 'password' => $this->password('clientes', $sid, $row['password_hash'] ?? null),
                 'birth_date' => $nascimento,
-                'photo_path' => V::text($row['foto_perfil'] ?? null),
+                'photo_path' => V::photoPath($row['foto_perfil'] ?? null),
                 'status' => $status,
                 'referral_code' => $codigo,
                 'marketing_email_consent' => 'unknown',
