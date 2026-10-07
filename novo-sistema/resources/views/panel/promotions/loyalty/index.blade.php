@@ -17,7 +17,7 @@
     @if ($term !== '')
         <x-ui.card title="Resultado">
             @if ($customers->isEmpty())
-                <p class="text-sm text-muted">Nenhum cliente encontrado.</p>
+                <x-ui.empty-state compact icon="search" title="Nenhum cliente encontrado." />
             @else
                 <x-ui.table caption="Clientes" caption-hidden stacked>
                     <thead><tr><th scope="col">Cliente</th><th scope="col">Contato</th><th scope="col">Saldo</th></tr></thead>

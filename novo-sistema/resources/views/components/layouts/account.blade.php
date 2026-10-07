@@ -20,7 +20,7 @@
     ];
     $completo = $cliente !== null && ! $cliente->needsProfileCompletion();
 @endphp
-<x-layouts.document :title="$title" surface="escura" area="site" :noindex="true">
+<x-layouts.document :title="$title" surface="site" area="site" :noindex="true">
     <header class="site-header">
         <div class="container site-header__inner">
             <a class="brand" href="{{ route('home') }}">

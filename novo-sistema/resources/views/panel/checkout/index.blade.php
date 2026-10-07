@@ -34,7 +34,7 @@
     <section class="board" aria-labelledby="em-andamento">
         <header class="board__head"><h2 class="title" id="em-andamento">@if ($open->isNotEmpty())<span class="live-dot" aria-hidden="true"></span> @endif Em andamento ({{ $open->count() }})</h2></header>
         @if ($open->isEmpty())
-            <p class="text-sm text-muted">Nenhum atendimento aberto neste dia. Quando o cliente chegar, abra pela agenda ou pelo encaixe.</p>
+            <x-ui.empty-state compact icon="receipt" title="Nenhum atendimento aberto neste dia.">Quando o cliente chegar, abra pela agenda ou pelo encaixe.</x-ui.empty-state>
         @else
             <ul class="now-list" role="list">
                 @foreach ($open as $a)

@@ -3,8 +3,8 @@
         <h1 class="page-head__title">Minha conta</h1>
     </header>
 
-    <div class="dashboard-grid">
-        <x-ui.card title="Seus dados">
+    <div class="stack stack-lg">
+        <x-ui.card title="Seus dados" class="account-data">
             <form method="POST" action="{{ route('panel.account.update') }}" class="stack" novalidate>
                 @csrf
                 @method('PUT')
@@ -23,12 +23,16 @@
             </form>
         </x-ui.card>
 
+        {{-- A lista do proprietario passa de cem itens: fica recolhida e em colunas. --}}
         <x-ui.card title="O que seu perfil pode fazer">
-            <ul class="stack stack-sm text-sm">
-                @foreach ($permissions as $p)
-                    <li class="cluster"><x-icon name="check" class="icon-sm" /> {{ $p }}</li>
-                @endforeach
-            </ul>
+            <p class="text-sm text-muted">{{ count($permissions) === 1 ? '1 permissão' : count($permissions).' permissões' }} do papel {{ $user->role?->label() }}.</p>
+            <x-ui.hint summary="Ver a lista completa">
+                <ul class="check-list" role="list">
+                    @foreach ($permissions as $p)
+                        <li><x-icon name="check" class="icon-sm" /> <span>{{ $p }}</span></li>
+                    @endforeach
+                </ul>
+            </x-ui.hint>
         </x-ui.card>
     </div>
 </x-layouts.staff>

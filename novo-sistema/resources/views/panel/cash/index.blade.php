@@ -37,7 +37,7 @@
                     <x-ui.button variant="secondary" icon="banknote" data-dialog-open="sangria">Sangria</x-ui.button>
                 @endcan
                 @can('cash.close')
-                    <x-ui.button variant="danger" icon="wallet" data-dialog-open="fechar-caixa">Fechar caixa</x-ui.button>
+                    <x-ui.button icon="wallet" data-dialog-open="fechar-caixa">Fechar caixa</x-ui.button>
                 @endcan
             </div>
         </x-ui.card>
@@ -78,7 +78,7 @@
                 </form>
                 <x-slot:footer>
                     <button type="button" class="btn btn--secondary" data-dialog-close>Voltar</button>
-                    <button type="submit" class="btn btn--danger" form="form-fechar">Fechar caixa</button>
+                    <button type="submit" class="btn" form="form-fechar">Fechar caixa</button>
                 </x-slot:footer>
             </x-ui.modal>
         @endcan
@@ -86,7 +86,7 @@
 
     <x-ui.card title="Caixas fechados">
         @if ($history->isEmpty())
-            <p class="text-sm text-muted">Nenhum caixa fechado ainda.</p>
+            <x-ui.empty-state compact icon="wallet" title="Nenhum caixa fechado ainda." />
         @else
             <x-ui.table caption="Caixas fechados" caption-hidden stacked>
                 <thead><tr><th scope="col">Fechado</th><th scope="col">Esperado</th><th scope="col">Contado</th><th scope="col">Diferença</th><th scope="col">Quem fechou</th></tr></thead>
@@ -97,7 +97,7 @@
                             <td data-label="Esperado" class="numeric">{{ Money::fromCents((int) $s->expected_cash_cents)->format() }}</td>
                             <td data-label="Contado" class="numeric">{{ Money::fromCents((int) $s->counted_cash_cents)->format() }}</td>
                             <td data-label="Diferença" class="numeric">
-                                @if ((int) $s->difference_cents === 0) <x-ui.badge variant="success">Sem diferença</x-ui.badge>
+                                @if ((int) $s->difference_cents === 0) <span class="text-muted">Sem diferença</span>
                                 @else <x-ui.badge variant="warning">{{ Money::fromCents((int) $s->difference_cents)->format() }}</x-ui.badge> @endif
                             </td>
                             <td data-label="Quem fechou">{{ $s->closedBy->name ?? '—' }}</td>

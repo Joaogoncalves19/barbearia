@@ -1,0 +1,11 @@
+/* ==========================================================================
+   TEMA 01 — OFICIO (padrao)
+   Grafite · Osso · Latao. Editorial, contemporaneo, preciso.
+   Todos os valores estao em tokens.css (o tema padrao E os tokens base):
+   Archivo condensada (72%) em caixa alta no site, regua tecnica como motivo,
+   cantos 4/6/2 px. Este arquivo existe para o catalogo ficar completo e como
+   ponto de partida de um tema novo (ver temas-visuais.md §7).
+   ========================================================================== */
+[data-tema='oficio'] {
+    --theme-key: oficio;
+}

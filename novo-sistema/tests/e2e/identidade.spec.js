@@ -99,6 +99,8 @@ test('proprietário: entra, reconfirma a senha para gerenciar usuários e sai', 
     await verificarTela(page, info, 'Novo usuário');
 
     await page.goto('/painel/minha-conta');
+    // A lista de permissoes fica recolhida (passa de cem itens no proprietario).
+    await page.getByText('Ver a lista completa').click();
     await expect(page.getByText('Ver a trilha de auditoria')).toBeVisible();
     await verificarTela(page, info, 'Minha conta (equipe)');
 

@@ -20,7 +20,7 @@
 
     <x-ui.card title="Repasses">
         @if ($payouts->isEmpty())
-            <p class="text-sm text-muted">Nenhum repasse.</p>
+            <x-ui.empty-state compact icon="banknote" title="Nenhum repasse." />
         @else
             <x-ui.table caption="Repasses" caption-hidden stacked>
                 <thead><tr><th scope="col">Repasse</th><th scope="col">Profissional</th><th scope="col">Pago em</th><th scope="col">Forma</th><th scope="col">Comissão</th><th scope="col">Gorjeta</th><th scope="col">Vales</th><th scope="col">Líquido</th><th scope="col">Situação</th></tr></thead>

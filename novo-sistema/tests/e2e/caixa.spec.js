@@ -29,7 +29,7 @@ async function verificarTela(page, info, nome) {
     const axe = await new AxeBuilder({ page }).analyze();
     const graves = axe.violations
         .filter((v) => ['serious', 'critical'].includes(v.impact))
-        .map((v) => `${v.id}: ${v.help} (${v.nodes.length}x) ${v.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`);
+        .map((v) => `${v.id}: ${v.help} (${v.nodes.length}x) ${v.nodes.slice(0, 2).map((n) => `${n.target.join(' ')} ${JSON.stringify(n.any[0]?.data ?? '')}`).join(' | ')}`);
     expect(graves, `${nome}: violações de acessibilidade graves`).toEqual([]);
 
     await page.screenshot({ path: `storage/e2e/telas/${info.project.name}-fase6-${nome.replace(/\W+/g, '-').toLowerCase()}.png`, fullPage: true });

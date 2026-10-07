@@ -133,7 +133,7 @@
 
     {{-- A CASA: texto e diferenciais do dono + fotos do ambiente (se houver). ------------ --}}
     @if ($cfg->has('about_text') || $about->isNotEmpty() || $cfg->highlights() !== [])
-        <section class="chapter chapter--paper" id="sobre" aria-labelledby="sobre-titulo" data-superficie="clara">
+        <section class="chapter chapter--paper" id="sobre" aria-labelledby="sobre-titulo" data-superficie="{{ \App\Modules\SiteContent\Support\Theme::active()->surface('band') }}">
             <div class="container chapter__grid">
                 <header class="chapter__head">
                     <p class="chapter__index" aria-hidden="true"></p>

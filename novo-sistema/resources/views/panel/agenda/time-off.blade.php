@@ -22,7 +22,7 @@
 
     <x-ui.card title="Próximas e em andamento">
         @if ($items->isEmpty())
-            <p class="text-sm text-muted">Nenhuma folga futura.</p>
+            <x-ui.empty-state compact icon="coffee" title="Nenhuma folga futura." />
         @else
             <x-ui.table caption="Folgas futuras" caption-hidden stacked>
                 <thead><tr><th scope="col">Profissional</th><th scope="col">Período</th><th scope="col">Tipo</th><th scope="col">Motivo</th><th scope="col"><span class="visually-hidden">Ações</span></th></tr></thead>

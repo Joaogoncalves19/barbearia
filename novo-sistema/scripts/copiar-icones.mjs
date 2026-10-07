@@ -21,6 +21,8 @@ const icones = [
     'play', 'undo-2', 'receipt', 'boxes', 'banknote',
     // Fase 7 (comissao, gorjeta e repasse)
     'hand-coins', 'percent',
+    // Refinamento visual (tela Aparencia)
+    'eye', 'palette', 'arrow-left',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);

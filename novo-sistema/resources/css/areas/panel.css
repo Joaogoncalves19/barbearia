@@ -37,6 +37,7 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--c-border) transparent;
+    border-right: var(--border-width) solid var(--c-border);
 }
 
 .sidebar.is-open {
@@ -234,7 +235,7 @@
 .page-head__title {
     font-family: var(--font-display);
     font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem);
-    font-weight: 660;
+    font-weight: var(--fw-display);
     font-stretch: var(--font-display-stretch);
     letter-spacing: -0.005em;
     line-height: 1;
@@ -309,10 +310,10 @@
 }
 
 .stat__value {
-    font-family: var(--font-display);
+    font-family: var(--font-figure);
     font-size: var(--fs-figure);
-    font-weight: 650;
-    font-stretch: var(--font-display-stretch);
+    font-weight: var(--fw-display);
+    font-stretch: var(--font-figure-stretch);
     font-variant-numeric: tabular-nums;
     line-height: 1;
 }
@@ -701,7 +702,7 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    color: var(--p-accent-300);
+    color: var(--c-on-primary-accent);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
     letter-spacing: 0.08em;
@@ -748,9 +749,17 @@
     font-size: var(--fs-xs);
 }
 
-.next-item .badge {
+.next-item__flags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--space-1);
     grid-column: 3;
     grid-row: 1;
+}
+
+.next-item__flags:empty {
+    display: none;
 }
 
 @media (min-width: 48rem) {
@@ -764,7 +773,7 @@
         font-size: var(--fs-sm);
     }
 
-    .next-item .badge {
+    .next-item__flags {
         grid-column: 4;
     }
 }
@@ -821,16 +830,16 @@
     align-items: center;
     gap: var(--space-3);
     font-family: var(--font-display);
-    font-stretch: 85%;
+    font-stretch: var(--font-title-stretch);
     font-size: var(--fs-xl);
-    font-weight: 600;
+    font-weight: var(--fw-display);
 }
 
 .day-board__name {
     font-family: var(--font-display);
-    font-stretch: 85%;
+    font-stretch: var(--font-title-stretch);
     font-size: var(--fs-base);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
@@ -995,10 +1004,10 @@
 .day-board__axis li {
     padding: 0.125rem var(--space-2) 0;
     color: var(--c-text-muted);
-    font-family: var(--font-display);
-    font-stretch: 85%;
+    font-family: var(--font-figure);
+    font-stretch: var(--font-title-stretch);
     font-size: var(--fs-xs);
-    font-weight: 600;
+    font-weight: var(--fw-display);
     font-variant-numeric: tabular-nums;
     text-align: right;
     line-height: 1;
@@ -1156,7 +1165,7 @@
 }
 
 .ev--in-progress .ev__state {
-    color: var(--p-accent-300);
+    color: var(--c-on-primary-accent);
 }
 
 .ev--completed {
@@ -1222,10 +1231,10 @@
     transform: translateY(-50%);
     background: var(--c-surface);
     color: var(--c-accent-text);
-    font-family: var(--font-display);
-    font-stretch: 85%;
+    font-family: var(--font-figure);
+    font-stretch: var(--font-title-stretch);
     font-size: var(--fs-xs);
-    font-weight: 700;
+    font-weight: var(--fw-display-strong);
     font-variant-numeric: tabular-nums;
     text-align: right;
 }
@@ -1240,21 +1249,30 @@
    ========================================================================== */
 .ticket-layout {
     display: grid;
-    gap: var(--space-8);
+    gap: var(--space-6);
 }
 
+/* Celular: a ordem do HTML (conta, itens, ajustes). Desktop: itens a
+   esquerda; conta e ajustes empilhados a direita. */
 @media (min-width: 64rem) {
     .ticket-layout {
         grid-template-columns: minmax(0, 1.7fr) minmax(20rem, 1fr);
+        grid-template-rows: auto 1fr;
+        grid-template-areas: 'main side' 'main extra';
         align-items: start;
+        column-gap: var(--space-8);
     }
 
-}
+    .ticket-main {
+        grid-area: main;
+    }
 
-/* No celular a conta vem PRIMEIRO: o total e o botao de concluir a mao. */
-@media (max-width: 63.99rem) {
     .ticket-side {
-        order: -1;
+        grid-area: side;
+    }
+
+    .ticket-extra {
+        grid-area: extra;
     }
 }
 
@@ -1302,7 +1320,7 @@
 
 .ticket .btn:not(.btn--danger):not(.btn--secondary) {
     --btn-bg: var(--c-accent);
-    --btn-bg-hover: var(--p-accent-300);
+    --btn-bg-hover: var(--c-accent-hover);
     --btn-fg: var(--c-on-accent);
     min-height: 3.25rem;
     font-size: var(--fs-base);
@@ -1311,8 +1329,8 @@
 .ticket .btn--danger {
     --btn-bg: transparent;
     --btn-bg-hover: color-mix(in srgb, var(--c-on-primary) 8%, transparent);
-    --btn-fg: var(--p-danger-300);
-    --btn-border: color-mix(in srgb, var(--p-danger-300) 45%, transparent);
+    --btn-fg: var(--c-on-primary-danger);
+    --btn-border: color-mix(in srgb, var(--c-on-primary-danger) 45%, transparent);
 }
 
 .ticket .alert {
@@ -1321,4 +1339,20 @@
 
 .ticket-items .table .numeric {
     font-variant-numeric: tabular-nums;
+}
+
+/* Incluir servico / vender produto: lado a lado no desktop, o botao embaixo
+   do campo; separados do que ja esta na conta por um fio. */
+.add-grid {
+    display: grid;
+    gap: var(--space-6);
+    padding-top: var(--space-5);
+    border-top: var(--border-width) dashed var(--c-border);
+}
+
+@media (min-width: 48rem) {
+    .add-grid {
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+        align-items: start;
+    }
 }

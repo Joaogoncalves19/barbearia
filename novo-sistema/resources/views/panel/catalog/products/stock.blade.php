@@ -60,7 +60,7 @@
 
     <x-ui.card title="Movimentações">
         @if ($movements->isEmpty())
-            <p class="text-sm text-muted">Nenhuma movimentação.</p>
+            <x-ui.empty-state compact icon="boxes" title="Nenhuma movimentação." />
         @else
             <x-ui.table caption="Movimentações de estoque" caption-hidden stacked>
                 <thead><tr><th scope="col">Quando</th><th scope="col">Tipo</th><th scope="col">Quantidade</th><th scope="col">Saldo depois</th><th scope="col">Origem / motivo</th><th scope="col">Quem</th><th scope="col"><span class="visually-hidden">Ações</span></th></tr></thead>

@@ -85,9 +85,19 @@
                                             <span class="text-muted">{{ $a->items->pluck('name')->join(', ') }}</span>
                                         </span>
                                         <span class="next-item__pro">{{ $a->professional_name }}</span>
-                                        @if ($a->status->value !== 'confirmed')
-                                            <x-ui.badge variant="warning">{{ $a->status->label() }}</x-ui.badge>
-                                        @endif
+                                        {{-- Sinais do dia (so leitura): ja devia ter comecado e o cliente
+                                             nao chegou; encaixe; ainda nao confirmado. --}}
+                                        <span class="next-item__flags">
+                                            @if ($a->starts_at !== null && $a->starts_at->lt($now))
+                                                <x-ui.badge variant="danger">Atrasado</x-ui.badge>
+                                            @endif
+                                            @if ($a->source === \App\Modules\Scheduling\Enums\AppointmentSource::WalkIn)
+                                                <x-ui.badge variant="info">Encaixe</x-ui.badge>
+                                            @endif
+                                            @if ($a->status->value !== 'confirmed')
+                                                <x-ui.badge variant="warning">{{ $a->status->label() }}</x-ui.badge>
+                                            @endif
+                                        </span>
                                     </a>
                                 </li>
                             @endforeach

@@ -7,11 +7,6 @@
    precisao e no "letreiro" de precos, nao em enfeite.
    ========================================================================== */
 
-/* As faixas listradas da versao anterior saem (pedido do redesign). */
-.barber-stripe {
-    display: none;
-}
-
 /* --- Cabecalho --------------------------------------------------------------------- */
 .site-header {
     border-bottom-color: var(--c-border);
@@ -50,18 +45,20 @@
     overflow: hidden;
 }
 
-/* A regua corre no pe do topo: a medida da casa. */
+/* O motivo do tema corre no pe do topo (no Oficio, a regua: a medida da casa). */
+.opening {
+    --motif-line: var(--c-border);
+    --motif-accent: var(--c-accent);
+}
+
 .opening::after {
     content: '';
     position: absolute;
     right: 0;
     bottom: 0;
     left: 0;
-    height: 0.75rem;
-    background:
-        linear-gradient(var(--c-border), var(--c-border)) bottom / 100% 1px no-repeat,
-        repeating-linear-gradient(90deg, var(--c-border-strong) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
-        repeating-linear-gradient(90deg, var(--c-accent) 0 1px, transparent 1px 4rem) bottom / 100% 0.75rem no-repeat;
+    height: var(--motif-height);
+    background: var(--motif);
 }
 
 .opening__grid {
@@ -93,9 +90,9 @@
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     letter-spacing: 0.14em;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 .opening__lead {
@@ -129,7 +126,7 @@
     content: '';
     position: absolute;
     inset: var(--space-3);
-    border: var(--border-width) solid color-mix(in srgb, var(--p-paper-50) 35%, transparent);
+    border: var(--border-width) solid color-mix(in srgb, var(--c-on-plate) 35%, transparent);
     pointer-events: none;
 }
 
@@ -172,9 +169,9 @@
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
-    font-weight: 620;
+    font-weight: var(--fw-display);
     letter-spacing: 0.02em;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 .signboard__dots {
@@ -325,7 +322,7 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-base);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     letter-spacing: 0.08em;
 }
 
@@ -335,9 +332,9 @@ main {
 
 .chapter__index::after {
     content: '';
-    width: 2.5rem;
-    height: 1px;
-    background: currentColor;
+    width: calc(var(--rule-width) + 0.75rem);
+    height: var(--rule-height);
+    background: var(--rule-image);
 }
 
 /* --- Servicos: linhas grandes, preco como numero -------------------------------------- */
@@ -382,9 +379,9 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
-    font-weight: 640;
+    font-weight: var(--fw-display);
     line-height: 1.05;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 .service-row__price {
@@ -492,10 +489,11 @@ main {
     place-items: center;
     width: 100%;
     height: 100%;
-    background:
-        radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--p-accent-500) 14%, transparent), transparent 60%),
-        var(--p-ink-900);
-    color: var(--p-paper-50);
+    --motif-line: color-mix(in srgb, var(--c-on-plate) 25%, transparent);
+    --motif-mark: color-mix(in srgb, var(--c-on-plate) 30%, transparent);
+    --motif-accent: var(--c-accent);
+    background: var(--c-plate);
+    color: var(--c-on-plate);
 }
 
 .monogram::after {
@@ -504,18 +502,15 @@ main {
     right: var(--space-5);
     bottom: var(--space-5);
     left: var(--space-5);
-    height: 0.75rem;
-    background:
-        linear-gradient(color-mix(in srgb, var(--p-paper-50) 25%, transparent), color-mix(in srgb, var(--p-paper-50) 25%, transparent)) bottom / 100% 1px no-repeat,
-        repeating-linear-gradient(90deg, color-mix(in srgb, var(--p-paper-50) 30%, transparent) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
-        repeating-linear-gradient(90deg, var(--p-accent-500) 0 1px, transparent 1px 2.5rem) bottom / 100% 0.75rem no-repeat;
+    height: var(--motif-height);
+    background: var(--motif);
 }
 
 .monogram__letters {
     font-family: var(--font-display);
-    font-stretch: 62%;
+    font-stretch: var(--font-compact-stretch);
     font-size: clamp(4rem, 3rem + 5vw, 7rem);
-    font-weight: 700;
+    font-weight: var(--fw-display-strong);
     letter-spacing: 0.02em;
     line-height: 1;
 }
@@ -529,9 +524,9 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-xl);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     line-height: 1.05;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 .pro-card__name a {
@@ -594,8 +589,8 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
-    font-weight: 650;
-    text-transform: uppercase;
+    font-weight: var(--fw-display);
+    text-transform: var(--display-case);
 }
 
 .values__item p {
@@ -647,9 +642,9 @@ main {
 
 .quote blockquote p {
     font-family: var(--font-display);
-    font-stretch: 85%;
+    font-stretch: var(--font-title-stretch);
     font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2rem);
-    font-weight: 500;
+    font-weight: var(--fw-display-soft);
     line-height: 1.2;
     text-wrap: pretty;
 }
@@ -685,11 +680,12 @@ main {
 
 @media (min-width: 48rem) {
     .plan-list {
-        grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
     }
 }
 
 .plan-card {
+    min-width: 0;
     display: grid;
     align-content: start;
     gap: var(--space-3);
@@ -704,12 +700,14 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-xl);
-    font-weight: 650;
-    text-transform: uppercase;
+    font-weight: var(--fw-display);
+    text-transform: var(--display-case);
 }
 
 .plan-card__price {
     font-size: var(--fs-figure);
+    /* Preco e periodo podem ir para duas linhas numa letra larga (nunca estouram o cartao). */
+    text-wrap: balance;
 }
 
 .plan-card__items {
@@ -759,9 +757,9 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-2xl);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     line-height: 1;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 /* --- Chamada final ------------------------------------------------------------------------ */
@@ -905,7 +903,7 @@ main {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-2xl);
-    font-weight: 680;
+    font-weight: var(--fw-display-strong);
     line-height: 1;
 }
 
@@ -979,7 +977,7 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-base);
-    font-weight: 700;
+    font-weight: var(--fw-display-strong);
 }
 
 .steps__item[aria-current='step'] .steps__n,
@@ -1037,8 +1035,8 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
-    font-weight: 650;
-    text-transform: uppercase;
+    font-weight: var(--fw-display);
+    text-transform: var(--display-case);
 }
 
 /* Dias e horarios */
@@ -1070,7 +1068,7 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-figure-sm);
-    font-weight: 680;
+    font-weight: var(--fw-display-strong);
     letter-spacing: 0;
     line-height: 1.1;
 }
@@ -1102,10 +1100,10 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     border: var(--border-width) solid var(--c-border-strong);
     border-radius: var(--radius-control);
     color: var(--c-text);
-    font-family: var(--font-display);
-    font-stretch: var(--font-display-stretch);
+    font-family: var(--font-figure);
+    font-stretch: var(--font-figure-stretch);
     font-size: var(--fs-lg);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     font-variant-numeric: tabular-nums;
     text-decoration: none;
     transition: background-color var(--dur-fast), border-color var(--dur-fast);
@@ -1147,9 +1145,9 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
 .error-page__code {
     color: transparent;
     font-family: var(--font-display);
-    font-stretch: 62%;
+    font-stretch: var(--font-compact-stretch);
     font-size: clamp(7rem, 4rem + 14vw, 16rem);
-    font-weight: 800;
+    font-weight: var(--fw-display-strong);
     line-height: 0.8;
     -webkit-text-stroke: 1px var(--c-accent);
 }
@@ -1170,8 +1168,8 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
-    font-weight: 680;
-    text-transform: uppercase;
+    font-weight: var(--fw-display-strong);
+    text-transform: var(--display-case);
     line-height: 1;
 }
 
@@ -1215,7 +1213,7 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
-    font-weight: 680;
+    font-weight: var(--fw-display-strong);
     line-height: 1;
 }
 
@@ -1294,7 +1292,7 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
 
 .account-appt__day {
     font-stretch: var(--font-display-stretch);
-    font-weight: 680;
+    font-weight: var(--fw-display-strong);
 }
 
 .account-tile {
@@ -1305,8 +1303,8 @@ main:has(.closing) + .site-footer .site-footer__top .btn {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-lg);
-    font-weight: 650;
-    text-transform: uppercase;
+    font-weight: var(--fw-display);
+    text-transform: var(--display-case);
     line-height: 1.1;
 }
 

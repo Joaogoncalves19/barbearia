@@ -17,13 +17,23 @@
    data-superficie vai no <html> ou num trecho da pagina (escura/clara): trocar
    de superficie nao exige mexer em componente nenhum.
    Contraste de cada par texto/fundo: redesign-visual.md §3.
+
+   TEMAS (temas-visuais.md): os valores abaixo sao o tema padrao, Oficio. Cada
+   tema (resources/css/themes/*.css, ativado por data-tema no <html>) troca os
+   PRIMITIVOS, a tipografia, os cantos e o motivo grafico; os semanticos e os
+   componentes continuam os mesmos. Um tema tambem pode ajustar um semantico
+   numa superficie quando a paleta pede (ex.: texto claro sobre o vinho).
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
    1. PRIMITIVOS
    -------------------------------------------------------------------------- */
+/* [data-tema]: todo elemento com tema (o <html> e as miniaturas da tela
+   Aparencia) recomeca deste conjunto completo, e o arquivo do tema sobrescreve
+   o que muda. Assim uma miniatura nunca herda nada do tema da pagina. */
 :root,
-[data-direcao='a'] {
+[data-direcao='a'],
+[data-tema] {
     /* Grafite (do mais escuro ao mais claro) */
     --p-ink-950: #121211;
     --p-ink-900: #1b1a19;
@@ -50,12 +60,46 @@
     --p-accent-700: #7a4f25; /* como TEXTO/FOCO sobre claro (6,8:1) */
     --p-accent-100: #f3e6d4;
 
+    /* Texto sobre o solido da cor de marca (botao "Agendar"). */
+    --p-on-accent: var(--p-ink-950);
+
+    /* Escolhas que um tema pode ajustar por superficie (padrao = Oficio). */
+    --p-accent-solid-dark: var(--p-accent-500);  /* solido no escuro */
+    --p-accent-hover-dark: var(--p-accent-300);
+    --p-accent-text-dark: var(--p-accent-300);   /* cor de marca como texto no escuro */
+    --p-focus-dark: var(--p-accent-300);
+    --p-on-primary-accent: var(--p-accent-300);  /* destaque no bloco invertido (claro) */
+    --p-plate-light: var(--p-ink-900);           /* placa sem foto */
+    --p-plate-dark: var(--p-ink-800);
+    --p-on-plate: var(--p-paper-50);
+
+    /* Tipografia de marca: familia, pesos, larguras e caixa dos titulos. */
     --font-display: 'Archivo Variable', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
     --font-display-weight: 640;
-    --font-display-stretch: 72%;
+    --font-display-stretch: 72%;   /* titulos */
+    --font-title-stretch: 85%;     /* titulo de bloco do painel */
+    --font-compact-stretch: 62%;   /* iniciais da placa sem foto */
     --font-display-settings: normal;
     --font-display-tracking: -0.005em;
-    --font-display-case: none;
+    --font-display-case: none;     /* titulos do painel */
+    --display-case: uppercase;     /* titulos do site (.caps) e nomes em destaque */
+    --display-tracking: -0.015em;  /* titulo do topo */
+    --fw-display: 640;
+    --fw-display-strong: 700;
+    --fw-display-soft: 500;
+    /* Numeros (preco, hora, valor): por padrao a mesma familia dos titulos. */
+    --font-figure: var(--font-display);
+    --font-figure-stretch: var(--font-display-stretch);
+
+    /* Fio dos rotulos (.eyebrow) e do indice dos capitulos: so currentColor,
+       para valer em qualquer superficie. */
+    /* Rotulo dos botoes: o tema decide a caixa e o espacamento. */
+    --btn-case: none;
+    --btn-tracking: 0.01em;
+
+    --rule-width: 1.75rem;
+    --rule-height: 1px;
+    --rule-image: linear-gradient(currentColor, currentColor);
 
     --radius-control: 4px;
     --radius-card: 6px;
@@ -66,7 +110,8 @@
 /* --------------------------------------------------------------------------
    Cores de ESTADO: sempre com icone e texto, nunca so cor.
    -------------------------------------------------------------------------- */
-:root {
+:root,
+[data-tema] {
     --p-success-700: #2e6a4e;
     --p-success-100: #e2efe6;
     --p-success-300: #78c79c;
@@ -105,9 +150,17 @@
 
     --c-accent: var(--p-accent-500);
     --c-accent-hover: var(--p-accent-600);
-    --c-on-accent: var(--p-ink-950);
+    --c-on-accent: var(--p-on-accent);
     --c-accent-text: var(--p-accent-700);
     --c-accent-soft: var(--p-accent-100);
+
+    /* Bloco invertido (fundo --c-primary: "em atendimento", conta da comanda). */
+    --c-on-primary-accent: var(--p-on-primary-accent);
+    --c-on-primary-danger: var(--p-danger-300);
+
+    /* Placa sem foto (iniciais do profissional): sempre escura, com o tema. */
+    --c-plate: var(--p-plate-light);
+    --c-on-plate: var(--p-on-plate);
 
     --c-focus: var(--p-accent-700);
     --c-selection: var(--p-accent-100);
@@ -147,13 +200,19 @@
     --c-primary-hover: var(--p-paper-200);
     --c-on-primary: var(--p-ink-950);
 
-    --c-accent: var(--p-accent-500);
-    --c-accent-hover: var(--p-accent-300);
-    --c-on-accent: var(--p-ink-950);
-    --c-accent-text: var(--p-accent-300);
+    --c-accent: var(--p-accent-solid-dark);
+    --c-accent-hover: var(--p-accent-hover-dark);
+    --c-on-accent: var(--p-on-accent);
+    --c-accent-text: var(--p-accent-text-dark);
     --c-accent-soft: color-mix(in srgb, var(--p-accent-500) 16%, transparent);
 
-    --c-focus: var(--p-accent-300);
+    --c-on-primary-accent: var(--p-accent-700);
+    --c-on-primary-danger: var(--p-danger-700);
+
+    --c-plate: var(--p-plate-dark);
+    --c-on-plate: var(--p-on-plate);
+
+    --c-focus: var(--p-focus-dark);
     --c-selection: color-mix(in srgb, var(--p-accent-500) 35%, transparent);
 
     --c-success: var(--p-success-300);
@@ -173,7 +232,8 @@
 /* --------------------------------------------------------------------------
    3. ESCALAS
    -------------------------------------------------------------------------- */
-:root {
+:root,
+[data-tema] {
     /* Tipografia — texto e interface */
     --font-body: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
     --font-mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;

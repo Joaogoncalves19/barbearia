@@ -1,0 +1,62 @@
+/* ==========================================================================
+   TEMA 04 — URBAN BARBER
+   Azul petroleo · Areia · Grafite · Cobre. Urbano, jovem, de cidade grande.
+   Archivo EXPANDIDA e pesada em caixa alta, cantos retos, geometria (bloco e
+   quadrado) como motivo.
+   ========================================================================== */
+[data-tema='urban-barber'] {
+    --theme-key: urban-barber;
+
+    --p-ink-950: #0c1a1f;
+    --p-ink-900: #11252c;
+    --p-ink-800: #183139;
+    --p-ink-700: #23424c;
+    --p-ink-600: #30545f;
+    --p-stone-600: #5b5d58;
+    --p-stone-500: #878a84;
+    --p-stone-400: #71878c;
+    --p-stone-300: #a3b4b6;
+    --p-paper-200: #dad2c2;
+    --p-paper-100: #e9e3d7;
+    --p-paper-50: #f3efe7;
+    --p-paper-0: #fbf9f5;
+    --p-accent-300: #e8a679;
+    --p-accent-500: #c97f4b;
+    --p-accent-600: #ad6838;
+    --p-accent-700: #8a4820;
+    --p-accent-100: #f5e2d3;
+
+    --font-display-stretch: 112%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: -0.01em;
+    --display-tracking: -0.025em;
+    --fw-display: 740;
+    --fw-display-strong: 820;
+    --fw-display-soft: 600;
+    --font-figure-stretch: 100%;
+    /* Expandida ocupa mais: os titulos grandes ficam um pouco menores. */
+    --fs-display: clamp(2.5rem, 1.4rem + 5.2vw, 6.25rem);
+    --fs-3xl: clamp(2.125rem, 1.4rem + 3vw, 3.5rem);
+
+    --btn-case: uppercase;
+    --btn-tracking: 0.06em;
+    --radius-control: 0;
+    --radius-card: 0;
+    --radius-media: 0;
+
+    /* Quadrado + fio nos rotulos. */
+    --rule-height: 6px;
+    --rule-image:
+        linear-gradient(currentColor, currentColor) left center / 6px 6px no-repeat,
+        linear-gradient(currentColor, currentColor) right center / calc(100% - 10px) 1px no-repeat;
+}
+
+[data-tema='urban-barber'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='urban-barber'] .theme-mini__motif {
+    --motif-height: 6px;
+    --motif:
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left 0 var(--motif-pos) 0 / 2.5rem 6px no-repeat,
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left 3rem var(--motif-pos) 0 / 6px 6px no-repeat,
+        linear-gradient(var(--motif-line), var(--motif-line)) left 0 var(--motif-pos) 0 / 100% 1px no-repeat;
+}

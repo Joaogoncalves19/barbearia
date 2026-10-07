@@ -1,0 +1,57 @@
+/* ==========================================================================
+   TEMA 08 — COPPER CLUB
+   Cafe · Creme · Cobre · Carvao. Artesanal e quente: couro e metal
+   trabalhado sem textura literal. Serifa de oficina (Roboto Slab) em caixa
+   normal, a COSTURA (tracejado) como motivo, placa sem foto em carvao.
+   ========================================================================== */
+[data-tema='copper-club'] {
+    --theme-key: copper-club;
+
+    --p-ink-950: #18120e;
+    --p-ink-900: #221914;
+    --p-ink-800: #2d221b;
+    --p-ink-700: #3d2f26;
+    --p-ink-600: #4f3e33;
+    --p-stone-600: #64584d;
+    --p-stone-500: #928579;
+    --p-stone-400: #857668;
+    --p-stone-300: #b5a696;
+    --p-paper-200: #e0d3c1;
+    --p-paper-100: #ede4d6;
+    --p-paper-50: #f6f0e6;
+    --p-paper-0: #fcf8f2;
+    --p-accent-300: #e7a271;
+    --p-accent-500: #c67a43;
+    --p-accent-600: #aa6431;
+    --p-accent-700: #8b4b1f;
+    --p-accent-100: #f5e1d0;
+    --p-charcoal: #1f1f1e;
+    --p-plate-light: var(--p-charcoal); /* placa sem foto em carvao (metal) */
+    --p-plate-dark: var(--p-charcoal);
+
+    --font-display: 'Roboto Slab Variable', Rockwell, Georgia, serif;
+    --font-display-stretch: 100%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: -0.01em;
+    --display-case: none;
+    --display-tracking: -0.02em;
+    --fw-display: 600;
+    --fw-display-strong: 700;
+    --fw-display-soft: 450;
+    --fs-display: clamp(2.75rem, 1.5rem + 5.6vw, 6.75rem);
+
+    --radius-control: 4px;
+    --radius-card: 8px;
+    --radius-media: 4px;
+
+    /* Costura nos rotulos. */
+    --rule-height: 2px;
+    --rule-image: repeating-linear-gradient(90deg, currentColor 0 5px, transparent 5px 8px);
+}
+
+[data-tema='copper-club'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='copper-club'] .theme-mini__motif {
+    --motif-height: 2px;
+    --motif: repeating-linear-gradient(90deg, var(--motif-accent) 0 0.5rem, transparent 0.5rem 0.8rem) left 0 var(--motif-pos) 0 / 100% 2px no-repeat;
+}

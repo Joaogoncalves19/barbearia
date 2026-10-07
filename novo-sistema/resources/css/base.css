@@ -126,8 +126,8 @@ a:hover {
 .display {
     font-size: var(--fs-display);
     line-height: var(--lh-tight);
-    font-weight: 700;
-    letter-spacing: -0.015em;
+    font-weight: var(--fw-display-strong);
+    letter-spacing: var(--display-tracking);
 }
 
 .h1 {
@@ -145,12 +145,22 @@ a:hover {
     line-height: var(--lh-snug);
 }
 
+/* Caixa alta dos titulos do site: o tema decide (serifa classica fica em caixa normal). */
+/* Subtitulo dentro de um bloco (texto, nao a fonte de marca). */
+.h4 {
+    font-size: var(--fs-base);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-snug);
+}
+
 .caps {
-    text-transform: uppercase;
+    text-transform: var(--display-case);
 }
 
 /* Numero de destaque: preco, hora, valor financeiro. Sempre tabular. */
 .figure {
+    font-family: var(--font-figure);
+    font-stretch: var(--font-figure-stretch);
     font-size: var(--fs-figure);
     line-height: 1;
     font-variant-numeric: tabular-nums lining-nums;
@@ -177,8 +187,8 @@ a:hover {
 .title {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
-    font-weight: 620;
-    font-stretch: 85%;
+    font-weight: var(--fw-display);
+    font-stretch: var(--font-title-stretch);
     line-height: var(--lh-snug);
     letter-spacing: 0;
 }
@@ -197,9 +207,9 @@ a:hover {
 
 .eyebrow::before {
     content: '';
-    width: 1.75rem;
-    height: 1px;
-    background: currentColor;
+    width: var(--rule-width);
+    height: var(--rule-height);
+    background: var(--rule-image);
 }
 
 .eyebrow--plain::before {
@@ -210,7 +220,7 @@ a:hover {
 .index-number {
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
-    font-weight: 600;
+    font-weight: var(--fw-display);
     font-variant-numeric: tabular-nums;
     color: var(--c-accent-text);
 }
@@ -248,18 +258,41 @@ a:hover {
     margin-top: var(--space-4);
 }
 
-/* "Regua" (assinatura grafica): marcas finas de medida, como a escala de um
-   pente ou de uma fita de alfaiate. Divisor de secao e eixo da agenda. */
+/* MOTIVO GRAFICO do tema (temas-visuais.md §5). No Oficio e a "regua":
+   marcas finas de medida, como a escala de um pente ou de uma fita de
+   alfaiate. Cada tema troca so o DESENHO (--motif, --motif-height); as cores
+   vem do lugar onde o motivo aparece:
+     --motif-line   fio de base        --motif-mark   marcas
+     --motif-accent marca de destaque  --motif-pos    top | bottom
+   Lugares: .ruler (elemento) e o pe do topo do site, a placa sem foto e o
+   estado vazio (pseudo-elementos, que herdam as variaveis do dono). Nas
+   miniaturas da tela Aparencia o motivo e .theme-mini__motif, com regra
+   propria em cada tema (sem herdar o motivo do tema da pagina). */
+.ruler,
+.opening,
+.monogram,
+.state,
+.theme-mini__motif {
+    --motif-line: var(--c-line);
+    --motif-mark: var(--c-border-strong);
+    --motif-accent: var(--motif-mark);
+    --motif-pos: bottom;
+    --motif-height: 0.75rem;
+    --motif:
+        linear-gradient(var(--motif-line), var(--motif-line)) left var(--motif-pos) / 100% 1px no-repeat,
+        repeating-linear-gradient(90deg, var(--motif-mark) 0 1px, transparent 1px 0.5rem) left var(--motif-pos) / 100% 0.375rem no-repeat,
+        repeating-linear-gradient(90deg, var(--motif-accent) 0 1px, transparent 1px 2.5rem) left var(--motif-pos) / 100% 0.75rem no-repeat;
+}
+
 .ruler {
-    height: 0.75rem;
-    background:
-        linear-gradient(var(--c-line), var(--c-line)) bottom / 100% 1px no-repeat,
-        repeating-linear-gradient(90deg, var(--c-ruler, var(--c-line)) 0 1px, transparent 1px 0.5rem) bottom / 100% 0.375rem no-repeat,
-        repeating-linear-gradient(90deg, var(--c-ruler, var(--c-line)) 0 1px, transparent 1px 2.5rem) bottom / 100% 0.75rem no-repeat;
+    --motif-mark: var(--c-line);
+    display: block;
+    height: var(--motif-height);
+    background: var(--motif);
 }
 
 .ruler--accent {
-    --c-ruler: color-mix(in srgb, var(--c-accent) 70%, transparent);
+    --motif-accent: color-mix(in srgb, var(--c-accent) 70%, transparent);
 }
 
 /* --- Utilitarios (poucos e sem valores soltos) ----------------------------- */

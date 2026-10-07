@@ -4,7 +4,7 @@
     use App\Modules\Shared\Support\Money;
 @endphp
 @if ($movements->isEmpty())
-    <p class="text-sm text-muted">Nenhuma movimentação ainda.</p>
+    <x-ui.empty-state compact icon="banknote" title="Nenhuma movimentação ainda." />
 @else
     <x-ui.table caption="Movimentações do caixa" caption-hidden stacked>
         <thead><tr><th scope="col">Quando</th><th scope="col">Tipo</th><th scope="col">Forma</th><th scope="col">Valor</th><th scope="col">Origem / motivo</th><th scope="col">Quem</th></tr></thead>

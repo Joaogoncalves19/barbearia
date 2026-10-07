@@ -1,123 +1,10 @@
 /* ==========================================================================
-   FASE 11 — site real (Direcao A, "oficio contemporaneo"). Ver home.md.
-   Elementos graficos proprios: faixa diagonal (referencia ao poste de
-   barbeiro, em cobre/papel/tinta), ornamentos em traco fino e o "quadro de
-   precos" com pontilhado, como os quadros de barbearia.
+   FASE 11 — base do site real (ver home.md). A linguagem visual atual fica em
+   site-marca.css, carregado depois; aqui ficam so as pecas ainda em uso
+   (faixa de informacoes, status de aberto, galeria, perfil, avaliacoes).
+   A faixa diagonal (barber pole) e os ornamentos de tesoura/navalha sairam
+   no redesign; a cor de cada tema vem dos tokens.
    ========================================================================== */
-
-/* Faixa diagonal: divisoria da marca. */
-.barber-stripe {
-    height: 0.5rem;
-    background: repeating-linear-gradient(
-        -45deg,
-        var(--c-accent) 0 0.6rem,
-        var(--p-paper-50) 0.6rem 1.2rem,
-        var(--p-ink-950) 1.2rem 1.8rem
-    );
-    opacity: 0.85;
-}
-
-.barber-stripe--thin {
-    height: 0.25rem;
-    opacity: 0.6;
-}
-
-/* Mini poste no rotulo do topo. */
-.pole {
-    display: inline-block;
-    width: 0.5rem;
-    height: 1.1rem;
-    margin-right: var(--space-2);
-    border-radius: var(--radius-pill);
-    background: repeating-linear-gradient(-45deg, var(--c-accent) 0 3px, var(--c-text) 3px 6px);
-}
-
-.ornament {
-    display: block;
-    width: 100%;
-    height: auto;
-    color: var(--c-accent-text);
-}
-
-/* --- Topo -------------------------------------------------------------------------- */
-.hero--photo .hero__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.hero--type {
-    min-height: min(78svh, 46rem);
-    overflow: hidden;
-    background:
-        radial-gradient(60rem 30rem at 85% 15%, color-mix(in srgb, var(--c-accent) 18%, transparent), transparent 70%),
-        radial-gradient(40rem 26rem at 10% 100%, color-mix(in srgb, var(--c-accent) 10%, transparent), transparent 70%),
-        var(--c-bg);
-}
-
-.hero__ornaments {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-}
-
-.hero__ornament {
-    position: absolute;
-    opacity: 0.32;
-}
-
-/* No celular a tesoura fica no alto, fraca, longe do texto. */
-.hero__ornament--a {
-    top: 2%;
-    right: -14%;
-    width: min(62vw, 34rem);
-    opacity: 0.16;
-    transform: rotate(-8deg);
-}
-
-.hero__ornament--b {
-    display: none;
-}
-
-@media (min-width: 64rem) {
-    .hero__ornament--a {
-        top: 6%;
-        right: 4%;
-        width: 30rem;
-        opacity: 0.32;
-    }
-
-    .hero__ornament--b {
-        display: block;
-        right: 34%;
-        bottom: 8%;
-        width: 11rem;
-        opacity: 0.2;
-        transform: rotate(18deg);
-    }
-}
-
-.hero__eyebrow {
-    display: inline-flex;
-    align-items: center;
-}
-
-.hero--type .hero__title {
-    max-width: 16ch;
-}
-
-.hero__name {
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--c-accent-text);
-}
-
-.hero__lead {
-    max-width: 46ch;
-}
 
 /* --- Faixa de informacoes ---------------------------------------------------------- */
 .info-strip__item a {
@@ -166,136 +53,6 @@
     font-weight: var(--fw-semibold);
 }
 
-/* --- Quadro de precos ------------------------------------------------------------- */
-.menu-board {
-    display: grid;
-    gap: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-@media (min-width: 64rem) {
-    .menu-board {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: var(--space-16);
-    }
-}
-
-.menu-line {
-    border-bottom: var(--border-width) solid var(--c-border);
-}
-
-.menu-line__link {
-    display: grid;
-    gap: var(--space-1);
-    padding-block: var(--space-5);
-    color: inherit;
-    text-decoration: none;
-}
-
-.menu-line__link--photo {
-    grid-template-columns: 5rem minmax(0, 1fr);
-    gap: var(--space-4);
-    align-items: start;
-}
-
-.menu-line__thumb img {
-    display: block;
-    width: 5rem;
-    height: 5rem;
-    border-radius: var(--radius-media);
-    object-fit: cover;
-}
-
-.menu-line__body {
-    display: grid;
-    gap: var(--space-1);
-    min-width: 0;
-}
-
-.menu-line__top {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-    min-width: 0;
-}
-
-.menu-line__name {
-    min-width: 0;
-    font-family: var(--font-display);
-    font-weight: var(--font-display-weight);
-    font-stretch: var(--font-display-stretch);
-    letter-spacing: var(--font-display-tracking);
-    font-size: var(--fs-lg);
-    line-height: var(--lh-snug);
-    overflow-wrap: anywhere;
-}
-
-.menu-line__dots {
-    flex: 1;
-    min-width: 1.5rem;
-    border-bottom: 2px dotted color-mix(in srgb, var(--c-text-muted) 55%, transparent);
-    transform: translateY(-0.3em);
-}
-
-.menu-line__price {
-    font-size: var(--fs-md);
-    font-weight: var(--fw-semibold);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-.menu-line__meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-1) var(--space-4);
-    font-size: var(--fs-xs);
-    color: var(--c-text-muted);
-}
-
-.menu-line__meta > span {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-1);
-}
-
-.menu-line__meta .icon {
-    width: 1rem;
-    height: 1rem;
-}
-
-.menu-line__cta {
-    margin-left: auto;
-    color: var(--c-accent-text);
-    font-weight: var(--fw-semibold);
-}
-
-.menu-line__desc {
-    max-width: 58ch;
-    font-size: var(--fs-sm);
-    color: var(--c-text-muted);
-}
-
-.menu-line__link:hover .menu-line__name,
-.menu-line__link:focus-visible .menu-line__name {
-    color: var(--c-accent-text);
-}
-
-.menu-section + .menu-section {
-    margin-top: var(--space-12);
-}
-
-.menu-section__title {
-    padding-bottom: var(--space-3);
-    border-bottom: var(--border-width) solid var(--c-text);
-    font-size: var(--fs-sm);
-    font-weight: var(--fw-semibold);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
 .tag {
     display: inline-block;
     margin-left: var(--space-2);
@@ -330,19 +87,6 @@
 
 .category-chips a:hover {
     border-color: var(--c-accent);
-}
-
-.page-head-site {
-    padding-top: var(--space-12);
-}
-
-/* --- Faixas e assinatura ----------------------------------------------------------- */
-.section--band {
-    background: var(--c-surface);
-}
-
-.split--top {
-    align-items: start;
 }
 
 .plan-list {
@@ -453,46 +197,6 @@
     color: var(--c-accent-text);
 }
 
-.monogram {
-    display: grid;
-    place-items: center;
-    width: 100%;
-    height: 100%;
-    background:
-        repeating-linear-gradient(-45deg, transparent 0 14px, color-mix(in srgb, var(--c-accent) 9%, transparent) 14px 15px),
-        var(--c-surface);
-    color: var(--c-accent-text);
-    font-family: var(--font-display);
-    font-weight: var(--font-display-weight);
-    font-stretch: var(--font-display-stretch);
-    font-size: clamp(3rem, 2rem + 4vw, 5rem);
-    letter-spacing: 0.04em;
-}
-
-.monogram--lg {
-    aspect-ratio: 4 / 5;
-    border-radius: var(--radius-media);
-}
-
-.pro-profile {
-    display: grid;
-    gap: var(--space-10);
-}
-
-.pro-profile__media img,
-.pro-profile__media .monogram {
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-media);
-}
-
-@media (min-width: 64rem) {
-    .pro-profile {
-        grid-template-columns: minmax(16rem, 2fr) 3fr;
-        align-items: start;
-    }
-}
-
 /* --- A barbearia e galeria --------------------------------------------------------- */
 .about-photos {
     display: grid;
@@ -510,12 +214,6 @@
     margin-top: var(--space-2);
     font-size: var(--fs-xs);
     color: var(--c-text-muted);
-}
-
-.about-mark {
-    width: min(100%, 18rem);
-    justify-self: center;
-    opacity: 0.6;
 }
 
 .photo-grid {
@@ -539,16 +237,6 @@
     aspect-ratio: 1;
     border-radius: var(--radius-media);
     object-fit: cover;
-}
-
-/* --- Chamada final ----------------------------------------------------------------- */
-.section--cta {
-    border-top: var(--border-width) solid var(--c-border);
-}
-
-.cta-final__ornament {
-    width: 5rem;
-    opacity: 0.8;
 }
 
 /* --- Legal ------------------------------------------------------------------------- */

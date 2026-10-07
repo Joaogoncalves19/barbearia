@@ -18,7 +18,7 @@
     'siteName' => null,
     'noindex' => false,
 ])
-<x-layouts.document :title="$title" :description="$description" :direction="$direction" surface="escura" area="site" :noindex="$prototype || $noindex" :site-name="$siteName">
+<x-layouts.document :title="$title" :description="$description" :direction="$direction" surface="site" area="site" :noindex="$prototype || $noindex" :site-name="$siteName">
     @if ($prototype)
         @include('partials.prototype-banner', ['direcao' => $direction])
     @endif

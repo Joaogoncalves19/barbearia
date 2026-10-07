@@ -3,7 +3,7 @@
 import { execFileSync } from 'node:child_process';
 
 export default function globalSetup() {
-    execFileSync('php', ['artisan', 'app:e2e-accounts', '--suffix=celular', '--suffix=desktop'], {
+    execFileSync('php', ['artisan', 'app:e2e-accounts', '--suffix=celular', '--suffix=desktop', '--suffix=temas'], {
         env: process.env,
         stdio: 'inherit',
     });

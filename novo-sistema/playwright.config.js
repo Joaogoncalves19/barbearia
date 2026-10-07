@@ -34,8 +34,11 @@ export default defineConfig({
         launchOptions: process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {},
     },
     projects: [
-        { name: 'celular', use: { ...devices['Pixel 7'] } },
-        { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 900 } } },
+        { name: 'celular', use: { ...devices['Pixel 7'] }, testIgnore: /temas\.spec\.js/ },
+        { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 900 } }, testIgnore: /temas\.spec\.js/ },
+        // O tema visual e GLOBAL: os testes de tema rodam sozinhos, depois dos outros
+        // (trocar o tema no meio de outro teste mudaria a tela que ele esta vendo).
+        { name: 'temas', testMatch: /temas\.spec\.js/, dependencies: ['celular', 'desktop'], fullyParallel: false },
     ],
     webServer: process.env.E2E_BASE_URL
         ? undefined

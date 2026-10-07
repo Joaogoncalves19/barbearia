@@ -21,7 +21,7 @@
     border-radius: 2px;
     color: var(--c-accent-text);
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: var(--fw-display-strong);
     font-stretch: var(--font-display-stretch);
     font-size: 1.125rem;
     line-height: 1;
@@ -29,10 +29,10 @@
 
 .brand__name {
     font-family: var(--font-display);
-    font-weight: 680;
+    font-weight: var(--fw-display-strong);
     font-stretch: var(--font-display-stretch);
     letter-spacing: 0.04em;
-    text-transform: uppercase;
+    text-transform: var(--display-case);
     font-size: 1.125rem;
     line-height: 1;
 }
@@ -40,8 +40,8 @@
 /* --- Faixa de prototipo -------------------------------------------------------- */
 .proto-banner {
     padding: var(--space-2) 0;
-    background: var(--p-warning-100);
-    color: var(--p-warning-700);
+    background: var(--c-warning-bg);
+    color: var(--c-warning);
     font-size: var(--fs-xs);
     font-weight: var(--fw-semibold);
     text-align: center;
@@ -93,9 +93,9 @@
 
 .summary-total strong,
 .summary-total dd {
-    font-family: var(--font-display);
-    font-stretch: var(--font-display-stretch);
+    font-family: var(--font-figure);
+    font-stretch: var(--font-figure-stretch);
     font-size: var(--fs-figure-sm);
-    font-weight: 650;
+    font-weight: var(--fw-display);
     font-variant-numeric: tabular-nums;
 }

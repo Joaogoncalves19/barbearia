@@ -1,0 +1,66 @@
+/* ==========================================================================
+   TEMA 07 — MINIMAL
+   Branco quente · Cinza · Grafite · Champanhe. Limpo e discreto.
+   Tudo claro (site, conta, barra do painel). Inter tambem nos titulos, em
+   caixa normal; quase nenhum elemento grafico (o motivo vira um fio fino e
+   os rotulos perdem o fio). Tipografia, espaco e foto fazem o trabalho.
+   ========================================================================== */
+[data-tema='minimal'] {
+    --theme-key: minimal;
+
+    --p-ink-950: #151515;
+    --p-ink-900: #1e1e1e;
+    --p-ink-800: #2a2a2a;
+    --p-ink-700: #3a3a3a;
+    --p-ink-600: #4b4b4b;
+    --p-stone-600: #5f5e5a;
+    --p-stone-500: #8c8a85;
+    --p-stone-400: #7c7b78;
+    --p-stone-300: #a9a8a4;
+    --p-paper-200: #e4e2dd;
+    --p-paper-100: #efeeea;
+    --p-paper-50: #f8f7f4;
+    --p-paper-0: #ffffff;
+    --p-accent-300: #cdb98f;
+    --p-accent-500: #a8926a;
+    --p-accent-600: #8e7a55;
+    --p-accent-700: #6a5835;
+    --p-accent-100: #efe8da;
+    /* Placa sem foto clara, com as iniciais em grafite. */
+    --p-plate-light: var(--p-paper-100);
+    --p-plate-dark: var(--p-paper-100);
+    --p-on-plate: var(--p-ink-900);
+
+    --font-display: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display-stretch: 100%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: -0.02em;
+    --display-case: none;
+    --display-tracking: -0.04em;
+    --fw-display: 600;
+    --fw-display-strong: 650;
+    --fw-display-soft: 500;
+    --fs-display: clamp(2.75rem, 1.5rem + 5.2vw, 6.5rem);
+
+    --radius-control: 6px;
+    --radius-card: 10px;
+    --radius-media: 6px;
+
+    --rule-width: 0;
+    --rule-image: none;
+}
+
+[data-tema='minimal'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='minimal'] .theme-mini__motif {
+    --motif-height: 1px;
+    --motif: linear-gradient(var(--motif-line), var(--motif-line)) left var(--motif-pos) / 100% 1px no-repeat;
+}
+
+[data-tema='minimal'] .eyebrow {
+    gap: 0;
+}
+
+[data-tema='minimal'] .chapter__index::after {
+    display: none;
+}

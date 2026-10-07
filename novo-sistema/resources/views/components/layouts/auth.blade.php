@@ -11,9 +11,9 @@
     $marca = \App\Modules\SiteContent\Support\Brand::current();
     $equipe = $area !== 'site';
 @endphp
-<x-layouts.document :title="$title" :surface="$area === 'site' ? 'escura' : 'clara'" :area="$area" :noindex="true">
+<x-layouts.document :title="$title" :surface="$area === 'site' ? 'site' : 'panel'" :area="$area" :noindex="true">
     <main id="conteudo" @class(['auth-page', 'auth-page--staff' => $equipe, 'auth-page--site' => ! $equipe])>
-        <aside class="auth-brand" data-superficie="escura">
+        <aside class="auth-brand" data-superficie="{{ \App\Modules\SiteContent\Support\Theme::active()->surface('auth') }}">
             <a class="brand" href="{{ $equipe ? route('staff.login') : route('home') }}">
                 @if ($marca['logo'])
                     <img class="brand__logo" src="{{ $marca['logo']['url'] }}" alt="{{ $marca['name'] }}" @if ($marca['logo']['width']) width="{{ $marca['logo']['width'] }}" height="{{ $marca['logo']['height'] }}" @endif>

@@ -61,7 +61,7 @@
 
     <x-ui.card title="Extrato">
         @if ($entries->isEmpty())
-            <p class="text-sm text-muted">Nenhum lançamento ainda.</p>
+            <x-ui.empty-state compact icon="star" title="Nenhum lançamento ainda." />
         @else
             <x-ui.table caption="Extrato de pontos" caption-hidden stacked>
                 <thead><tr><th scope="col">Quando</th><th scope="col">Descrição</th><th scope="col">Pontos</th></tr></thead>

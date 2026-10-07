@@ -14,7 +14,7 @@
     <section class="stack" aria-labelledby="proximos">
         <h2 id="proximos" class="h3">Próximos</h2>
         @if ($upcoming->isEmpty())
-            <p class="text-muted">Nenhum horário marcado.</p>
+            <x-ui.empty-state compact icon="calendar" title="Nenhum horário marcado." />
         @else
             <ul class="stack" role="list">
                 @foreach ($upcoming as $a)

@@ -20,13 +20,13 @@
 @php
     $hoje = \Carbon\CarbonImmutable::now(config('barbearia.display_timezone', 'America/Sao_Paulo'))->locale('pt_BR');
 @endphp
-<x-layouts.document :title="$title" :direction="$direction" surface="clara" area="panel" :noindex="true">
+<x-layouts.document :title="$title" :direction="$direction" surface="panel" area="panel" :noindex="true">
     @if ($prototype)
         @include('partials.prototype-banner', ['direcao' => $direction])
     @endif
 
     <div class="panel-shell" x-data="disclosure" x-on:keydown.escape="close">
-        <aside class="sidebar" data-superficie="escura" x-bind:class="panelClass" id="menu-painel" aria-label="Menu do painel">
+        <aside class="sidebar" data-superficie="{{ \App\Modules\SiteContent\Support\Theme::active()->surface('sidebar') }}" x-bind:class="panelClass" id="menu-painel" aria-label="Menu do painel">
             <div class="sidebar__brand">
                 <span class="brand">
                     <span class="brand__mark" aria-hidden="true">{{ mb_substr($brand, 0, 1) }}</span>

@@ -1,0 +1,68 @@
+/* ==========================================================================
+   TEMA 06 — RED BARBER
+   Vinho · Preto · Creme · Cobre. Forte, ousado, sofisticado.
+   O vermelho fica na ACAO (botao, item ativo, "agora"); rotulos e destaques
+   de texto no escuro vao em cobre, para o vinho nao tomar conta. Archivo
+   extra-condensada e pesada, traco forte como motivo.
+   ========================================================================== */
+[data-tema='red-barber'] {
+    --theme-key: red-barber;
+
+    --p-ink-950: #120c0d;
+    --p-ink-900: #1b1214;
+    --p-ink-800: #261a1c;
+    --p-ink-700: #372628;
+    --p-ink-600: #4a3336;
+    --p-stone-600: #62595a;
+    --p-stone-500: #8d8384;
+    --p-stone-400: #837779;
+    --p-stone-300: #b0a5a6;
+    --p-paper-200: #e0d6c8;
+    --p-paper-100: #eee6da;
+    --p-paper-50: #f6f1e9;
+    --p-paper-0: #fcf9f4;
+    --p-accent-300: #ec8f95;
+    --p-accent-500: #9c2731;
+    --p-accent-600: #841f28;
+    --p-accent-700: #8e2430;
+    --p-accent-100: #f6dfe0;
+    --p-accent-bright: #b8323d; /* solido no escuro: 3,3:1 contra o preto, 5,6:1 com o creme */
+    --p-on-accent: #fcf9f4;
+    --p-copper-300: #dca06f;    /* texto de destaque no escuro (8:1) */
+
+    /* No escuro: solido mais vivo; texto de destaque, foco e o destaque do
+       bloco invertido em cobre. */
+    --p-accent-solid-dark: var(--p-accent-bright);
+    --p-accent-hover-dark: var(--p-accent-500);
+    --p-accent-text-dark: var(--p-copper-300);
+    --p-focus-dark: var(--p-copper-300);
+    --p-on-primary-accent: var(--p-copper-300);
+
+    --font-display-stretch: 62%;
+    --font-title-stretch: 75%;
+    --font-compact-stretch: 62%;
+    --font-display-tracking: 0;
+    --display-tracking: -0.005em;
+    --fw-display: 760;
+    --fw-display-strong: 840;
+    --fw-display-soft: 600;
+    --font-figure-stretch: 75%;
+
+    --btn-case: uppercase;
+    --btn-tracking: 0.06em;
+    --radius-control: 2px;
+    --radius-card: 4px;
+    --radius-media: 2px;
+
+    --rule-width: 1.5rem;
+    --rule-height: 3px;
+}
+
+[data-tema='red-barber'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='red-barber'] .theme-mini__motif {
+    --motif-height: 4px;
+    --motif:
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left 0 var(--motif-pos) 0 / 3rem 4px no-repeat,
+        linear-gradient(var(--motif-line), var(--motif-line)) left 0 var(--motif-pos) 0 / 100% 1px no-repeat;
+}
+

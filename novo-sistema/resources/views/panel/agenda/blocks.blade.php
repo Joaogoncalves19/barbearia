@@ -25,7 +25,7 @@
 
     <x-ui.card title="Próximos e em andamento">
         @if ($items->isEmpty())
-            <p class="text-sm text-muted">Nenhum bloqueio futuro.</p>
+            <x-ui.empty-state compact icon="circle-x" title="Nenhum bloqueio futuro." />
         @else
             <x-ui.table caption="Bloqueios futuros" caption-hidden stacked>
                 <thead><tr><th scope="col">Quando</th><th scope="col">De quem</th><th scope="col">Motivo</th><th scope="col">Criado por</th><th scope="col"><span class="visually-hidden">Ações</span></th></tr></thead>

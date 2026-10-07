@@ -1,0 +1,18 @@
+/*
+ * TEMAS VISUAIS (temas-visuais.md). O tema ativo vai em data-tema no <html>
+ * e troca SO tokens: primitivos de cor, tipografia, cantos e o desenho do
+ * motivo grafico. Nenhum tema muda estrutura de tela nem estilo de componente
+ * fora dos tokens. O Oficio e o padrao: os valores dele ja estao em
+ * tokens.css, entao oficio.css so documenta.
+ *
+ * Fontes: cada tema usa no maximo uma familia de titulo alem da Inter; o
+ * navegador so baixa a familia que a pagina realmente usa.
+ */
+@import './oficio.css';
+@import './black-label.css';
+@import './gentlemans-club.css';
+@import './urban-barber.css';
+@import './old-school.css';
+@import './red-barber.css';
+@import './minimal.css';
+@import './copper-club.css';

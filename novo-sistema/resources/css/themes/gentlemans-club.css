@@ -1,0 +1,61 @@
+/* ==========================================================================
+   TEMA 03 — GENTLEMAN'S CLUB
+   Verde garrafa · Creme · Castanho · Dourado discreto. Classico, de clube.
+   Serifa tradicional (Newsreader) em caixa normal, filete duplo como motivo,
+   a placa sem foto em castanho (a madeira, sem textura). O botao principal
+   do painel e verde garrafa; o dourado fica no destaque.
+   ========================================================================== */
+[data-tema='gentlemans-club'] {
+    --theme-key: gentlemans-club;
+
+    --p-ink-950: #0f1c17;
+    --p-ink-900: #15271f;
+    --p-ink-800: #1c3229;
+    --p-ink-700: #284337;
+    --p-ink-600: #365546;
+    --p-stone-600: #5a5949;
+    --p-stone-500: #8a8572;
+    --p-stone-400: #7f8b7f;
+    --p-stone-300: #b2b6a1;
+    --p-paper-200: #ddd3bc;
+    --p-paper-100: #ebe4d1;
+    --p-paper-50: #f5efe2;
+    --p-paper-0: #fbf8f0;
+    --p-accent-300: #d9bc7e;
+    --p-accent-500: #b39150;
+    --p-accent-600: #98793f;
+    --p-accent-700: #6e5424;
+    --p-accent-100: #f0e6cd;
+    --p-wood: #6b4429; /* castanho: placa sem foto (7,4:1 com o creme) */
+    --p-plate-light: var(--p-wood);
+    --p-plate-dark: var(--p-wood);
+
+    --font-display: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+    --font-display-stretch: 100%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: -0.005em;
+    --display-case: none;
+    --display-tracking: -0.015em;
+    --fw-display: 560;
+    --fw-display-strong: 640;
+    --fw-display-soft: 450;
+
+    --radius-control: 2px;
+    --radius-card: 4px;
+    --radius-media: 2px;
+
+    /* Filete duplo nos rotulos. */
+    --rule-height: 4px;
+    --rule-image:
+        linear-gradient(currentColor, currentColor) top / 100% 1px no-repeat,
+        linear-gradient(currentColor, currentColor) bottom / 100% 1px no-repeat;
+}
+
+[data-tema='gentlemans-club'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='gentlemans-club'] .theme-mini__motif {
+    --motif-height: 5px;
+    --motif:
+        linear-gradient(var(--motif-line), var(--motif-line)) left 0 var(--motif-pos) 0 / 100% 1px no-repeat,
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left 0 var(--motif-pos) 4px / 100% 1px no-repeat;
+}

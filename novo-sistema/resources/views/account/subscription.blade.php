@@ -85,7 +85,7 @@
 
     <x-ui.card title="Pagamentos">
         @if ($payments->isEmpty())
-            <p class="text-sm text-muted">Nenhum pagamento de assinatura.</p>
+            <x-ui.empty-state compact icon="receipt" title="Nenhum pagamento de assinatura." />
         @else
             <x-ui.table caption="Pagamentos da assinatura" caption-hidden stacked>
                 <thead><tr><th scope="col">Data</th><th scope="col">Tipo</th><th scope="col">Valor</th><th scope="col">Reembolso</th></tr></thead>

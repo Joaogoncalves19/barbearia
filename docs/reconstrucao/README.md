@@ -2,8 +2,10 @@
 
 > **Status:** Fases 0 a 11 concluídas e aprovadas ([relatorio-fase-11.md](relatorio-fase-11.md)). **Fase 12
 > concluída, aguardando aprovação do dono** ([relatorio-fase-12.md](relatorio-fase-12.md)).
-> **Fase extraordinária de redesign visual** (entre as Fases 12 e 13, sem mudar o roadmap) concluída,
-> aguardando a avaliação visual do dono ([relatorio-redesign.md](relatorio-redesign.md)).
+> **Fase extraordinária de redesign visual** (entre as Fases 12 e 13, sem mudar o roadmap) concluída e com a
+> direção aprovada ([relatorio-redesign.md](relatorio-redesign.md)). **Refinamento visual e temas** (8 temas
+> predefinidos em Configurações → Aparência) concluído, aguardando a avaliação do dono
+> ([relatorio-refinamento-visual.md](relatorio-refinamento-visual.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -167,6 +169,8 @@ plano para reconstruí-lo do zero, por etapas.
 |-----------|----------|
 | [redesign-visual.md](redesign-visual.md) | Linguagem "Ofício": direção, tipografia, paleta, espaço, componentes, imagens, navegação, padrões por tela |
 | [relatorio-redesign.md](relatorio-redesign.md) | Auditoria tela a tela, o que mudou, testes, antes/depois ([img/redesign/](img/redesign/)), problemas, pendências |
+| [temas-visuais.md](temas-visuais.md) | Sistema de temas: arquitetura de tokens, os 8 temas (paleta, letra, detalhe gráfico), contraste, personalização futura, como adicionar um tema |
+| [relatorio-refinamento-visual.md](relatorio-refinamento-visual.md) | Refinamento visual e temas: telas revisadas, problemas e correções, componentes, testes, capturas ([img/redesign-temas/](img/redesign-temas/)), decisões |
 
 ## Legenda usada em todos os documentos
 

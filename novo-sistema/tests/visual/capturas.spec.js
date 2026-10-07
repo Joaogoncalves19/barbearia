@@ -2,12 +2,15 @@
 // tela vira docs/reconstrucao/img/redesign/<CAPTURA>/<area>/<nome>-<aparelho>.jpg.
 // Paginas com registro (agendamento, atendimento, caixa...) sao descobertas
 // pelo primeiro link da lista, sem ids fixos.
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 
 const FASE = process.env.CAPTURA || 'antes';
+// CAPTURA_TEMAS=1: so as capturas por tema (img/redesign-temas/<tema>/).
+const SO_TEMAS = !!process.env.CAPTURA_TEMAS;
+const TEMAS = ['oficio', 'black-label', 'gentlemans-club', 'urban-barber', 'old-school', 'red-barber', 'minimal', 'copper-club'];
 const SENHA = process.env.DEMO_PASSWORD;
-const RAIZ = '../docs/reconstrucao/img/redesign';
+const RAIZ = process.env.CAPTURA_RAIZ || '../docs/reconstrucao/img/redesign';
 
 async function capturar(page, info, area, nome) {
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -29,6 +32,7 @@ async function primeiroLink(page, padrao) {
 }
 
 test('site público e acesso', async ({ page }, info) => {
+    test.skip(SO_TEMAS, 'so capturas por tema');
     const a = 'publico';
     await visitar(page, info, a, '01-inicio', '/');
     await visitar(page, info, a, '02-servicos', '/servicos');
@@ -52,6 +56,7 @@ test('site público e acesso', async ({ page }, info) => {
 });
 
 test('painel da equipe', async ({ page }, info) => {
+    test.skip(SO_TEMAS, 'so capturas por tema');
     await page.goto('/painel/entrar');
     await page.getByLabel('Usuário ou e-mail').fill('dono');
     await page.getByLabel('Senha', { exact: true }).fill(SENHA);
@@ -120,6 +125,7 @@ test('painel da equipe', async ({ page }, info) => {
 });
 
 test('área do cliente', async ({ page }, info) => {
+    test.skip(SO_TEMAS, 'so capturas por tema');
     await page.goto('/entrar');
     await page.getByLabel('E-mail').fill('cliente@barbearia.test');
     await page.getByLabel('Senha', { exact: true }).fill(SENHA);
@@ -145,4 +151,62 @@ test('área do cliente', async ({ page }, info) => {
     await visitar(page, info, a, '12-privacidade', '/minha-conta/privacidade');
     await visitar(page, info, a, '13-senha', '/minha-conta/senha');
     await visitar(page, info, a, '14-confirmar-senha', '/minha-conta/confirmar-senha');
+});
+
+// Refinamento visual: Inicio do site, Hoje, Agenda, Comanda e Area do cliente
+// em cada um dos 8 temas, mais a tela Aparencia. O tema e trocado pela propria
+// tela Aparencia, como o dono faria; no fim volta ao Oficio.
+test('temas', async ({ page, browser }, info) => {
+    test.skip(!SO_TEMAS, 'so com CAPTURA_TEMAS=1');
+    const raiz = process.env.CAPTURA_RAIZ_TEMAS || '../docs/reconstrucao/img/redesign-temas';
+    const foto = async (p, tema, nome) => {
+        await p.waitForLoadState('networkidle').catch(() => {});
+        await p.evaluate(() => document.fonts && document.fonts.ready);
+        mkdirSync(`${raiz}/${tema}`, { recursive: true });
+        await p.screenshot({ path: `${raiz}/${tema}/${nome}-${info.project.name}.jpg`, fullPage: true, type: 'jpeg', quality: 62, scale: 'css' });
+    };
+
+    await page.goto('/painel/entrar');
+    await page.getByLabel('Usuário ou e-mail').fill('dono');
+    await page.getByLabel('Senha', { exact: true }).fill(SENHA);
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    await page.waitForURL(/\/painel$/);
+    await page.goto('/painel/atendimentos');
+    const comanda = await primeiroLink(page, /\/painel\/atendimentos\/AT-/);
+
+    const ctx = await browser.newContext({ ...info.project.use });
+    const cliente = await ctx.newPage();
+    await cliente.goto('/entrar');
+    await cliente.getByLabel('E-mail').fill('cliente@barbearia.test');
+    await cliente.getByLabel('Senha', { exact: true }).fill(SENHA);
+    await cliente.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await cliente.waitForURL(/\/minha-conta/);
+
+    for (const tema of TEMAS) {
+        await page.goto('/painel/aparencia');
+        const usar = page.locator(`[data-theme-card="${tema}"]`).getByRole('button', { name: /Usar este tema/ });
+        if (await usar.count()) await usar.click();
+        await expect(page.locator(`[data-theme-card="${tema}"]`).getByText('Em uso')).toBeVisible();
+
+        await cliente.goto('/');
+        await foto(cliente, tema, '01-inicio-do-site');
+        await page.goto('/painel');
+        await foto(page, tema, '02-hoje');
+        await page.goto('/painel/agenda');
+        await foto(page, tema, '03-agenda');
+        if (comanda) {
+            await page.goto(comanda);
+            await foto(page, tema, '04-comanda');
+        }
+        await cliente.goto('/minha-conta');
+        await foto(cliente, tema, '05-area-do-cliente');
+    }
+
+    await page.goto('/painel/aparencia');
+    await page.locator('[data-theme-card="oficio"]').getByRole('button', { name: /Usar este tema/ }).click();
+    await expect(page.locator('[data-theme-card="oficio"]').getByText('Em uso')).toBeVisible();
+    await foto(page, 'aparencia', '01-escolha-do-tema');
+    await page.goto('/painel/aparencia/previa/gentlemans-club');
+    await foto(page, 'aparencia', '02-previa-gentlemans-club');
+    await ctx.close();
 });

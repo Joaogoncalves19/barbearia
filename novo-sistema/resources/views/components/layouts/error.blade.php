@@ -1,14 +1,23 @@
 {{--
-    Pagina de erro (redesign): na marca, sem banco de dados e sem detalhe
-    tecnico, com caminho de volta. O numero grande faz o papel da imagem.
+    Pagina de erro (redesign): na marca, sem detalhe tecnico, com caminho de
+    volta. O numero grande faz o papel da imagem. O nome da barbearia vem do
+    banco SO se ele responder (um erro 500 de banco fora do ar nao pode virar
+    uma segunda falha): senao, o nome do sistema.
 --}}
 @props(['code', 'title'])
-<x-layouts.document :title="$title" surface="escura" area="site" :noindex="true" :csrf="false">
+@php
+    try {
+        $nome = \App\Modules\SiteContent\Support\SiteSettings::current()->name();
+    } catch (\Throwable) {
+        $nome = (string) config('app.name');
+    }
+@endphp
+<x-layouts.document :title="$title" surface="site" area="site" :noindex="true" :csrf="false">
     <main id="conteudo" class="error-page">
         <div class="container error-page__inner">
             <a class="brand" href="{{ url('/') }}">
-                <span class="brand__mark" aria-hidden="true">{{ mb_substr(config('app.name'), 0, 1) }}</span>
-                <span class="brand__name">{{ config('app.name') }}</span>
+                <span class="brand__mark" aria-hidden="true">{{ mb_substr($nome, 0, 1) }}</span>
+                <span class="brand__name">{{ $nome }}</span>
             </a>
             <div class="error-page__body">
                 <p class="error-page__code" aria-hidden="true">{{ $code }}</p>

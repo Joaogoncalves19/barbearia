@@ -250,6 +250,9 @@ class DemoData extends Command
         // Grade em volta da hora atual (de 4 h antes a 3 h depois), para a agenda
         // de hoje sempre mostrar concluidos, um em andamento e horarios a seguir.
         $base = BusinessTime::local($agora)->setTime((int) BusinessTime::local($agora)->format('H'), (int) BusinessTime::local($agora)->format('i') >= 30 ? 30 : 0);
+        // De madrugada ou tarde da noite, a grade fica dentro do expediente
+        // (toda a seguir, ou toda concluida) em vez de sumir.
+        $base = $base->max($base->setTime(11, 0))->min($base->setTime(20, 0));
         $modelo = [
             [-240, 0, 'corte'], [-240, 1, 'corte-degrade'], [-210, 2, 'barba'], [-180, 3, 'limpeza-de-pele'],
             [-150, 0, 'corte-e-barba'], [-120, 1, 'corte'], [-120, 2, 'corte-e-barba'], [-90, 3, 'corte'],
@@ -296,6 +299,18 @@ class DemoData extends Command
                 continue;
             }
             $ag = $this->reservar($dia, $hora, $this->equipe[$p], $servico, $i % 3 === 0 ? AppointmentSource::Online : AppointmentSource::Staff);
+            if ($ag !== null && ! $emAndamento) {
+                // Fora do expediente (grade toda a seguir): o primeiro cliente
+                // ja chegou, para a tela "Hoje" e a comanda terem quem mostrar.
+                try {
+                    $this->attendances()->start($this->attendances()->openFromAppointment($ag, $this->recepcao), $this->recepcao);
+                    $emAndamento = true;
+
+                    continue;
+                } catch (Throwable) {
+                    // a regra da agenda nao deixou: segue como horario marcado
+                }
+            }
             if ($ag !== null && $i % 2 === 0) {
                 try {
                     $this->booking()->confirm($ag, $this->recepcao);

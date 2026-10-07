@@ -52,6 +52,104 @@
     outline: none;
 }
 
+/* --- Folha com secoes (refinamento) ------------------------------------------
+   Para telas de trabalho com varios blocos (comanda, agendamento, caixa):
+   UMA superficie, blocos separados por fio, em vez de um cartao por
+   informacao. <div class="sheet"> + <x-ui.card variant="section">. */
+.sheet {
+    display: grid;
+    align-content: start;
+    padding: var(--space-6);
+    border: var(--border-width) solid var(--c-border);
+    border-radius: var(--radius-card);
+    background: var(--c-surface);
+}
+
+@media (max-width: 40rem) {
+    .sheet {
+        padding: var(--space-5) var(--space-4);
+    }
+}
+
+.card--section {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+}
+
+.sheet > .card--section + .card--section {
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: var(--border-width) solid var(--c-border);
+}
+
+/* "Como funciona": a regra explicada fica a um clique, sem poluir a tela. */
+.hint {
+    font-size: var(--fs-sm);
+    color: var(--c-text-muted);
+}
+
+.hint > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 2rem;
+    color: var(--c-text-muted);
+    font-weight: var(--fw-medium);
+    cursor: pointer;
+    list-style: none;
+}
+
+.hint > summary::-webkit-details-marker {
+    display: none;
+}
+
+.hint > summary:hover {
+    color: var(--c-text);
+}
+
+.hint[open] > summary {
+    color: var(--c-text);
+}
+
+.hint__body {
+    display: grid;
+    gap: var(--space-2);
+    max-width: 62ch;
+    margin-top: var(--space-1);
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--c-border);
+}
+
+.hint__body:has(.check-list) {
+    max-width: none;
+}
+
+/* Lista de itens com marca (permissoes, o que esta incluido): em colunas. */
+.check-list {
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    list-style: none;
+    columns: 18rem auto;
+    column-gap: var(--space-8);
+    font-size: var(--fs-sm);
+    color: var(--c-text);
+}
+
+.check-list li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+    padding-block: var(--space-1);
+    break-inside: avoid;
+}
+
+.check-list .icon {
+    margin-top: 0.2em;
+    color: var(--c-success);
+}
+
 .card__header {
     display: flex;
     align-items: center;
@@ -283,7 +381,7 @@
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: clamp(2.5rem, 1.6rem + 3vw, 4.5rem);
-    font-weight: 700;
+    font-weight: var(--fw-display-strong);
     line-height: 0.95;
 }
 

@@ -100,6 +100,9 @@
         $site[] = $item('Conteúdo do site', 'store', 'panel.site.content', 'panel.site.content*');
         $site[] = $item('Imagens do site', 'image', 'panel.site.images', 'panel.site.images*');
     }
+    if ($user->can('settings.manage')) {
+        $site[] = $item('Aparência', 'palette', 'panel.appearance', 'panel.appearance*');
+    }
 
     $configAgenda = [];
     if ($user->can('schedule.settings')) {

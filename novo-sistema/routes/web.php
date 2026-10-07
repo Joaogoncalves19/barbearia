@@ -54,6 +54,7 @@ use App\Http\Controllers\Panel\Promotions\CustomerLoyaltyController;
 use App\Http\Controllers\Panel\Promotions\GiftCardController;
 use App\Http\Controllers\Panel\Promotions\PromotionSettingsController;
 use App\Http\Controllers\Panel\ReceiptController as PanelReceiptController;
+use App\Http\Controllers\Panel\Site\AppearanceController;
 use App\Http\Controllers\Panel\Site\SiteContentController;
 use App\Http\Controllers\Panel\Subscriptions\PlanController;
 use App\Http\Controllers\Panel\Subscriptions\SubscriptionController as PanelSubscriptionController;
@@ -477,6 +478,11 @@ Route::prefix('painel')
         Route::put('/site/imagens/{image}', [SiteContentController::class, 'updateImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.update');
         Route::post('/site/imagens/{image}/ordem', [SiteContentController::class, 'moveImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.move');
         Route::delete('/site/imagens/{image}', [SiteContentController::class, 'destroyImage'])->middleware(['can:site.manage', 'throttle:money'])->name('site.images.destroy');
+
+        // --- Aparencia (refinamento visual): tema predefinido; so o proprietario ---
+        Route::get('/aparencia', [AppearanceController::class, 'index'])->middleware('can:settings.manage')->name('appearance');
+        Route::get('/aparencia/previa/{theme}', [AppearanceController::class, 'preview'])->middleware('can:settings.manage')->where('theme', '[a-z-]+')->name('appearance.preview');
+        Route::put('/aparencia', [AppearanceController::class, 'update'])->middleware(['can:settings.manage', 'throttle:money'])->name('appearance.update');
 
         // --- Comprovantes impressos e por e-mail (Fase 8) ---
         // Mesmo acesso da tela do documento; envio com limite proprio.

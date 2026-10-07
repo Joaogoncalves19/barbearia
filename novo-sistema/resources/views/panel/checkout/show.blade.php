@@ -35,10 +35,51 @@
         @error($campo)<x-ui.alert variant="danger">{{ $message }}</x-ui.alert>@enderror
     @endforeach
 
-    {{-- Comanda (redesign): o trabalho a esquerda, a conta fixa a direita. --}}
+    {{-- Comanda (redesign + refinamento): a conta (total e concluir) a direita,
+         o trabalho a esquerda numa folha so (blocos separados por fio, nao um
+         cartao por informacao) e os ajustes (desconto, promocao, dados) abaixo
+         da conta. No celular a ordem do HTML vale: conta, itens, ajustes.
+         As regras explicadas ficam em "Como funciona". --}}
     <div class="ticket-layout">
-        <div class="ticket-main stack stack-lg">
-        <x-ui.card title="Serviços e produtos" class="ticket-items">
+        <aside class="ticket-side" aria-label="Conta do atendimento">
+            <section class="ticket" aria-labelledby="conta-titulo">
+                <h2 id="conta-titulo" class="ticket__label">{{ $concluido ? 'Total pago' : 'Total a pagar' }}</h2>
+                <p class="ticket__total figure figure--lg" data-total>{{ $fmt($total) }}</p>
+                <dl class="summary-list">
+                    <div><dt>Subtotal</dt><dd class="numeric">{{ $fmt($concluido ? $a->subtotal_cents : $breakdown?->subtotal?->cents) }}</dd></div>
+                    @foreach ($a->discounts as $d)
+                        <div>
+                            <dt>Desconto {{ $d->rule()->label() }} <span class="text-sm text-muted">· {{ $d->kind->label() }}@if ($d->reason) · {{ $d->reason }}@endif</span></dt>
+                            <dd class="numeric">−{{ $fmt($d->amount_cents) }}</dd>
+                        </div>
+                    @endforeach
+                    @if ($concluido && (int) $a->tip_cents > 0)<div><dt>Gorjeta</dt><dd class="numeric">{{ $fmt($a->tip_cents) }}</dd></div>@endif
+                </dl>
+                <div class="cluster">
+                    @if ($a->status === AttendanceStatus::Open)
+                        @can('update', $a)
+                            <form method="POST" action="{{ route('panel.attendances.start', $a) }}">@csrf<x-ui.button type="submit" icon="play">Iniciar atendimento</x-ui.button></form>
+                        @endcan
+                    @endif
+                    @if ($a->status === AttendanceStatus::InProgress)
+                        @can('complete', $a)
+                            <x-ui.button icon="check" data-dialog-open="concluir-atendimento">Concluir e receber</x-ui.button>
+                        @endcan
+                    @endif
+                    @if ($a->status->isEditable())
+                        @can('cancel', $a)
+                            <x-ui.button variant="danger" icon="x" data-dialog-open="cancelar-atendimento">Cancelar atendimento</x-ui.button>
+                        @endcan
+                    @endif
+                </div>
+                @if ($a->status === AttendanceStatus::InProgress && ! $cashOpen && (int) $total > 0)
+                    <x-ui.alert variant="warning">Não há caixa aberto: abra o caixa antes de concluir.@can('cash.view') <a href="{{ route('panel.cash.index') }}">Ir para o caixa</a>@endcan</x-ui.alert>
+                @endif
+            </section>
+        </aside>
+
+        <div class="ticket-main sheet">
+        <x-ui.card title="Serviços e produtos" variant="section" class="ticket-items">
             @if ($a->items->isEmpty())
                 <p class="text-sm text-muted">Nenhum item. Inclua ao menos um serviço ou produto.</p>
             @else
@@ -65,10 +106,12 @@
                     </tbody>
                 </x-ui.table>
             @endif
-            <p class="text-sm text-muted">Valores registrados: serviço do agendamento pelo preço combinado ao agendar; o que for incluído aqui, pelo preço do catálogo agora. Mudanças no catálogo não alteram este atendimento.</p>
+            <x-ui.hint summary="Como os valores são registrados">
+                <p>Serviço do agendamento pelo preço combinado ao agendar; o que for incluído aqui, pelo preço do catálogo agora. Mudanças no catálogo não alteram este atendimento.</p>
+            </x-ui.hint>
 
             @if ($editable)
-                <div class="dashboard-grid">
+                <div class="add-grid">
                     @if ($services->isNotEmpty())
                         <form method="POST" action="{{ route('panel.attendances.services.store', $a) }}" class="stack stack-sm" novalidate>
                             @csrf
@@ -87,7 +130,7 @@
                 </div>
             @endif
         </x-ui.card>
-        <x-ui.card title="Material usado (não cobrado)">
+        <x-ui.card title="Material usado (não cobrado)" variant="section">
             @if ($a->consumptions->isEmpty())
                 <p class="text-sm text-muted">Nenhum material registrado.</p>
             @else
@@ -106,7 +149,9 @@
                     @endforeach
                 </ul>
             @endif
-            <p class="text-sm text-muted">Baixa do estoque só na conclusão, vinculada a este atendimento. Cancelar antes não mexe no estoque.</p>
+            <x-ui.hint summary="Quando o material sai do estoque">
+                <p>Baixa do estoque só na conclusão, vinculada a este atendimento. Cancelar antes não mexe no estoque.</p>
+            </x-ui.hint>
             @if ($editable && $products->isNotEmpty())
                 <form method="POST" action="{{ route('panel.attendances.consumptions.store', $a) }}" class="stack stack-sm" novalidate>
                     @csrf
@@ -117,7 +162,7 @@
             @endif
         </x-ui.card>
         @if ($concluido || $a->payments->isNotEmpty())
-            <x-ui.card title="Pagamentos">
+            <x-ui.card title="Pagamentos" variant="section">
                 @if ($a->payments->isEmpty())
                     <p class="text-sm text-muted">Sem pagamento (total zero).</p>
                 @else
@@ -166,7 +211,7 @@
         @endif
 
         @if ($a->stockMovements->isNotEmpty())
-            <x-ui.card title="Estoque">
+            <x-ui.card title="Estoque" variant="section">
                 <ul class="stack stack-sm">
                     @foreach ($a->stockMovements as $m)
                         <li class="cluster">
@@ -197,7 +242,7 @@
             </x-ui.card>
         @endif
 
-        <x-ui.card title="Histórico">
+        <x-ui.card title="Histórico" variant="section">
             <ol class="timeline">
                 @foreach ($a->events as $e)
                     <li>
@@ -213,44 +258,15 @@
         </x-ui.card>
         </div>
 
-        <aside class="ticket-side stack stack-lg" aria-label="Conta do atendimento">
-            <section class="ticket" aria-labelledby="conta-titulo">
-                <h2 id="conta-titulo" class="ticket__label">{{ $concluido ? 'Total pago' : 'Total a pagar' }}</h2>
-                <p class="ticket__total figure figure--lg" data-total>{{ $fmt($total) }}</p>
-                <dl class="summary-list">
-                    <div><dt>Subtotal</dt><dd class="numeric">{{ $fmt($concluido ? $a->subtotal_cents : $breakdown?->subtotal?->cents) }}</dd></div>
-                    @foreach ($a->discounts as $d)
-                        <div>
-                            <dt>Desconto {{ $d->rule()->label() }} <span class="text-sm text-muted">· {{ $d->kind->label() }}@if ($d->reason) · {{ $d->reason }}@endif</span></dt>
-                            <dd class="numeric">−{{ $fmt($d->amount_cents) }}</dd>
-                        </div>
-                    @endforeach
-                                @if ($concluido && (int) $a->tip_cents > 0)<div><dt>Gorjeta</dt><dd class="numeric">{{ $fmt($a->tip_cents) }}</dd></div>@endif
-                </dl>
-                <div class="cluster">
-                    @if ($a->status === AttendanceStatus::Open)
-                        @can('update', $a)
-                            <form method="POST" action="{{ route('panel.attendances.start', $a) }}">@csrf<x-ui.button type="submit" icon="play">Iniciar atendimento</x-ui.button></form>
-                        @endcan
-                    @endif
-                    @if ($a->status === AttendanceStatus::InProgress)
-                        @can('complete', $a)
-                            <x-ui.button icon="check" data-dialog-open="concluir-atendimento">Concluir e receber</x-ui.button>
-                        @endcan
-                    @endif
-                    @if ($a->status->isEditable())
-                        @can('cancel', $a)
-                            <x-ui.button variant="danger" icon="x" data-dialog-open="cancelar-atendimento">Cancelar atendimento</x-ui.button>
-                        @endcan
-                    @endif
-                </div>
-                @if ($a->status === AttendanceStatus::InProgress && ! $cashOpen && (int) $total > 0)
-                    <x-ui.alert variant="warning">Não há caixa aberto: abra o caixa antes de concluir.@can('cash.view') <a href="{{ route('panel.cash.index') }}">Ir para o caixa</a>@endcan</x-ui.alert>
-                @endif
-            </section>
-
-            <x-ui.card title="Desconto">
-                <p class="text-sm text-muted">Desconto só sobre serviços, nunca sobre produtos; percentual arredondado ao centavo (meio centavo para cima), calculado uma vez sobre o total dos serviços.</p>
+        <div class="ticket-extra sheet">
+            {{-- Desconto e promocao so aparecem quando ha o que fazer (atendimento aberto
+                 e permissao); o desconto ja aplicado aparece na conta acima. --}}
+            @if ($podeDesconto || ($editable && $a->customer_id !== null && $u->can('promotions.apply')))
+            <x-ui.card title="Desconto" variant="section">
+                <x-ui.hint summary="Como o desconto funciona">
+                    <p>Desconto só sobre serviços, nunca sobre produtos; percentual arredondado ao centavo (meio centavo para cima), calculado uma vez sobre o total dos serviços.</p>
+                    @if ($podeDesconto)<p>Vale um desconto só, o maior: se já houver cupom, pontos, aniversário ou indicação, o manual só entra se for maior (e libera o cupom/pontos).</p>@endif
+                </x-ui.hint>
                 @if ($podeDesconto)
                     @foreach ($a->discounts as $d)
                         <form method="POST" action="{{ route('panel.attendances.discount.destroy', [$a, $d]) }}">
@@ -259,7 +275,6 @@
                             <x-ui.button type="submit" variant="ghost" size="sm" icon="trash-2">Retirar desconto de {{ $d->rule()->label() }}</x-ui.button>
                         </form>
                     @endforeach
-                    <p class="text-sm text-muted">Vale um desconto só, o maior: se já houver cupom, pontos, aniversário ou indicação, o manual só entra se for maior (e libera o cupom/pontos).</p>
                     <form method="POST" action="{{ route('panel.attendances.discount.store', $a) }}" class="stack stack-sm" novalidate>
                         @csrf
                         <x-ui.select name="discount_type" label="Tipo de desconto" :options="['percent' => 'Percentual (%)', 'fixed' => 'Valor (R$)']" value="percent" />
@@ -279,8 +294,9 @@
                     </form>
                 @endif
             </x-ui.card>
+            @endif
 
-            <x-ui.card title="Atendimento">
+            <x-ui.card title="Atendimento" variant="section">
                 <dl class="summary-list">
                     <div><dt>Profissional</dt><dd>{{ $a->professional_name ?? '—' }}</dd></div>
                     <div><dt>Aberto</dt><dd>{{ BusinessTime::formatLocal($a->opened_at) }}</dd></div>
@@ -310,7 +326,7 @@
                     <p class="text-sm"><strong>Observações:</strong> {{ $a->notes }}</p>
                 @endif
             </x-ui.card>
-        </aside>
+        </div>
     </div>
 
     @if ($a->status === AttendanceStatus::InProgress)

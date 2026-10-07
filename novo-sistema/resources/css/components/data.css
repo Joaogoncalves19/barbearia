@@ -23,6 +23,27 @@
     margin-bottom: calc(-1 * var(--space-6));
 }
 
+/* Tabela numa secao de folha: alinhada ao texto, sem sangrar ate a borda. */
+.card--section .table-wrap,
+.card--section .table-wrap:last-child {
+    margin: 0;
+}
+
+.card--section .table th,
+.card--section .table td {
+    padding-inline: var(--space-2);
+}
+
+.card--section .table th:first-child,
+.card--section .table td:first-child {
+    padding-left: 0;
+}
+
+.card--section .table th:last-child,
+.card--section .table td:last-child {
+    padding-right: 0;
+}
+
 @media (max-width: 40rem) {
     .card .table-wrap {
         margin-inline: calc(-1 * var(--space-4));
@@ -30,6 +51,11 @@
 
     .card .table-wrap:last-child {
         margin-bottom: calc(-1 * var(--space-5));
+    }
+
+    .card--section .table-wrap,
+    .card--section .table-wrap:last-child {
+        margin: 0;
     }
 }
 
@@ -61,6 +87,11 @@
     font-weight: var(--fw-semibold);
     letter-spacing: 0.08em;
     text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Numeros (valor, hora, quantidade) nunca quebram no meio. */
+.table .numeric {
     white-space: nowrap;
 }
 
@@ -208,5 +239,5 @@
     font-family: var(--font-display);
     font-stretch: var(--font-display-stretch);
     font-size: var(--fs-md);
-    font-weight: 650;
+    font-weight: var(--fw-display);
 }

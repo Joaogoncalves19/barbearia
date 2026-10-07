@@ -11,3 +11,11 @@
  */
 @import '@fontsource-variable/inter/index.css';
 @import '@fontsource-variable/archivo/wdth.css';
+
+/* Familias de titulo dos temas (temas-visuais.md). Declarar a fonte nao baixa
+   nada: o navegador so busca o arquivo quando um texto usa a familia, ou
+   seja, so a do tema ativo. Black Label: Cormorant; Gentleman's Club:
+   Newsreader; Old School e Copper Club: Roboto Slab. */
+@import '@fontsource-variable/cormorant/index.css';
+@import '@fontsource-variable/newsreader/index.css';
+@import '@fontsource-variable/roboto-slab/index.css';

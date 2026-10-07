@@ -1,0 +1,62 @@
+/* ==========================================================================
+   TEMA 05 — OLD SCHOOL
+   Terracota · Papel envelhecido · Marrom · Creme. Retro, artesanal.
+   O site e CLARO como papel impresso, com a faixa "A casa" em marrom.
+   Serifa de cartaz (Roboto Slab) em caixa alta, filete de grafica (grosso e
+   fino) como motivo. Terracota so na acao e no destaque.
+   ========================================================================== */
+[data-tema='old-school'] {
+    --theme-key: old-school;
+
+    --p-ink-950: #21160f;
+    --p-ink-900: #2d1f16;
+    --p-ink-800: #3b2a1e;
+    --p-ink-700: #4f3929;
+    --p-ink-600: #644935;
+    --p-stone-600: #65553f;
+    --p-stone-500: #8e7b63;
+    --p-stone-400: #8b7863;
+    --p-stone-300: #c0ac91;
+    --p-paper-200: #dccbac;
+    --p-paper-100: #eee5d1;
+    --p-paper-50: #f2e9d7;
+    --p-paper-0: #f9f4e8;
+    --p-accent-300: #eb9d7a;
+    --p-accent-500: #b5532f;
+    --p-accent-600: #9c4626;
+    --p-accent-700: #97401f;
+    --p-accent-100: #f4dccd;
+    --p-on-accent: #f9f4e8; /* creme sobre a terracota */
+    --p-accent-hover-dark: var(--p-accent-600); /* com texto claro, o hover escurece */
+
+    --font-display: 'Roboto Slab Variable', Rockwell, 'Courier New', Georgia, serif;
+    --font-display-stretch: 100%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: 0;
+    --display-tracking: -0.01em;
+    --fw-display: 700;
+    --fw-display-strong: 800;
+    --fw-display-soft: 500;
+    --fs-display: clamp(2.75rem, 1.5rem + 5.6vw, 6.75rem);
+
+    --btn-case: uppercase;
+    --btn-tracking: 0.08em;
+    --radius-control: 2px;
+    --radius-card: 3px;
+    --radius-media: 0;
+
+    /* Filete de grafica: grosso em cima, fino embaixo. */
+    --rule-height: 5px;
+    --rule-image:
+        linear-gradient(currentColor, currentColor) top / 100% 2px no-repeat,
+        linear-gradient(currentColor, currentColor) bottom / 100% 1px no-repeat;
+}
+
+[data-tema='old-school'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='old-school'] .theme-mini__motif {
+    --motif-height: 7px;
+    --motif:
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left 0 var(--motif-pos) 4px / 100% 3px no-repeat,
+        linear-gradient(var(--motif-line), var(--motif-line)) left 0 var(--motif-pos) 0 / 100% 1px no-repeat;
+}

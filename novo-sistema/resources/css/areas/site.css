@@ -201,10 +201,6 @@
     margin-top: var(--space-8);
 }
 
-.section--paper {
-    background: var(--c-bg);
-}
-
 .section__head {
     display: grid;
     gap: var(--space-3);
@@ -669,7 +665,14 @@
 .account-content {
     min-width: 0;
     width: 100%;
-    max-width: var(--container-narrow);
+    max-width: 60rem;
+}
+
+/* Cabecalho da pagina da conta: titulo a esquerda, acao a direita. */
+.account-content > header.cluster {
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-4);
 }
 
 .account-menu ul {
@@ -787,11 +790,6 @@
 
 .account-appt:hover {
     border-color: var(--c-text-muted);
-}
-
-.account-appt--next {
-    border-color: var(--c-accent);
-    background: var(--c-surface-raised);
 }
 
 .account-appt__when {

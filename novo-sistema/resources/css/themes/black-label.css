@@ -1,0 +1,70 @@
+/* ==========================================================================
+   TEMA 02 — BLACK LABEL
+   Preto profundo · Carvao · Ouro velho · Marfim. Luxo discreto, de noite.
+   Tudo escuro (site, conta e painel). Serifa alta (Cormorant) nos titulos,
+   numeros na Archivo para a leitura de operacao. O ouro aparece pouco: na
+   acao principal, no item ativo e num fio curto (o motivo).
+   ========================================================================== */
+[data-tema='black-label'] {
+    --theme-key: black-label;
+
+    --p-ink-950: #0a0a0a;
+    --p-ink-900: #131312;
+    --p-ink-800: #1c1b19;
+    --p-ink-700: #2a2825;
+    --p-ink-600: #3a3732;
+    --p-stone-600: #5e5950;
+    --p-stone-500: #8b8478;
+    --p-stone-400: #7a7468;
+    --p-stone-300: #aaa396;
+    --p-paper-200: #e2dccd;
+    --p-paper-100: #eee9dd;
+    --p-paper-50: #f6f2e9;
+    --p-paper-0: #fcfaf5;
+    --p-accent-300: #d8c08c;
+    --p-accent-500: #b39a63;
+    --p-accent-600: #97804f;
+    --p-accent-700: #6d5a2d;
+    --p-accent-100: #f0e9d6;
+
+    --font-display: 'Cormorant Variable', 'Cormorant Garamond', Garamond, Georgia, serif;
+    --font-display-stretch: 100%;
+    --font-title-stretch: 100%;
+    --font-compact-stretch: 100%;
+    --font-display-tracking: 0;
+    --display-tracking: 0.01em;
+    --fw-display: 600;
+    --fw-display-strong: 700;
+    --fw-display-soft: 500;
+    --font-figure: 'Archivo Variable', 'Arial Narrow', Arial, sans-serif;
+    --font-figure-stretch: 88%;
+
+    --btn-case: uppercase;
+    --btn-tracking: 0.12em;
+    --radius-control: 0;
+    --radius-card: 2px;
+    --radius-media: 0;
+
+    --shadow-md: 0 10px 30px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 28px 70px rgb(0 0 0 / 0.6), 0 4px 12px rgb(0 0 0 / 0.35);
+}
+
+/* Fio de ouro: uma linha fina com um trecho curto na cor de destaque. */
+[data-tema='black-label'] :is(.ruler, .opening, .monogram, .state),
+.theme-mini[data-tema='black-label'] .theme-mini__motif {
+    --motif-height: 1px;
+    --motif:
+        linear-gradient(var(--motif-accent), var(--motif-accent)) left var(--motif-pos) / 3.5rem 1px no-repeat,
+        linear-gradient(var(--motif-line), var(--motif-line)) left var(--motif-pos) / 100% 1px no-repeat;
+}
+
+/* No escuro inteiro, a faixa "A casa" e a barra do painel sobem um tom. */
+[data-tema='black-label'] .chapter--paper {
+    background: var(--c-surface);
+}
+
+[data-tema='black-label'] .sidebar,
+[data-tema='black-label'] .sidebar .nav-link,
+[data-tema='black-label'] .sidebar .nav-group__title {
+    background-color: var(--c-surface);
+}

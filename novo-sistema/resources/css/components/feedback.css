@@ -121,13 +121,8 @@
     gap: var(--space-3);
     padding: var(--space-8) var(--space-6);
     border-radius: var(--radius-card);
-    background-color: var(--c-surface-sunken);
-    background-image:
-        linear-gradient(var(--c-line), var(--c-line)),
-        repeating-linear-gradient(90deg, var(--c-border-strong) 0 1px, transparent 1px 0.5rem);
-    background-size: 100% 1px, 100% 0.375rem;
-    background-position: top left, top left;
-    background-repeat: no-repeat;
+    --motif-pos: top;
+    background: var(--motif), var(--c-surface-sunken);
 }
 
 .state__icon {
@@ -148,12 +143,37 @@
 .state__title {
     font-family: var(--font-display);
     font-size: var(--fs-lg);
-    font-weight: 620;
-    font-stretch: 85%;
+    font-weight: var(--fw-display);
+    font-stretch: var(--font-title-stretch);
 }
 
 .state__text {
     max-width: 52ch;
     font-size: var(--fs-sm);
     color: var(--c-text-muted);
+}
+
+/* Compacto: icone a esquerda, frase (e apoio) a direita, sem a altura toda. */
+.state--compact {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    padding: var(--space-5);
+}
+
+.state--compact .state__icon {
+    grid-row: span 3;
+    width: 2.25rem;
+    height: 2.25rem;
+}
+
+.state--compact .state__title {
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+}
+
+.state--compact .state__action {
+    grid-column: 2;
 }
