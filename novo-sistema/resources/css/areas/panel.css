@@ -44,6 +44,20 @@
     box-shadow: var(--shadow-lg);
 }
 
+/* Celular: menu fechado fica oculto de verdade (fora do teclado e do leitor de
+   tela), nao so fora da tela; a visibilidade espera a animacao de saida. */
+@media (max-width: 63.99rem) {
+    .sidebar {
+        visibility: hidden;
+        transition: transform var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base);
+    }
+
+    .sidebar.is-open {
+        visibility: visible;
+        transition: transform var(--dur-base) var(--ease-out), visibility 0s;
+    }
+}
+
 .sidebar-backdrop {
     position: fixed;
     inset: 0;
@@ -78,6 +92,12 @@
 
 .sidebar__brand .brand__name {
     font-size: 1rem;
+}
+
+/* Fundo grafite no proprio item: o contraste nunca depende do que esta atras. */
+.sidebar .nav-link,
+.sidebar .nav-group__title {
+    background-color: var(--c-bg);
 }
 
 .sidebar .nav-link {
@@ -796,8 +816,25 @@
    quadro rola de lado SO dentro dele.
    ========================================================================== */
 
-.agenda-head .page-head__title {
-    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.5rem);
+.agenda-day {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-family: var(--font-display);
+    font-stretch: 85%;
+    font-size: var(--fs-xl);
+    font-weight: 600;
+}
+
+.day-board__name {
+    font-family: var(--font-display);
+    font-stretch: 85%;
+    font-size: var(--fs-base);
+    font-weight: 650;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .agenda-bar {
@@ -926,15 +963,7 @@
     min-width: 0;
 }
 
-.day-board__pro strong {
-    font-family: var(--font-display);
-    font-stretch: 85%;
-    font-size: var(--fs-base);
-    font-weight: 650;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+
 
 .day-board__body {
     position: relative;
@@ -1013,8 +1042,10 @@
 .ev a,
 .ev--block {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'time state' 'who who' 'what what';
     align-content: start;
-    gap: 1px;
+    gap: 1px var(--space-2);
     height: 100%;
     padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
     color: inherit;
@@ -1039,11 +1070,17 @@
 }
 
 .ev__time {
+    grid-area: time;
     color: var(--c-text-muted);
     font-weight: var(--fw-semibold);
 }
 
+.ev--block .ev__time {
+    grid-column: 1 / -1;
+}
+
 .ev__who {
+    grid-area: who;
     font-size: var(--fs-sm);
     font-weight: var(--fw-semibold);
     white-space: nowrap;
@@ -1059,7 +1096,13 @@
     text-overflow: ellipsis;
 }
 
+.ev__what {
+    grid-area: what;
+}
+
 .ev__state {
+    grid-area: state;
+    justify-self: end;
     display: inline-flex;
     align-items: center;
     gap: var(--space-1);
@@ -1073,12 +1116,9 @@
    texto para leitores de tela (escondida so visualmente). */
 .ev.is-short a {
     grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: 'time who';
     align-items: baseline;
     gap: 0 var(--space-2);
-}
-
-.ev.is-short .ev__top {
-    display: contents;
 }
 
 .ev.is-short .ev__what {

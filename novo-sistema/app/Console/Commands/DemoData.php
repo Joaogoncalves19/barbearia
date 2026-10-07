@@ -185,7 +185,6 @@ class DemoData extends Command
             $this->clientes[] = $c;
         }
 
-
         foreach ([['Pomada modeladora', 3500, 1500, 5, 24], ['Óleo para barba', 4290, 1800, 3, 2], ['Shampoo de barba', 3900, 1600, 4, 10], ['Lâmina descartável', null, 80, 50, 120]] as [$nome, $preco, $custo, $minimo, $qtd]) {
             $p = Product::query()->create(['name' => $nome, 'price_cents' => $preco, 'cost_cents' => $custo, 'min_stock' => $minimo, 'unit' => 'un', 'is_active' => true]);
             app(StockLedger::class)->receive($p, $qtd, $custo, 'Estoque inicial (demonstração)', $this->dono);

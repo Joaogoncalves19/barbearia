@@ -66,8 +66,8 @@
 
     <header class="page-head agenda-head">
         <div class="stack stack-sm">
-            <p class="eyebrow">Agenda{{ $date === $today ? ' · hoje' : '' }}</p>
-            <h1 class="page-head__title">{{ ucfirst($dayLabel) }}</h1>
+            <h1 class="page-head__title">Agenda</h1>
+            <p class="agenda-day">{{ ucfirst($dayLabel) }}@if ($date === $today) <span class="badge badge--accent">Hoje</span>@endif</p>
         </div>
         @if (auth('web')->user()->can('appointments.manage') || auth('web')->user()->can('appointments.manage_own'))
             <x-ui.button :href="route('panel.appointments.create', ['data' => $date])" icon="calendar-plus">Novo agendamento</x-ui.button>
@@ -112,7 +112,7 @@
                         <div class="day-board__pro">
                             <x-ui.avatar :name="$col['pro']->display_name" size="sm" :src="$col['pro']->photoUrl()" />
                             <span>
-                                <strong>{{ $col['pro']->display_name }}</strong>
+                                <h2 class="day-board__name">{{ $col['pro']->display_name }}</h2>
                                 <span class="text-xs text-muted">{{ $col['off'] ? 'De folga' : ($qtd === 1 ? '1 horário' : $qtd.' horários') }}</span>
                             </span>
                         </div>
@@ -139,17 +139,16 @@
                                     @php $a = $it['model']; @endphp
                                     <li @class(['ev', $it['class'], 'ev--'.$it['state'], 'is-conflict' => $it['conflict'], 'is-short' => ($it['end'] - $it['start']) <= 30])>
                                         <a href="{{ route('panel.appointments.show', $a) }}">
-                                            <span class="ev__top">
-                                                <span class="ev__time numeric">{{ $nomeMin($it['start']) }}–{{ $nomeMin($it['end']) }}</span>
-                                                <span class="ev__state">
-                                                    @if ($it['conflict'])
-                                                        <x-icon name="triangle-alert" class="icon-sm" /> Conflito ·
-                                                    @endif
-                                                    {{ $rotulos[$it['state']] ?? $a->status->label() }}
-                                                </span>
-                                            </span>
+                                            {{-- Ordem de leitura natural (hora, cliente, servico, situacao); a situacao vai ao canto so pelo CSS. --}}
+                                            <span class="ev__time numeric">{{ $nomeMin($it['start']) }}–{{ $nomeMin($it['end']) }}</span>
                                             <strong class="ev__who">{{ $a->customer_name }}</strong>
                                             <span class="ev__what">{{ $a->items->pluck('name')->join(', ') }}</span>
+                                            <span class="ev__state">
+                                                @if ($it['conflict'])
+                                                    <x-icon name="triangle-alert" class="icon-sm" /> Conflito ·
+                                                @endif
+                                                {{ $rotulos[$it['state']] ?? $a->status->label() }}
+                                            </span>
                                         </a>
                                     </li>
                                 @else

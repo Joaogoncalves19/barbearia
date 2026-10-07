@@ -390,3 +390,21 @@ label.slot:has(input:focus-visible) {
     font-size: var(--fs-xs);
     font-weight: var(--fw-regular);
 }
+
+/* Botao do campo de arquivo no padrao da casa (o nativo e generico). */
+.control--file::file-selector-button {
+    margin-right: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    border: var(--border-width) solid var(--c-border-strong);
+    border-radius: var(--radius-control);
+    background: var(--c-surface-sunken);
+    color: var(--c-text);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    cursor: pointer;
+}
+
+.control--file::file-selector-button:hover {
+    border-color: var(--c-text);
+}

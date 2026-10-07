@@ -2,6 +2,8 @@
 
 > **Status:** Fases 0 a 11 concluídas e aprovadas ([relatorio-fase-11.md](relatorio-fase-11.md)). **Fase 12
 > concluída, aguardando aprovação do dono** ([relatorio-fase-12.md](relatorio-fase-12.md)).
+> **Fase extraordinária de redesign visual** (entre as Fases 12 e 13, sem mudar o roadmap) concluída,
+> aguardando a avaliação visual do dono ([relatorio-redesign.md](relatorio-redesign.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -158,6 +160,13 @@ plano para reconstruí-lo do zero, por etapas.
 | [area-do-cliente.md](area-do-cliente.md) | Telas da conta, dados pessoais, agendamentos, comprovantes, assinatura, benefícios, avaliações, avisos, ações sensíveis, segurança, testes |
 | [retencao-lgpd.md](retencao-lgpd.md) | §5 exclusão de conta (anonimização) e §6 exportar meus dados |
 | [relatorio-fase-12.md](relatorio-fase-12.md) | Relatório final da Fase 12 |
+
+### Redesign visual (fase extraordinária)
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [redesign-visual.md](redesign-visual.md) | Linguagem "Ofício": direção, tipografia, paleta, espaço, componentes, imagens, navegação, padrões por tela |
+| [relatorio-redesign.md](relatorio-redesign.md) | Auditoria tela a tela, o que mudou, testes, antes/depois ([img/redesign/](img/redesign/)), problemas, pendências |
 
 ## Legenda usada em todos os documentos
 

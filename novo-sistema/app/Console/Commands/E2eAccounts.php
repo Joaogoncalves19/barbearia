@@ -160,6 +160,10 @@ class E2eAccounts extends Command
         $this->horarioFuturo($s, $area, $proArea, $corte);
         $this->atendimentoConcluidoOntem($s, $area, $proArea, $corte);
         $this->cliente("e2e-excluir-{$s}@exemplo.test", 'Cliente Exclusão E2E', $senha);
+
+        // Redesign: dono proprio para a varredura visual de todas as telas
+        // (limite de tentativas de login separado dos outros testes).
+        $this->membro("e2e-visual-{$s}", 'Dono Visual E2E', StaffRole::Owner, $senha);
     }
 
     /**

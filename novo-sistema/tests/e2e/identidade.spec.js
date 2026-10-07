@@ -140,7 +140,8 @@ test('profissional: vê a própria ficha e não a de outro, nem a gestão de usu
     await expect(page).toHaveURL(/\/painel$/);
 
     await page.goto('/painel');
-    const ficha = await page.getByRole('link', { name: 'Minha ficha' }).getAttribute('href');
+    // No celular o menu fechado fica oculto (fora do teclado e do leitor de tela): le o link pelo elemento.
+    const ficha = await page.locator('a.nav-link', { hasText: 'Minha ficha' }).getAttribute('href');
     const id = Number(ficha.split('/').pop());
 
     let r = await page.goto(ficha);

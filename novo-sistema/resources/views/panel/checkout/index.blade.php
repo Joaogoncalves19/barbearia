@@ -19,37 +19,45 @@
 
     <p class="text-sm text-muted">Cliente agendado chegou? Abra o atendimento pela <a href="{{ route('panel.agenda', ['data' => $date]) }}">agenda</a>, no agendamento dele.</p>
 
-    <form method="GET" action="{{ route('panel.attendances.index') }}" class="agenda-toolbar-row">
-        <x-ui.button :href="route('panel.attendances.index', ['data' => $anterior])" variant="secondary" size="sm" icon="chevron-left">Dia anterior</x-ui.button>
+    <form method="GET" action="{{ route('panel.attendances.index') }}" class="agenda-bar">
+        <div class="agenda-bar__nav" role="group" aria-label="Trocar de dia">
+            <x-ui.button :href="route('panel.attendances.index', ['data' => $anterior])" variant="secondary" class="btn--icon"><x-icon name="chevron-left" label="Dia anterior" /></x-ui.button>
+            @if ($date !== $hoje)
+                <x-ui.button :href="route('panel.attendances.index')" variant="secondary">Hoje</x-ui.button>
+            @endif
+            <x-ui.button :href="route('panel.attendances.index', ['data' => $proximo])" variant="secondary" class="btn--icon"><x-icon name="chevron-right" label="Próximo dia" /></x-ui.button>
+        </div>
         <x-ui.input name="data" label="Dia" type="date" :value="$date" class="control--date" />
-        <x-ui.button type="submit" variant="secondary" size="sm">Ver</x-ui.button>
-        <x-ui.button :href="route('panel.attendances.index', ['data' => $proximo])" variant="secondary" size="sm" icon-right="chevron-right">Próximo dia</x-ui.button>
+        <x-ui.button type="submit" variant="secondary">Ver</x-ui.button>
     </form>
 
-    <section class="stack stack-sm" aria-labelledby="em-andamento">
-        <h2 class="h3" id="em-andamento">Em andamento ({{ $open->count() }})</h2>
+    <section class="board" aria-labelledby="em-andamento">
+        <header class="board__head"><h2 class="title" id="em-andamento">@if ($open->isNotEmpty())<span class="live-dot" aria-hidden="true"></span> @endif Em andamento ({{ $open->count() }})</h2></header>
         @if ($open->isEmpty())
-            <p class="text-sm text-muted">Nenhum atendimento aberto neste dia.</p>
+            <p class="text-sm text-muted">Nenhum atendimento aberto neste dia. Quando o cliente chegar, abra pela agenda ou pelo encaixe.</p>
         @else
-            <ol class="appt-list">
+            <ul class="now-list" role="list">
                 @foreach ($open as $a)
                     <li>
-                        <a class="agenda-item" href="{{ route('panel.attendances.show', $a) }}">
-                            <span class="agenda-item__time">{{ BusinessTime::formatLocal($a->opened_at, 'H:i') }}<span>{{ $a->code }}</span></span>
-                            <span class="agenda-item__body">
-                                <strong>{{ $a->customer_name }}</strong>
-                                <span class="text-sm text-muted">{{ $a->professional_name }} · {{ $a->source->label() }}</span>
-                                <span><x-ui.badge :variant="$cor($a->status)">{{ $a->status->label() }}</x-ui.badge></span>
+                        <a class="now-item" href="{{ route('panel.attendances.show', $a) }}">
+                            <span class="now-item__since">
+                                <span class="text-xs text-muted">aberto</span>
+                                <span class="figure figure--sm">{{ BusinessTime::formatLocal($a->opened_at, 'H:i') }}</span>
                             </span>
+                            <span class="now-item__who">
+                                <strong>{{ $a->customer_name }}</strong>
+                                <span class="text-muted">{{ $a->professional_name }} · {{ $a->source->label() }} · {{ $a->status->label() }} · {{ $a->code }}</span>
+                            </span>
+                            <span class="now-item__go">Abrir comanda <x-icon name="arrow-right" /></span>
                         </a>
                     </li>
                 @endforeach
-            </ol>
+            </ul>
         @endif
     </section>
 
     <section class="stack stack-sm" aria-labelledby="encerrados">
-        <h2 class="h3" id="encerrados">Concluídos e cancelados ({{ $done->count() }})</h2>
+        <h2 class="title" id="encerrados">Concluídos e cancelados ({{ $done->count() }})</h2>
         @if ($done->isEmpty())
             <p class="text-sm text-muted">Nada encerrado neste dia.</p>
         @else

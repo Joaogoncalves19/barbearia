@@ -81,7 +81,7 @@ class DashboardController extends Controller
             $saldos = $stock->balances($comMinimo->pluck('id')->all());
             $baixos = $comMinimo->filter(fn (Product $p) => ($saldos[$p->id] ?? 0) < (int) $p->min_stock);
             if ($baixos->isNotEmpty()) {
-                $pendencias[] = ['icon' => 'package', 'text' => $baixos->count() === 1 ? $baixos->first()?->name.' abaixo do estoque mínimo' : $baixos->count().' produtos abaixo do estoque mínimo', 'href' => route('panel.products.index')];
+                $pendencias[] = ['icon' => 'package', 'text' => $baixos->count() === 1 ? $baixos->first()->name.' abaixo do estoque mínimo' : $baixos->count().' produtos abaixo do estoque mínimo', 'href' => route('panel.products.index')];
             }
         }
         if ($user->can('subscriptions.view')) {
