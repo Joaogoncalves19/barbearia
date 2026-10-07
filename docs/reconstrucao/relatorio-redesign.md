@@ -159,6 +159,7 @@ Registrados à parte. Os funcionais foram corrigidos só na interface, sem mexer
 | Diretiva Blade grudada numa palavra (`Agenda@if`) quebra a página | Armadilha | Corrigida; padrão anotado para a equipe |
 | Quadro largo alargava a página inteira (item de grid com `min-width: auto`) | Layout | `min-width: 0` nos filhos do conteúdo do painel |
 | Menu do painel no celular, fechado, só saía da tela pela posição: os links continuavam alcançáveis pelo teclado e pelo leitor de tela (desde a Fase 1) | Acessibilidade | Fechado fica oculto de verdade (`visibility: hidden` depois da animação). Apareceu porque o axe acusou, numa rodada, contraste do texto claro da barra contra o fundo claro da página; os itens da barra passaram a ter o fundo grafite neles próprios |
+| Teste de concorrência dos lembretes (`CommunicationConcurrencyTest`, desde a Fase 10) dependia da hora do relógio: rodando entre ~22h30 e meia-noite, os horários do teste caem no dia seguinte e o lembrete de véspera também sai (6 avisos em vez de 3). Derrubou o 1º CI desta branch (run 47, às 23h) | Teste frágil (a regra está certa) | O teste desliga a véspera, que não é o que ele mede; as asserções continuam as mesmas. Confirmado rodando às 23h23, dentro da janela que falhava |
 
 ## 7. Não resolvido / pendências
 
@@ -220,6 +221,7 @@ Durante o trabalho falharam e foram corrigidos (ver §6):
 - o login no teste de protótipos sem banco;
 - a variável de nulo no "Hoje", apontada pelo PHPStan.
 - o contraste da barra grafite (intermitente no axe) e a barra lateral fechada que ainda recebia foco no celular.
+- o 1º CI da branch (run 47): teste de concorrência dos lembretes dependente da hora (ver §6).
 
 Uma rodada intermediária de navegador rodou com o build trocado no meio e foi descartada; as rodadas que
 valem estão em §4.

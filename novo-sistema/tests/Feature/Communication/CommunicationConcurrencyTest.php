@@ -3,6 +3,7 @@
 namespace Tests\Feature\Communication;
 
 use App\Modules\Communication\Models\EmailMessage;
+use App\Modules\Communication\Support\CommunicationSettings;
 use App\Modules\Customers\Enums\MarketingConsent;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Customers\Models\CustomerNotification;
@@ -56,6 +57,10 @@ class CommunicationConcurrencyTest extends TestCase
     public function test_agendador_rodando_em_quatro_processos_lembra_cada_horario_uma_vez(): void
     {
         // Horarios na janela "algumas horas antes" do relogio REAL dos processos.
+        // A vespera fica desligada: perto da meia-noite estes horarios caem
+        // "amanha" e o lembrete de vespera tambem sairia (correto, mas e outro
+        // lembrete e o teste dependeria da hora em que roda).
+        CommunicationSettings::save(['reminder_day_before_enabled' => false], null);
         $ags = collect(range(1, 3))->map(fn ($i) => Appointment::factory()->create([
             'customer_id' => Customer::factory()->create()->id,
             'starts_at' => CarbonImmutable::now()->addMinutes(30 + 20 * $i)->startOfMinute(),
