@@ -325,3 +325,72 @@ test('proprietário: link de assinatura pago no checkout ativa a assinatura', as
     }, { timeout: 30_000 }).toBe(1);
     await verificarTela(page, info, 'assinaturas');
 });
+
+test('promoções migradas: cupom do antigo no site e vale-presente do antigo no balcão', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'grava dados compartilhados');
+    test.slow();
+    const erros = observarErros(page);
+    // Cliente 2 (assinante do plano que cobre o corte): cupom ENSAIO10 (10%) na barba.
+    await sair(page);
+    await page.goto('/entrar');
+    await page.getByLabel('E-mail').fill('cliente.dois@ensaio.test');
+    await page.getByLabel('Senha', { exact: true }).fill(CONTAS_ANTIGAS);
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+    await expect(page).toHaveURL(/\/minha-conta/);
+    await page.goto('/agendar');
+    await page.getByRole('link', { name: /Barba Ensaio/ }).first().click();
+    const pro = page.getByRole('link', { name: /Barbeiro Ensaio/ });
+    if (await pro.count()) await pro.first().click();
+    await page.getByRole('navigation', { name: 'Dias disponíveis' }).getByRole('link').nth(5).click();
+    await page.locator('a.slot').first().click();
+    await expect(page.locator('[data-total]')).toHaveText('R$ 35,50');
+    await page.getByLabel('Cupom').fill('ensaio10');
+    await page.getByRole('button', { name: 'Atualizar valor' }).click();
+    // Rodada repetida: o cupom ja foi usado por este cliente (um uso por cliente).
+    const jaUsou = page.getByText('Este cliente já usou este cupom (vale um uso por cliente).');
+    await expect(page.locator('[data-discount]').or(jaUsou)).toBeVisible();
+    if (!(await jaUsou.isVisible())) {
+        await expect(page.locator('[data-discount]')).toHaveText('−R$ 3,55');
+        await expect(page.locator('[data-total]')).toHaveText('R$ 31,95');
+        await verificarTela(page, info, 'cupom-migrado');
+        await page.getByRole('button', { name: 'Confirmar agendamento' }).click();
+        await expect(page.getByText(/Agendamento feito! Código AG-/)).toBeVisible();
+    }
+
+    // Recepção: encaixe pago com o vale-presente vendido no sistema antigo.
+    await entrarEquipe(page, 'homolog.recepcao');
+    await page.goto('/painel/vales-presente');
+    const codigo = ((await page.locator('main').innerText()).match(/PRESENTE-[A-Z0-9]+/) || [])[0];
+    expect(codigo, 'vale-presente migrado aparece na lista').toBeTruthy();
+    await page.goto('/painel/caixa');
+    const abrir = page.getByRole('button', { name: 'Abrir caixa' });
+    if (await abrir.isVisible()) {
+        await page.getByLabel('Dinheiro na gaveta (valor inicial)').fill('100,00');
+        await abrir.click();
+    }
+    // O barbeiro pode estar ocupado agora (encaixe recusado, D-32): marca pela agenda no
+    // proximo horario livre de hoje e abre o atendimento a partir do agendamento.
+    await page.goto('/painel/agenda/novo');
+    await page.getByLabel('Serviço').selectOption({ label: 'Cabelo · Barba Ensaio (30 min, R$ 35,50)' });
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    const proSel = page.getByLabel('Profissional', { exact: true });
+    if (await proSel.count()) await proSel.selectOption({ label: 'Barbeiro Ensaio' });
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await page.getByLabel('Nome do cliente').fill('Portador do Vale');
+    await page.locator('label.slot').first().click();
+    await page.getByRole('button', { name: 'Agendar', exact: true }).click();
+    await expect(page.getByText(/Agendamento AG-\w+ criado\./)).toBeVisible();
+    await page.getByRole('button', { name: 'Cliente chegou: abrir atendimento' }).click();
+    await expect(page).toHaveURL(/\/painel\/atendimentos\/AT-/);
+    await page.getByRole('button', { name: 'Iniciar atendimento' }).click();
+    await page.waitForLoadState('networkidle');
+    await page.getByRole('button', { name: 'Concluir e receber' }).click();
+    const modal = page.getByRole('dialog', { name: 'Concluir e receber' });
+    await modal.locator('#pagamento-0-forma').selectOption('gift_card');
+    await modal.locator('#pagamento-0-valor').fill('35,50');
+    await modal.locator('#pagamento-0-vale').fill(codigo);
+    await modal.getByRole('button', { name: 'Confirmar conclusão' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Atendimento concluído. Total: R$ 35,50' })).toBeVisible();
+    await verificarTela(page, info, 'vale-migrado-usado');
+    expect(erros, 'erros de console/CSP').toEqual([]);
+});

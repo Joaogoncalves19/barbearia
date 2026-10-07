@@ -6,7 +6,9 @@
 > direção aprovada ([relatorio-redesign.md](relatorio-redesign.md)). **Refinamento visual e temas** (8 temas
 > predefinidos em Configurações → Aparência) concluído, aguardando a avaliação do dono
 > ([relatorio-refinamento-visual.md](relatorio-refinamento-visual.md)). **Fase 12.5 (painel do profissional)**
-> concluída, aguardando aprovação do dono ([relatorio-fase-12-5.md](relatorio-fase-12-5.md)).
+> concluída e aprovada ([relatorio-fase-12-5.md](relatorio-fase-12-5.md)). **Fase 13 (homologação, migração e
+> virada)**: ensaios feitos com dados fictícios; **não concluída**, pendente do dono
+> ([relatorio-fase-13.md](relatorio-fase-13.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -179,6 +181,13 @@ plano para reconstruí-lo do zero, por etapas.
 |-----------|----------|
 | [painel-profissional.md](painel-profissional.md) | Auditoria do painel antigo do barbeiro, funcionalidade antiga × nova com a decisão de cada uma, telas da área `/profissional`, permissões, decisões pendentes |
 | [relatorio-fase-12-5.md](relatorio-fase-12-5.md) | O que foi construído, permissões, testes, capturas ([img/painel-profissional/](img/painel-profissional/)), problemas, decisões e limitações |
+| [instalacao.md](instalacao.md) | Instalação de uma barbearia a partir do pacote: requisitos, `.env` de produção, e-mail, permissões, cron |
+| [operacao.md](operacao.md) | Rotinas automáticas, cópia de segurança e restauração, monitoramento, o que fazer quando falha, critério dos 30 dias |
+| [homologacao.md](homologacao.md) | Ambiente e roteiros de homologação, resultados por área, Stripe e e-mails, Lighthouse, testes de aceite pendentes |
+| [plano-virada.md](plano-virada.md) | Pré-requisitos, janela, sequência da virada, checklist final, gatilhos de aborto e o ensaio executado |
+| [plano-retorno.md](plano-retorno.md) | Como voltar ao sistema antigo e o ensaio executado (exportação, antigo intacto, relançamento) |
+| [treinamento/](treinamento/README.md) | Treinamento curto por perfil (proprietário, gerente, recepção, financeiro, profissional) |
+| [relatorio-fase-13.md](relatorio-fase-13.md) | Fase 13: execução, migração, homologação, Stripe, e-mail, backup, segurança, decisões, riscos, checklist |
 
 ## Legenda usada em todos os documentos
 

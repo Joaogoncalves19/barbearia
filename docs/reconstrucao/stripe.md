@@ -61,5 +61,13 @@ antigo já fazia para o fim do período.
   o Stripe por completo.
 - **Ciclo completo em modo teste** (critério do roadmap): depende do dono criar uma conta/chaves de teste e
   um endpoint de webhook de teste apontando para a homologação. **PENDENTE**.
+- **Ensaio da Fase 13 (simulador):** a homologação instalada pelo pacote conversou com um simulador da API
+  (`novo-sistema/scripts/ensaio/stripe-simulado.php`, via `STRIPE_API_BASE`) que entrega webhooks assinados
+  por HTTP depois de responder, como o Stripe: adesão por link e checkout, renovação, falha, recuperação,
+  cancelar no fim, reativar, reembolso, cancelar agora, reenvio, duplicado e fora de ordem
+  ([homologacao.md](homologacao.md) §4). Prova a integração da instalação; **não** substitui o ciclo na
+  conta real de teste.
+- **Na virada:** rotacionar a chave secreta (as antigas ficaram em texto puro no banco antigo) e criar o
+  endpoint novo antes de desativar o antigo ([plano-virada.md](plano-virada.md) passo 9).
 - Na virada (Fase 13): trocar a URL do webhook no painel do Stripe para `/webhooks/stripe` (o endereço antigo
   `/webhook_stripe.php` continua aceito, com a mesma conferência, até a troca).

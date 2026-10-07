@@ -162,17 +162,25 @@ a mesma base de preço foi usada. Qualquer diferença é bug do importador.
 
 Checklist automático (o importador falha se algum item não bater):
 
-- [ ] Contagem por entidade: origem = destino + descartes registrados.
-- [ ] Soma de faturamento por mês e por profissional idêntica.
-- [ ] Soma de comissões pagas, despesas e vales idêntica.
-- [ ] Saldo de fidelidade idêntico por cliente.
-- [ ] Assinaturas vigentes: mesmo número, mesmas datas de fim e mesmos IDs de gateway.
-- [ ] Opt-outs: 100% preservados.
-- [ ] Agendamentos futuros: todos presentes, sem sobreposição não resolvida.
-- [ ] Amostra manual de 20 clientes, 20 agendamentos e 5 profissionais conferida na tela pelo dono.
-- [ ] Login de teste com senha antiga (cliente, profissional e admin) funcionando.
+Situação depois do ensaio da Fase 13 (2026-10-07, **dados fictícios**; com a cópia real, repetir tudo):
+
+- [x] Contagem por entidade: origem = destino + descartes registrados (relatório por tabela e classe).
+- [x] Soma de faturamento por mês idêntica (`faturamento_mensal`). Por profissional: coberta pelo mesmo
+      cálculo por atendimento; conferência visual do dono **pendente**.
+- [x] Soma de comissões pagas, despesas e vales idêntica (`somas_financeiras`; despesa com milhar corrigida).
+- [x] Saldo de fidelidade idêntico por cliente.
+- [x] Assinaturas vigentes: mesmo número, mesmas datas de fim e mesmos IDs de gateway.
+- [x] Opt-outs: 100% preservados.
+- [x] Agendamentos futuros presentes; sobreposições viram pendência `future_overlap` para a recepção
+      resolver **antes** da virada (com a cópia real).
+- [ ] Amostra manual de 20 clientes, 20 agendamentos e 5 profissionais conferida na tela **pelo dono**
+      (feita por script na amostra fictícia: 34/34; a do dono depende da cópia real).
+- [x] Login de teste com senha antiga (cliente, profissional e admin) funcionando **pela tela** (antes do
+      ensaio o cliente ficava preso na confirmação de e-mail; corrigido).
 
 ## 12.9 Migração final e rollback
+
+> Detalhado e ensaiado na Fase 13: [plano-virada.md](plano-virada.md) e [plano-retorno.md](plano-retorno.md).
 
 1. Aviso aos clientes/equipe sobre a janela (sugestão: após o fechamento, fora de dia de pico).
 2. Modo manutenção no sistema atual (bloqueia novos agendamentos).

@@ -3,9 +3,11 @@
 Reconstrução do sistema da barbearia em **Laravel 13 / PHP 8.4+**, com páginas
 renderizadas no servidor (Blade), Alpine.js (build CSP) e SQLite.
 
-> **Estado:** Fase 1 — fundação técnica e design system. Ainda **não** há módulos de
-> negócio. O sistema em produção continua sendo o da raiz do repositório.
-> Documentação completa: [`../docs/reconstrucao/`](../docs/reconstrucao/README.md).
+> **Estado:** Fases 1 a 12.5 concluídas; Fase 13 (homologação, migração e virada) com os ensaios feitos
+> e pendente do dono. O sistema em produção continua sendo o da raiz do repositório.
+> Instalação de uma barbearia: [`instalacao.md`](../docs/reconstrucao/instalacao.md); operação:
+> [`operacao.md`](../docs/reconstrucao/operacao.md). Documentação completa:
+> [`../docs/reconstrucao/`](../docs/reconstrucao/README.md).
 
 ⚠️ **Não envie esta pasta para a hospedagem atual.** O sistema antigo é servido a partir
 da raiz do repositório. Esta aplicação precisa de um host próprio cuja raiz pública seja
@@ -44,6 +46,18 @@ php artisan test --testsuite=Legado     # correções de segurança do sistema a
 vendor/bin/pint --test                  # estilo de código
 npm run test:e2e                        # navegador: console, CSP, responsividade, acessibilidade
 php artisan app:diagnose                # checagem do ambiente (rodar após cada deploy)
+```
+
+## Operação (Fase 13)
+
+```bash
+bash scripts/empacotar.sh <commit> <pasta>     # pacote de instalação (na raiz do repositório)
+php artisan app:backup                         # cópia de segurança conferida (diária pelo agendador)
+php artisan app:backup-verify                  # confere a mais recente
+php artisan app:backup-restore <zip> --to=<pasta-nova>      # ensaio de restauração
+php artisan legacy:import <copia.sqlite> --dry-run          # migração (ver importador.md)
+php artisan legacy:import-photos <copia/uploads>            # fotos do sistema antigo
+php artisan app:rollback-export --since="AAAA-MM-DD HH:MM"  # plano de retorno
 ```
 
 ## Tarefas agendadas e fila

@@ -135,5 +135,5 @@ Nenhuma tem tela no sistema atual (código de gestão criado e nunca ligado ao p
 
 | Seção | Destino |
 |---|---|
-| `config_geral`, `config_agendamento`, `config_lembretes`, `config_site`, `fidelidade_config`, `config_aniversario`, `config_indicacao`, `landing_page`, `theme_config`, `config` | `settings` com chave `legacy.<secao>`; campos com nome de segredo removidos (pendência). Fase 8: `fidelidade_config`, `config_aniversario` e `config_indicacao` também viram `promotions.policy` na primeira importação (valor fora do limite = padrão + pendência) |
+| `config_geral`, `config_agendamento`, `config_lembretes`, `config_site`, `fidelidade_config`, `config_aniversario`, `config_indicacao`, `landing_page`, `theme_config`, `config` | `settings` com chave `legacy.<secao>`; campos com nome de segredo removidos (pendência). Fase 8: `fidelidade_config`, `config_aniversario` e `config_indicacao` também viram `promotions.policy` na primeira importação (valor fora do limite = padrão + pendência). Fase 13: `config_agendamento` (antecedência mínima e máxima) vira `agenda.policy` na primeira importação |
 | `config_email`, `config_stripe`, `config_gemini`, `config_chatbot`, `config_cron` | **descartadas**: recadastrar no `.env` do sistema novo, de preferência com credenciais **novas** (as atuais ficaram em texto puro) |

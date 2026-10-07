@@ -121,6 +121,13 @@ que mascara `password=`, `token=`, `secret=`, `key=`, e o log global de falhas d
 aprovação visual dos e-mails reais, SPF/DKIM/DMARC do domínio e devolução/reclamação automáticas (webhook do
 Resend alimentando `email_suppressions`).
 
+**Ensaio da Fase 13:** todos os modelos saíram pela fila real, por **SMTP** (`EMAIL_PROVIDER=mailer`,
+`MAIL_MAILER=smtp`, o caminho equivalente ao PHPMailer do sistema antigo), para um receptor local; capturas
+em [img/homologacao/emails/](img/homologacao/emails/). Os e-mails de conta (senha, link mágico, confirmação)
+usam o mailer do Laravel: **mesmo com Resend, `MAIL_MAILER` precisa ser `smtp`** (o transporte `resend` do
+Laravel exige um pacote que a instalação não tem; o diagnóstico avisa). Decisão do provedor em produção:
+P13-03.
+
 ## 8. Rotinas
 
 | Agendamento | Comando | O que faz |

@@ -3,8 +3,8 @@
 `php artisan legacy:import <cópia-do-banco.sqlite> [--dry-run] [--force]`
 
 Transforma o banco SQLite do sistema atual no modelo novo ([modelo-dados.md](modelo-dados.md)),
-de acordo com o [mapa](mapa-banco-antigo-novo.md). **Nesta fase ele foi validado só com dados fictícios.**
-Nenhum dado real foi lido e nenhum banco de produção foi acessado.
+de acordo com o [mapa](mapa-banco-antigo-novo.md). **Validado só com dados fictícios** (Fase 2 e ensaio da
+Fase 13). Nenhum dado real foi lido e nenhum banco de produção foi acessado.
 
 Código: `novo-sistema/app/Modules/LegacyImport/`
 
@@ -32,6 +32,9 @@ php artisan legacy:import /caminho/copia.sqlite --dry-run
 # 3. Ler o relatório e as pendências (storage/app/private/legacy-import/reports/)
 # 4. Importar de verdade (em produção exige --force)
 php artisan legacy:import /caminho/copia.sqlite
+
+# 5. Fotos: reprocessa as fotos da copia da pasta uploads/ do antigo (Fase 13)
+php artisan legacy:import-photos /caminho/copia/uploads
 
 # Teste local com dados fictícios
 php artisan legacy:fixture storage/legado-ficticio.sqlite --customers=500 --appointments=3000
@@ -190,5 +193,25 @@ risco. A transação única é o que torna a gravação rápida no SQLite.
 - Mudança numa tabela filha sem mudança na linha principal (ex.: evento novo de agendamento já importado) não é
   detectada na reexecução. Para os ensaios, recomenda-se importar num banco novo vazio a cada vez; a
   idempotência protege contra execução dupla por engano.
-- Fotos (`uploads/`) não são copiadas: os caminhos são preservados e a cópia é feita na virada.
+- Fotos: o importador guarda o caminho antigo; `legacy:import-photos` (Fase 13) reprocessa os arquivos da
+  cópia de `uploads/` (WebP, sem metadados). Foto ausente, ilegível ou a genérica do antigo fica sem foto.
 - O relatório de pendências é por execução; a tabela `import_issues` acumula todas as execuções reais.
+
+## Ensaio da Fase 13 (2026-10-07)
+
+O sistema antigo foi instalado numa pasta de ensaio pelo `install.php` dele e recebeu dados fictícios pelas
+**ações do próprio sistema antigo** (`novo-sistema/scripts/ensaio/`), para que os registros tivessem o
+formato que o código antigo grava de verdade. O banco foi baixado pelo botão de backup do painel antigo,
+como o dono fará. Achados (todos corrigidos e com teste):
+
+| Achado | Correção |
+|---|---|
+| O antigo grava "1.500,00" como `1.500.00` (`str_replace(',', '.')`) e o importador recusava | `LegacyValue::money` lê o valor digitado + `money_format_divergent` |
+| Foto genérica `uploads/default-profile.jpg` importada como foto | `LegacyValue::photoPath` descarta as genéricas; `legacy:import-photos` |
+| Cliente ativo no antigo chegava com e-mail não confirmado (preso no 1º login) | `email_verified_at` para cliente **ativo** com e-mail válido |
+| Nenhum horário de funcionamento depois da migração (ninguém agendava) | Funcionamento deduzido do expediente (`business_hours_derived`) e regras de antecedência de `config_agendamento` em `agenda.policy` (só na 1ª importação) |
+| `manual@admin.com` (marcador do agendamento manual) virava e-mail do cliente | `LegacyValue::contactEmail` descarta o marcador |
+
+O schema real criado pelo `install.php` + migrações do antigo foi comparado com o banco fictício do
+importador: nenhuma coluna do antigo fica sem tratamento. Volume: 3.016 clientes / 20.019 agendamentos em
+38 s, conciliação e integridade OK, reexecução sem duplicar. Amostra gravada pelo antigo: 34/34 conferências.

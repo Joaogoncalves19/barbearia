@@ -408,6 +408,19 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ## Fase 13 — Homologação final, migração e virada
 
+> **Status (2026-10-07): preparação e ensaios concluídos com dados fictícios; fase NÃO concluída**
+> ([relatorio-fase-13.md](relatorio-fase-13.md)). Feito: ensaio geral da migração com dados gravados pelo
+> próprio sistema antigo (6 achados corrigidos) e em volume; homologação instalada a partir do pacote, com
+> roteiros por perfil no navegador (celular e desktop); ciclo do Stripe e todos os e-mails num simulador e
+> num receptor SMTP locais; Lighthouse; cópia de segurança automática, conferência e restauração; monitoramento
+> básico; treinamento por perfil; plano de virada e plano de retorno **executados em ensaio**
+> ([instalacao.md](instalacao.md), [operacao.md](operacao.md), [homologacao.md](homologacao.md),
+> [plano-virada.md](plano-virada.md), [plano-retorno.md](plano-retorno.md), [treinamento/](treinamento/README.md)).
+> **Pendente (depende do dono):** hospedagem (D-01), ensaio com a cópia real (autorização), ciclo do Stripe na
+> conta de teste do dono, entrega real de e-mail, testes de aceite e com usuários, decisões P13-01 a P13-06,
+> autorização da virada e os **30 dias de operação estável**. Instalação **independente por barbearia** (sem
+> multiempresa).
+
 - **Objetivo:** trocar o sistema com segurança.
 - **Escopo:** ensaio geral da migração com dados reais recentes; testes de aceite completos pelo
   dono e pela equipe; treinamento rápido (recepção e profissionais); plano de virada e de rollback
@@ -418,6 +431,13 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
   homologação; dono autoriza **explicitamente** a virada em produção.
 - **Riscos:** divergência após a virada (mitigação: critérios de rollback definidos antes, sistema antigo intacto).
 - **Condição para concluir:** 30 dias de operação estável; sistema antigo arquivado.
+- **Critério de estabilidade dos 30 dias** (métricas em [operacao.md](operacao.md) §5): site no ar ≥ 99,5 %
+  (monitor de `/up`); 30 cópias diárias aprovadas e 1 restauração de ensaio; nenhum agendador parado sem
+  solução em 1 h; falhas de e-mail < 1 % e explicadas; nenhum webhook do Stripe com erro pendente e
+  assinaturas iguais nos dois lados; caixa e comissões batendo com a conferência manual; nenhum agendamento
+  perdido, duplicado ou fora do expediente; **nenhum incidente crítico** (perda de dado, cobrança errada,
+  exposição de dado de cliente, fora do ar > 2 h em horário de atendimento). Incidente crítico reinicia a
+  contagem. O sistema antigo fica somente leitura nesse período e é arquivado (cifrado) depois do aceite.
 
 ---
 

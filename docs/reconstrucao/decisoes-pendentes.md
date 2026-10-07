@@ -112,6 +112,13 @@
 >
 > **Fase 12 (área do cliente):** pontos marcados **PRECISA DE DECISÃO**: ver
 > [relatorio-fase-12.md](relatorio-fase-12.md#decisões-necessárias).
+>
+> **Fase 13 (homologação, migração e virada):** **P13-01** tela de Clientes no painel (existia no antigo,
+> "Manter"; inclui a anonimização pelo balcão, P12-03), **P13-02** relatórios gerais/despesas (adiados na
+> Fase 7), **P13-03** provedor de e-mail em produção (SMTP do servidor × Resend; D-05), **P13-04** hospedagem
+> e domínio (D-01), **P13-05** funcionamento deduzido do expediente na importação, **P13-06** cliente ativo
+> migrado com e-mail já confirmado, **P13-07** janela e responsável da virada, **P13-08** guarda do sistema
+> antigo arquivado. Ver [relatorio-fase-13.md](relatorio-fase-13.md#9-decisões-pendentes).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

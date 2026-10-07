@@ -1,3 +1,4 @@
+// (Roda depois de homologacao.spec.js: precisa dos usuarios criados la; ordem alfabetica.)
 // Fase 13 — homologacao dos E-MAILS que dependem de acao de alguem: aceite de
 // novidades, troca de e-mail, redefinicao de senha, link magico, remarcacao,
 // campanha (com descadastro de um clique depois) e falha de pagamento da
