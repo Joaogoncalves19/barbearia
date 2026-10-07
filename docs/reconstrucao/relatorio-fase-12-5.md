@@ -219,7 +219,7 @@ O `temas.spec.js` passou a incluir as 5 telas da área em cada um dos 8 temas, n
 | Build | ok |
 | Navegador, 1ª rodada final (banco novo) | 148 passaram, 4 pulados, 0 falhas (23,2 min) |
 | Navegador, 2ª rodada final (banco novo) | 148 passaram, 4 pulados, 0 falhas (18,4 min) |
-| CI | ver §6.1 |
+| CI | **NÃO EXECUTADO**: o GitHub recusou o push com erro interno (500) em qualquer branch, inclusive numa de teste sem commits novos (§6.2) |
 
 ### 6.1 Histórico das rodadas
 
@@ -273,3 +273,11 @@ navegação fixa aparece no meio da imagem, na altura da tela, e não no fim.
 - O perfil não edita foto, apresentação, serviços nem expediente: isso é da gerência (P12.5-02, P12.5-03).
 - Imprimir a agenda usa a impressão do navegador, com o estilo de impressão da tela. Não há PDF.
 - Continuam abertas: Fase 12 (P12-01 a P12-08), refinamento visual (T-01 a T-06) e as pendências de homologação (Resend real, ciclo Stripe em modo teste, webhook real, teste com usuários, Lighthouse).
+
+### 6.2 Push e CI
+
+Os commits estão gravados na branch local. O `git push` foi recusado pelo GitHub com
+`remote rejected (Internal Server Error)`. A leitura (`git ls-remote`) funciona, mas criar qualquer
+branch falha: até uma branch de teste apontando para um commit que já existia no GitHub. A página de
+status do GitHub dizia "All Systems Operational". O problema é do lado do GitHub (conta ou repositório),
+não do conteúdo. O CI roda assim que o push passar.
