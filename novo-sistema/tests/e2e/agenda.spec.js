@@ -35,7 +35,8 @@ async function entrarNoPainel(page, usuario) {
     await page.getByLabel('Usuário ou e-mail').fill(usuario);
     await page.getByLabel('Senha', { exact: true }).fill(SENHA);
     await page.getByRole('button', { name: 'Entrar' }).click();
-    await expect(page).toHaveURL(/\/painel$/);
+    // Fase 12.5: o profissional entra na area dele (/profissional).
+    await expect(page).toHaveURL(/\/(painel|profissional)$/);
 }
 
 // Cada projeto usa um barbeiro, para os dois rodarem em paralelo sem disputar horario.
@@ -164,10 +165,13 @@ test('equipe: agenda do dia, cria, remarca e cancela', async ({ page }, info) =>
 test('profissional: vê só a própria agenda e não configura', async ({ page }, info) => {
     await entrarNoPainel(page, `e2e-barbeiro-a-${info.project.name}`);
 
+    // Fase 12.5: a agenda do painel leva o profissional para a agenda dele.
     await page.goto('/painel/agenda');
-    await expect(page.getByRole('heading', { name: `Barbeiro A ${info.project.name}` })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /^Barbeiro B/ })).toHaveCount(0);
-    await expect(page.getByLabel('Profissional')).toHaveCount(0);
+    await expect(page).toHaveURL(/\/profissional\/agenda$/);
+    await expect(page.getByText(`Barbeiro A ${info.project.name}`).first()).toBeVisible();
+    await expect(page.getByText(/Barbeiro B/)).toHaveCount(0);
+    // Sem o filtro de profissional (exato: a navegacao se chama "Area do profissional").
+    await expect(page.getByLabel('Profissional', { exact: true })).toHaveCount(0);
 
     let r = await page.goto('/painel/agenda/configuracoes');
     expect(r.status()).toBe(403);

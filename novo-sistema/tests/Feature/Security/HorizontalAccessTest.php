@@ -145,7 +145,9 @@ class HorizontalAccessTest extends TestCase
         $carlos = $this->barbeiro('carlos');
         $davi = $this->barbeiro('davi');
 
-        $this->actingAs($carlos, 'web')->get(route('panel.professionals.show', $carlos->professional))->assertOk()->assertSee('Carlos');
+        // Fase 12.5: a propria ficha abre no Perfil da area do profissional.
+        $this->actingAs($carlos, 'web')->get(route('panel.professionals.show', $carlos->professional))->assertRedirect(route('pro.profile'));
+        $this->actingAs($carlos, 'web')->get(route('pro.profile'))->assertOk()->assertSee('Carlos');
         $this->actingAs($carlos, 'web')->get(route('panel.professionals.show', $davi->professional))->assertNotFound();
         $this->actingAs($carlos, 'web')->get('/painel/profissionais/999999')->assertNotFound();
     }

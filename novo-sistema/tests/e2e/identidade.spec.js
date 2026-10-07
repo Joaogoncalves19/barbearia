@@ -138,20 +138,24 @@ test('senha provisória: a troca é obrigatória antes de usar o painel', async 
 });
 
 test('profissional: vê a própria ficha e não a de outro, nem a gestão de usuários', async ({ page }, info) => {
+    test.slow(); // varias fichas abertas pela URL
     await entrarNoPainel(page, `e2e-barbeiro-a-${info.project.name}`);
-    await expect(page).toHaveURL(/\/painel$/);
+    // Fase 12.5: o profissional entra na area dele; a propria ficha e o Perfil.
+    await expect(page).toHaveURL(/\/profissional$/);
 
-    await page.goto('/painel');
-    // No celular o menu fechado fica oculto (fora do teclado e do leitor de tela): le o link pelo elemento.
-    const ficha = await page.locator('a.nav-link', { hasText: 'Minha ficha' }).getAttribute('href');
-    const id = Number(ficha.split('/').pop());
-
-    let r = await page.goto(ficha);
+    let r = await page.goto('/profissional/perfil');
     expect(r.status()).toBe(200);
     await expect(page.getByRole('heading', { name: `Barbeiro A ${info.project.name}` })).toBeVisible();
 
-    r = await page.goto(`/painel/profissionais/${id + 1}`);
-    expect(r.status(), 'ficha de outro profissional pela URL').toBe(404);
+    // Fichas pelo id na URL: a propria leva ao Perfil; a de outro e 404.
+    let propria = 0;
+    for (let id = 1; id <= 15; id++) {
+        r = await page.goto(`/painel/profissionais/${id}`);
+        if (r.status() === 404) continue;
+        expect(page.url(), `ficha ${id}: so a propria abre`).toMatch(/\/profissional\/perfil$/);
+        propria++;
+    }
+    expect(propria, 'no maximo a propria ficha abre').toBeLessThanOrEqual(1);
 
     r = await page.goto('/painel/usuarios');
     expect(r.status(), 'gestão de usuários').toBe(403);

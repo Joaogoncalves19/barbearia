@@ -72,7 +72,8 @@ class FinancePanelTest extends TestCase
             'gerente' => [$this->gerente, [200, 403, 200, 200, 200, 200, 403, 200, 200]],
             'financeiro' => [$this->financeiro, [200, 403, 200, 200, 200, 200, 200, 200, 200]],
             'recepção' => [$this->recepcao, [403, 403, 403, 403, 404, 404, 403, 404, 404]],
-            'profissional' => [$this->barbeiroJoao, [403, 403, 403, 403, 200, 404, 403, 200, 404]],
+            // Fase 12.5: o proprio extrato leva para "Ganhos" da area do profissional (302).
+            'profissional' => [$this->barbeiroJoao, [403, 403, 403, 403, 302, 404, 403, 200, 404]],
         ];
         $this->recepcao->forceFill(['role' => StaffRole::Reception])->save();
 
@@ -84,9 +85,10 @@ class FinancePanelTest extends TestCase
             $this->assertSame($codigos, $obtido, "{$papel}: ".implode(', ', array_keys($rotas)));
         }
 
-        $this->as($this->barbeiroJoao)->get(route('panel.commissions.mine'))->assertRedirect(route('panel.commissions.show', $this->joao));
-        $this->as($this->barbeiroJoao)->get(route('panel.commissions.show', $this->joao))
-            ->assertSee($at->code)->assertSee('R$ 20,00')->assertDontSee('Lançar vale')->assertDontSee('Registrar ajuste');
+        $this->as($this->barbeiroJoao)->get(route('panel.commissions.mine'))->assertRedirect(route('pro.earnings'));
+        $this->as($this->barbeiroJoao)->get(route('panel.commissions.show', $this->joao))->assertRedirect(route('pro.earnings'));
+        $this->as($this->barbeiroJoao)->get(route('pro.earnings'))
+            ->assertOk()->assertSee($at->customer_name)->assertSee('R$ 20,00')->assertDontSee('Lançar vale')->assertDontSee('Registrar ajuste');
     }
 
     public function test_quem_pode_mudar_o_que(): void

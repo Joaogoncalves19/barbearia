@@ -40,6 +40,17 @@ class CustomerPolicy
         return $actor->hasPermission('customers.update') ? Response::allow() : Response::deny();
     }
 
+    /**
+     * Anotacoes dos profissionais sobre o cliente (Fase 12.5): so quem tem
+     * customers.notes_own e so dos proprios clientes. Outro cliente => 404.
+     */
+    public function notes(User|Customer $actor, Customer $customer): Response
+    {
+        return $actor instanceof User && $actor->hasPermission('customers.notes_own') && $this->isClientOf($actor, $customer)
+            ? Response::allow()
+            : Response::denyAsNotFound();
+    }
+
     /** CPF completo (fora disso, so mascarado). */
     public function viewCpf(User|Customer $actor, Customer $customer): bool
     {

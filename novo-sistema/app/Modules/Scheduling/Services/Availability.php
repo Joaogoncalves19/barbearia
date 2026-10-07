@@ -106,6 +106,57 @@ final class Availability
     }
 
     /**
+     * O dia de um profissional para MOSTRAR (agenda do profissional, Fase
+     * 12.5): o mesmo retrato do dia que decide a reserva (planFor) e o tempo
+     * livre = janelas de trabalho menos pausas, bloqueios e horarios
+     * ocupados (a partir de $from, se informado). Folga: nada livre.
+     *
+     * So informa. Reservar continua passando por check()/slots(), que tambem
+     * conferem servico, antecedencia, alcance e a grade de horarios: um tempo
+     * livre curto demais para um servico simplesmente nao aparece em slots().
+     *
+     * @return array{off: bool, work: list<Interval>, breaks: list<Interval>, blocks: list<Interval>, free: list<Interval>}
+     */
+    public function dayOverview(Professional $professional, string $date, ?CarbonImmutable $from = null): array
+    {
+        if (! BusinessTime::isValidDate($date)) {
+            return ['off' => false, 'work' => [], 'breaks' => [], 'blocks' => [], 'free' => []];
+        }
+
+        $plano = $this->planFor($professional, $date, null);
+        $ocupados = array_merge($plano['breaks'], $plano['blocks'], $plano['busy']);
+        usort($ocupados, fn (Interval $a, Interval $b) => $a->start <=> $b->start);
+
+        $livres = [];
+        foreach ($plano['off'] ? [] : $plano['work'] as $janela) {
+            $cursor = $from !== null ? $janela->start->max($from) : $janela->start;
+            foreach ($ocupados as $o) {
+                if ($o->end->lte($cursor) || $o->start->gte($janela->end)) {
+                    continue;
+                }
+                if ($o->start->gt($cursor)) {
+                    $livres[] = new Interval($cursor, $o->start->min($janela->end));
+                }
+                $cursor = $cursor->max($o->end);
+                if ($cursor->gte($janela->end)) {
+                    break;
+                }
+            }
+            if ($cursor->lt($janela->end)) {
+                $livres[] = new Interval($cursor, $janela->end);
+            }
+        }
+
+        return [
+            'off' => $plano['off'],
+            'work' => $plano['work'],
+            'breaks' => $plano['breaks'],
+            'blocks' => $plano['blocks'],
+            'free' => array_values(array_filter($livres, fn (Interval $i) => $i->minutes() >= Duration::STEP_MINUTES)),
+        ];
+    }
+
+    /**
      * Dias abertos (a barbearia tem funcionamento) dentro do alcance do canal.
      *
      * @return list<string>

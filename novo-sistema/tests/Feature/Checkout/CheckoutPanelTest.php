@@ -159,7 +159,10 @@ class CheckoutPanelTest extends TestCase
         $meu = $this->startedAttendance();
         $daMaria = $this->walkIn($this->maria, name: 'Cliente da Maria');
 
-        $this->as($this->barbeiroJoao)->get(route('panel.attendances.index'))->assertOk()->assertSee($meu->code)->assertDontSee($daMaria->code);
+        // Fase 12.5: a lista do painel leva o profissional para a area dele, que mostra so os proprios.
+        $this->as($this->barbeiroJoao)->get(route('panel.attendances.index'))->assertRedirect(route('pro.attendances'));
+        $this->as($this->barbeiroJoao)->get(route('pro.attendances'))->assertOk()
+            ->assertSee(route('pro.attendances.show', $meu))->assertDontSee(route('pro.attendances.show', $daMaria));
         $this->as($this->barbeiroJoao)->get(route('panel.attendances.show', $daMaria))->assertNotFound();
         $this->as($this->barbeiroJoao)->post(route('panel.attendances.start', $daMaria))->assertForbidden();
         $this->as($this->barbeiroJoao)->post(route('panel.attendances.cancel', $daMaria), ['reason' => 'Tentativa'])->assertForbidden();

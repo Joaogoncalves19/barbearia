@@ -441,14 +441,7 @@ class AttendanceController extends Controller
      */
     private function methodOptions(): array
     {
-        $formas = [];
-        foreach (PaymentMethod::cases() as $m) {
-            if ($m !== PaymentMethod::Unknown) {
-                $formas[$m->value] = $m->label();
-            }
-        }
-
-        return $formas;
+        return PaymentMethod::counterOptions();
     }
 
     private function user(Request $request): User

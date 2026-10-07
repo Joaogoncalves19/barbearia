@@ -5,7 +5,8 @@
 > **Fase extraordinária de redesign visual** (entre as Fases 12 e 13, sem mudar o roadmap) concluída e com a
 > direção aprovada ([relatorio-redesign.md](relatorio-redesign.md)). **Refinamento visual e temas** (8 temas
 > predefinidos em Configurações → Aparência) concluído, aguardando a avaliação do dono
-> ([relatorio-refinamento-visual.md](relatorio-refinamento-visual.md)).
+> ([relatorio-refinamento-visual.md](relatorio-refinamento-visual.md)). **Fase 12.5 (painel do profissional)**
+> concluída, aguardando aprovação do dono ([relatorio-fase-12-5.md](relatorio-fase-12-5.md)).
 > Na Fase 1 o sistema atual recebeu **apenas** as 4 correções de segurança críticas
 > ([seguranca-correcoes.md](seguranca-correcoes.md)). O novo sistema está em `novo-sistema/`.
 
@@ -171,6 +172,13 @@ plano para reconstruí-lo do zero, por etapas.
 | [relatorio-redesign.md](relatorio-redesign.md) | Auditoria tela a tela, o que mudou, testes, antes/depois ([img/redesign/](img/redesign/)), problemas, pendências |
 | [temas-visuais.md](temas-visuais.md) | Sistema de temas: arquitetura de tokens, os 8 temas (paleta, letra, detalhe gráfico), contraste, personalização futura, como adicionar um tema |
 | [relatorio-refinamento-visual.md](relatorio-refinamento-visual.md) | Refinamento visual e temas: telas revisadas, problemas e correções, componentes, testes, capturas ([img/redesign-temas/](img/redesign-temas/)), decisões |
+
+### Fase 12.5 (painel do profissional)
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [painel-profissional.md](painel-profissional.md) | Auditoria do painel antigo do barbeiro, funcionalidade antiga × nova com a decisão de cada uma, telas da área `/profissional`, permissões, decisões pendentes |
+| [relatorio-fase-12-5.md](relatorio-fase-12-5.md) | O que foi construído, permissões, testes, capturas ([img/painel-profissional/](img/painel-profissional/)), problemas, decisões e limitações |
 
 ## Legenda usada em todos os documentos
 

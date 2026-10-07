@@ -6,7 +6,17 @@ use App\Modules\Customers\Enums\NoteVisibility;
 use App\Modules\Identity\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $customer_id
+ * @property int|null $author_user_id
+ * @property string|null $author_label
+ * @property NoteVisibility $visibility
+ * @property string $body
+ * @property Carbon|null $created_at
+ */
 class CustomerNote extends Model
 {
     protected $table = 'customer_notes';

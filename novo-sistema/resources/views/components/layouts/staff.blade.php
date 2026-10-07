@@ -4,6 +4,11 @@
     pode usar; quem protege de verdade e a rota (auth + can:) e a Policy.
 --}}
 @props(['title' => null])
+@if (auth('web')->user()?->can('professional_area.access') && auth('web')->user()->professional !== null)
+    {{-- Fase 12.5: quem usa a area do profissional nao ve o menu administrativo;
+         as telas do painel que ele ja podia abrir aparecem na moldura dele. --}}
+    <x-layouts.professional :title="$title">{{ $slot }}</x-layouts.professional>
+@else
 @php
     /** @var \App\Modules\Identity\Models\User $user */
     $user = auth('web')->user();
@@ -156,3 +161,4 @@
 
     {{ $slot }}
 </x-layouts.panel>
+@endif

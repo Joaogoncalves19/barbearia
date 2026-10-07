@@ -25,4 +25,22 @@ enum PaymentMethod: string
             self::Unknown => 'Não informado',
         };
     }
+
+    /**
+     * Formas aceitas no balcao ("nao informado" so existe no legado). Mesma
+     * lista no atendimento do painel e no da area do profissional.
+     *
+     * @return array<string, string>
+     */
+    public static function counterOptions(): array
+    {
+        $formas = [];
+        foreach (self::cases() as $m) {
+            if ($m !== self::Unknown) {
+                $formas[$m->value] = $m->label();
+            }
+        }
+
+        return $formas;
+    }
 }

@@ -42,6 +42,7 @@ class RouteAuthorizationTest extends TestCase
         'robots' => 'instrucoes para buscadores',
         // Equipe: acesso (guest:web)
         'staff.login' => 'formulario de login da equipe',
+        'pro.login' => 'so redireciona para o login da equipe (Fase 12.5)',
         'staff.login.attempt' => 'envio do login (throttle:login)',
         'staff.password.request' => 'formulario "esqueci a senha"',
         'staff.password.email' => 'pedido do link (throttle:email-requests, resposta neutra)',

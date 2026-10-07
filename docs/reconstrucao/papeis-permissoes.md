@@ -94,6 +94,8 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `reviews.moderate` / `reviews.reply` | Aprovar, recusar (com motivo) e destacar / responder | **Fase 10** |
 | `site.manage` | Conteúdo (textos, contatos, páginas legais) e imagens do site público | **Fase 11** |
 | `settings.manage` | Configurações do estabelecimento | Fase 4 |
+| `professional_area.access` | Usar a área do profissional (Hoje, agenda, atendimentos, ganhos e perfil próprios) | **Fase 12.5** |
+| `customers.notes_own` | Ler e registrar anotações sobre os próprios clientes (preferências, cuidados) | **Fase 12.5** |
 | `account.access` *(cliente)* | Acessar a própria conta de cliente | **Fase 3** |
 
 ## 3. Matriz papel × habilidade
@@ -187,6 +189,8 @@ Declaradas agora, para que as próximas fases **só as usem**. A tela de cada m�
 | `reviews.reply` | ✔ | ✔ | | | |
 | `site.manage` | ✔ | ✔ | | | |
 | `settings.manage` | ✔ | | | | |
+| `professional_area.access` | | | | | ✔ |
+| `customers.notes_own` | | | | | ✔ |
 
 A distribuição acima é uma **proposta técnica conservadora** (menor privilégio) baseada nos perfis do
 sistema antigo. Ajustar é mudar uma linha em `config/permissions.php` e a linha correspondente no teste e
@@ -293,3 +297,24 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
   da equipe com essa habilidade como autor; não há tela de clientes no painel (P12-03).
 - Pelo canal do cliente, a remarcação só oferece profissional publicado (P11-03); a equipe remarca com
   qualquer profissional ativo (`appointments.manage`).
+
+## Fase 12.5 — área do profissional
+
+- `professional_area.access` (só o Profissional): a área `/profissional` exige também a **ficha ligada** ao
+  usuário (sem ficha, 403). Nenhuma rota da área recebe id de profissional: tudo parte do usuário logado.
+  Registro de outro profissional na URL = 404 (Policies de sempre); tela administrativa = 403.
+- Quem tem a área não navega pelo painel administrativo: as páginas do painel com equivalente (início,
+  agenda, agendamento, atendimentos, atendimento, extrato, ficha, minha conta) levam para a área
+  (`RedirectProfessionalToArea`, só GET, só registro próprio); as demais que ele já podia abrir (novo
+  agendamento, remarcar, encaixe, senha, recibo, avaliações) abrem na moldura do profissional.
+- As gravações continuam nas rotas do painel, com as mesmas habilidades `_own` e Policies (abrir, iniciar,
+  itens, observações, concluir com `payments.receive`, cancelar o próprio). Desconto, estorno, repasse, vale,
+  ajuste e regra de comissão continuam negados ao profissional.
+- `customers.notes_own` (só o Profissional): ler e registrar anotações (visibilidade "profissionais") só de
+  clientes que têm agendamento com ele (`CustomerPolicy@notes`; outro = 404). Remove só a própria. A
+  auditoria guarda quem, quando e o tamanho, nunca o texto. Testes: `ProfessionalAreaTest`.
+- Login e senha do profissional no próprio cadastro (pedido do dono): os campos "Acesso ao painel" do
+  cadastro do profissional exigem `users.manage` (só o proprietário) e a senha reconfirmada, como a tela
+  Usuários. Pedido montado à mão por quem não tem `users.manage` = 403, sem gravar nada. O gerente continua
+  cadastrando a ficha (`professionals.create`) sem login. Nova senha provisória só para conta de outro
+  (`UserPolicy@setTemporaryPassword`). Testes: `ProfessionalAccessTest`.

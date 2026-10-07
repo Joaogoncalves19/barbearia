@@ -48,6 +48,39 @@ final class StaffAccounts
     }
 
     /**
+     * Acesso ao painel criado no PROPRIO cadastro do profissional (Fase
+     * 12.5, como no sistema antigo): conta com o papel Profissional ja ligada
+     * a esta ficha (sem criar a ficha minima de R-IDENT-03), senha
+     * provisoria com troca obrigatoria (R-IDENT-02). Mesma auditoria da tela
+     * Usuarios.
+     *
+     * @param  array{name: string, username: string, email: ?string}  $data
+     */
+    public function createForProfessional(Professional $professional, array $data, #[\SensitiveParameter] string $temporaryPassword, User $actor): User
+    {
+        return DB::transaction(function () use ($professional, $data, $temporaryPassword, $actor): User {
+            if ($professional->user_id !== null) {
+                throw DomainRuleViolation::rule('R-IDENT-03', 'Este profissional já tem uma conta de acesso.');
+            }
+
+            $user = new User;
+            $user->fill($data);
+            $user->role = StaffRole::Professional;
+            $user->is_active = true;
+            $user->save();
+
+            $this->passwords->setTemporary($user, $temporaryPassword, $actor);
+            $professional->forceFill(['user_id' => $user->id])->save();
+
+            AuditTrail::record('user.created', $user, $actor, 'Conta criada com o papel '.StaffRole::Professional->label()." no cadastro do profissional {$professional->display_name}.", [
+                'role' => StaffRole::Professional->value, 'professional_id' => $professional->id,
+            ]);
+
+            return $user;
+        });
+    }
+
+    /**
      * @param  array{name: string, username: string, email: ?string}  $data
      */
     public function update(User $user, array $data, StaffRole $role, bool $active, User $actor): void

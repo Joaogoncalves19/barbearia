@@ -84,10 +84,12 @@ class PermissionMatrixTest extends TestCase
         $esperado = [
             'panel.access' => ['owner', 'manager', 'reception', 'finance', 'professional'],
             'system.health.view' => ['owner', 'manager'],
+            'professional_area.access' => ['professional'],
             'users.manage' => ['owner'],
             'audit.view' => ['owner'],
             'customers.view' => ['owner', 'manager', 'reception'],
             'customers.view_own' => ['professional'],
+            'customers.notes_own' => ['professional'],
             'customers.create' => ['owner', 'manager', 'reception'],
             'customers.update' => ['owner', 'manager', 'reception'],
             'customers.view_cpf' => ['owner', 'manager'],

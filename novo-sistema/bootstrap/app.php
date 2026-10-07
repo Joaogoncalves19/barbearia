@@ -3,10 +3,12 @@
 use App\Http\Middleware\EnsureCustomerIsActive;
 use App\Http\Middleware\EnsureCustomerProfileIsComplete;
 use App\Http\Middleware\EnsureCustomerRecentlyConfirmed;
+use App\Http\Middleware\EnsureProfessionalProfile;
 use App\Http\Middleware\EnsurePrototypesEnabled;
 use App\Http\Middleware\EnsureStaffIsActive;
 use App\Http\Middleware\EnsureStaffPasswordIsCurrent;
 use App\Http\Middleware\PreventCaching;
+use App\Http\Middleware\RedirectProfessionalToArea;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -16,7 +18,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\Route;
 
 /** Area da equipe? (decide para qual login mandar quem nao esta logado) */
-$isPanel = fn (Request $request): bool => $request->is('painel', 'painel/*');
+$isPanel = fn (Request $request): bool => $request->is('painel', 'painel/*', 'profissional', 'profissional/*');
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -41,6 +43,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'customer.reauth' => EnsureCustomerRecentlyConfirmed::class,
             'no-store' => PreventCaching::class,
             'prototypes' => EnsurePrototypesEnabled::class,
+            'professional.profile' => EnsureProfessionalProfile::class,
+            'professional.area' => RedirectProfessionalToArea::class,
         ]);
 
         $middleware->redirectGuestsTo(fn (Request $r) => $isPanel($r) ? route('staff.login') : route('customer.login'));
@@ -58,4 +62,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+        // Senhas provisorias do cadastro do profissional (Fase 12.5) nunca
+        // voltam para a sessao junto com o formulario recusado.
+        $exceptions->dontFlash(['access_password', 'access_reset_password', 'temporary_password']);
     })->create();

@@ -387,6 +387,25 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ---
 
+## Fase 12.5 — Painel do profissional (fase intermediária)
+
+> **Status: concluída, aguardando aprovação do dono** ([relatorio-fase-12-5.md](relatorio-fase-12-5.md)).
+> Não muda a numeração: a Fase 13 continua sendo a próxima. O sistema é vendido como **instalação
+> independente por barbearia** (sem multi-tenant).
+
+- **Objetivo:** dar ao profissional uma área própria (`/profissional`), enxuta e pensada para o celular, no
+  lugar do painel administrativo com telas bloqueadas.
+- **Escopo:** auditoria do painel antigo do barbeiro ([painel-profissional.md](painel-profissional.md));
+  Hoje, Agenda, Agendamento, Atendimentos, Atendimento, Ganhos e Perfil; anotações do cliente; tudo sobre as
+  regras atuais (agenda, atendimento, comissão, permissões) e nos 8 temas.
+- **Fora do escopo:** multi-tenant, WhatsApp, chatbot, IA, lista de espera, CRM, pagamento online, regras
+  novas de agenda, comissão ou finanças.
+- **Testes:** isolamento entre profissionais (inclusive trocando ids na URL), negação do painel
+  administrativo, fluxo do atendimento, tempo livre pela regra da agenda, 8 temas; E2E no celular, desktop e
+  tablet.
+
+---
+
 ## Fase 13 — Homologação final, migração e virada
 
 - **Objetivo:** trocar o sistema com segurança.
@@ -394,7 +413,7 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
   dono e pela equipe; treinamento rápido (recepção e profissionais); plano de virada e de rollback
   ([estrategia-migracao.md](estrategia-migracao.md#129-migração-final-e-rollback)); rotação de
   segredos; backups automáticos configurados; monitoramento.
-- **Dependências:** Fases 1–12 concluídas.
+- **Dependências:** Fases 1–12 e 12.5 concluídas.
 - **Critérios de aceite:** checklist 12.8 100%; ensaio de rollback executado com sucesso em
   homologação; dono autoriza **explicitamente** a virada em produção.
 - **Riscos:** divergência após a virada (mitigação: critérios de rollback definidos antes, sistema antigo intacto).

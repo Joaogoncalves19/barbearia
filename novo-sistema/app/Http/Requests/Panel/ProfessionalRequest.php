@@ -8,12 +8,16 @@ use App\Modules\Shared\Media\ImageStore;
 use App\Modules\Team\Models\Professional;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 /**
  * Criar/editar profissional. A rota exige professionals.create/update; aqui:
  * apresentacao publica (bio, destaque, site, foto) so muda com
- * professionals.display. Conta de acesso: OPCIONAL, so uma conta ja
- * existente e ainda sem profissional (nunca cria login).
+ * professionals.display. Conta de acesso: OPCIONAL. Ligar uma conta ja
+ * existente e ainda sem profissional (user_id), ou, so para quem tem
+ * users.manage (Fase 12.5, como no sistema antigo), criar o login aqui mesmo
+ * (access_*) ou dar uma nova senha provisoria a conta ligada.
  */
 class ProfessionalRequest extends FormRequest
 {
@@ -21,8 +25,25 @@ class ProfessionalRequest extends FormRequest
 
     private const DISPLAY_FIELDS = ['headline', 'bio', 'is_public', 'is_featured'];
 
+    /** Campos de acesso ao painel: so com users.manage. */
+    private const ACCESS_FIELDS = ['access_username', 'access_email', 'access_password', 'access_reset_password'];
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('access_username')) {
+            $this->merge(['access_username' => User::normalizeUsername($this->string('access_username')->value())]);
+        }
+        if ($this->filled('access_email')) {
+            $this->merge(['access_email' => User::normalizeEmail($this->string('access_email')->value())]);
+        }
+    }
+
     public function authorize(): bool
     {
+        if (collect(self::ACCESS_FIELDS)->contains(fn ($c) => $this->filled($c)) && ! $this->user('web')?->can('users.manage')) {
+            return false;
+        }
+
         $p = $this->professional();
         $podeExibicao = (bool) $this->user('web')?->can('professionals.display');
 
@@ -62,6 +83,21 @@ class ProfessionalRequest extends FormRequest
                     $fail('Esta conta de acesso já está ligada a outro profissional.');
                 }
             }],
+            // Login criado aqui (Fase 12.5): as mesmas regras da tela Usuarios.
+            'access_username' => ['nullable', 'string', 'min:3', 'max:64', 'regex:/^[a-z0-9._-]+$/', Rule::unique('users', 'username'),
+                'prohibits:user_id', 'required_with:access_password,access_email',
+                function (string $a, mixed $v, Closure $fail) use ($p): void {
+                    if ($p?->user_id !== null) {
+                        $fail('Este profissional já tem uma conta de acesso.');
+                    }
+                }],
+            'access_email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
+            'access_password' => ['nullable', 'required_with:access_username', 'string', Password::defaults()],
+            'access_reset_password' => ['nullable', 'string', Password::defaults(), function (string $a, mixed $v, Closure $fail) use ($p): void {
+                if ($p?->user_id === null) {
+                    $fail('Este profissional ainda não tem conta de acesso.');
+                }
+            }],
             'is_bookable' => ['sometimes', 'boolean'],
             'headline' => ['nullable', 'string', 'max:120'],
             'bio' => ['nullable', 'string', 'max:1000'],
@@ -80,7 +116,40 @@ class ProfessionalRequest extends FormRequest
     {
         return [
             'display_name' => 'nome de exibição', 'user_id' => 'conta de acesso', 'headline' => 'especialidade',
+            'access_username' => 'usuário', 'access_email' => 'e-mail', 'access_password' => 'senha provisória',
+            'access_reset_password' => 'nova senha provisória',
             'bio' => 'apresentação', 'photo' => 'foto',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'access_username.regex' => 'Use só letras minúsculas, números, ponto, hífen ou sublinhado (sem espaços e sem @).',
+            'access_username.prohibits' => 'Escolha: criar um acesso novo OU ligar uma conta que já existe.',
+            'access_username.required_with' => 'Informe o usuário para entrar no painel.',
+            'access_password.required_with' => 'Informe a senha provisória (o profissional troca no primeiro acesso).',
+        ];
+    }
+
+    /**
+     * Login novo pedido no formulario (null = nao criar).
+     *
+     * @return array{name: string, username: string, email: ?string}|null
+     */
+    public function accessData(): ?array
+    {
+        if (! $this->filled('access_username')) {
+            return null;
+        }
+
+        return [
+            'name' => $this->string('display_name')->squish()->value(),
+            'username' => (string) $this->input('access_username'),
+            'email' => $this->input('access_email') ?: null,
         ];
     }
 

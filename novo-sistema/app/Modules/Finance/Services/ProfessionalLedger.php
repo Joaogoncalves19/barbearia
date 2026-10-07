@@ -16,8 +16,10 @@ use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Support\Money;
 use App\Modules\System\Services\AuditTrail;
 use App\Modules\Team\Models\Professional;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -215,6 +217,45 @@ final class ProfessionalLedger
         $vales = (int) $this->openAdvances($id, $ate)->sum('amount_cents');
 
         return ['commission' => $comissao, 'tips' => $gorjeta, 'advances' => $vales, 'net' => $comissao + $gorjeta - $vales];
+    }
+
+    /**
+     * Extrato de um mes (AAAA-MM) do profissional: os lancamentos como foram
+     * gravados, sem recalcular nada. Mesma leitura no extrato do painel e em
+     * "Ganhos" da area do profissional.
+     *
+     * @return array{commissions: Collection<int, CommissionEntry>, tips: Collection<int, TipEntry>, advances: Collection<int, Advance>}
+     */
+    public function month(Professional $professional, string $month): array
+    {
+        $inicio = BusinessTime::at($month.'-01', '00:00');
+        $fim = BusinessTime::at(CarbonImmutable::createFromFormat('Y-m-d', $month.'-01')->addMonth()->toDateString(), '00:00');
+        $doMes = fn ($q) => $q->where('professional_id', $professional->id)->where('occurred_at', '>=', $inicio)->where('occurred_at', '<', $fim);
+
+        return [
+            'commissions' => CommissionEntry::query()->tap($doMes)->with(['attendance', 'createdBy'])->orderBy('occurred_at')->orderBy('id')->get(),
+            'tips' => TipEntry::query()->tap($doMes)->with(['attendance', 'payment', 'createdBy'])->orderBy('occurred_at')->orderBy('id')->get(),
+            'advances' => Advance::query()->where('professional_id', $professional->id)
+                ->where(fn ($q) => $q->where(fn ($a) => $a->where('occurred_at', '>=', $inicio)->where('occurred_at', '<', $fim))
+                    ->orWhere(fn ($b) => $b->whereNull('occurred_at')->where('reference_month', $month)))
+                ->with(['createdBy', 'reversal'])->orderBy('id')->get(),
+        ];
+    }
+
+    /**
+     * Comissao e gorjeta LANCADAS num periodo [inicio, fim), repassadas ou
+     * nao (inclui estornos e ajustes, com sinal).
+     *
+     * @return array{commission: int, tips: int}
+     */
+    public function earnedBetween(Professional $professional, CarbonInterface $from, CarbonInterface $to): array
+    {
+        $periodo = fn ($q) => $q->where('professional_id', $professional->id)->where('occurred_at', '>=', $from)->where('occurred_at', '<', $to);
+
+        return [
+            'commission' => (int) CommissionEntry::query()->tap($periodo)->sum('amount_cents'),
+            'tips' => (int) TipEntry::query()->tap($periodo)->sum('amount_cents'),
+        ];
     }
 
     /**

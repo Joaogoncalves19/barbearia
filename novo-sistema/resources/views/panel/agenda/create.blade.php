@@ -23,10 +23,11 @@
     <x-ui.card title="1. Serviço e profissional">
         <form method="GET" action="{{ route('panel.appointments.create') }}" class="stack">
             <input type="hidden" name="data" value="{{ $date }}">
+            @if ($selectedTime !== '')<input type="hidden" name="hora" value="{{ $selectedTime }}">@endif
             <x-ui.select name="servico" label="Serviço" :value="$service?->id" placeholder="Escolha o serviço"
                 :options="$serviceOptions" />
             @if ($service)
-                <x-ui.select name="profissional" label="Profissional" :value="$professional?->id" placeholder="Escolha o profissional"
+                <x-ui.select name="profissional" label="Profissional" :value="$professional?->id ?? ($professionals->count() === 1 ? $professionals->first()->id : null)" placeholder="Escolha o profissional"
                     :options="$professionals->pluck('display_name', 'id')->all()" />
                 @if ($professionals->isEmpty())
                     <p class="text-sm text-muted">Nenhum profissional que você possa agendar executa este serviço.</p>

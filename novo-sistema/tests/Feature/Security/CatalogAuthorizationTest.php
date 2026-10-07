@@ -106,7 +106,9 @@ class CatalogAuthorizationTest extends TestCase
         $u = User::factory()->role(StaffRole::Professional)->create();
         $this->pro->update(['user_id' => $u->id]);
 
-        $this->actingAs($u, 'web')->get(route('panel.professionals.show', $this->pro))->assertOk();
+        // Fase 12.5: a propria ficha abre no Perfil da area do profissional (so consulta).
+        $this->actingAs($u, 'web')->get(route('panel.professionals.show', $this->pro))->assertRedirect(route('pro.profile'));
+        $this->actingAs($u, 'web')->get(route('pro.profile'))->assertOk()->assertDontSee(route('panel.professionals.edit', $this->pro));
         $this->actingAs($u, 'web')->get(route('panel.professionals.edit', $this->pro))->assertForbidden();
         $this->actingAs($u, 'web')->put(route('panel.professionals.services.update', $this->pro), ['services' => [$this->servico->id]])->assertForbidden();
         $this->assertSame(0, $this->pro->services()->count());

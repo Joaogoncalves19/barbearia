@@ -36,7 +36,8 @@ async function entrarNoPainel(page, usuario) {
     await page.getByLabel('Usuário ou e-mail').fill(usuario);
     await page.getByLabel('Senha', { exact: true }).fill(SENHA);
     await page.getByRole('button', { name: 'Entrar' }).click();
-    await expect(page).toHaveURL(/\/painel$/);
+    // Fase 12.5: o profissional entra na area dele (/profissional).
+    await expect(page).toHaveURL(/\/(painel|profissional)$/);
 }
 
 async function abrirModal(page, botao, titulo) {
@@ -125,8 +126,10 @@ test('profissional: vê só o próprio extrato, sem gestão', async ({ page }, i
     const s = info.project.name;
     await entrarNoPainel(page, `e2e-comissao-pro-${s}`);
 
+    // Fase 12.5: o proprio extrato abre em "Ganhos", na area do profissional.
     await page.goto('/painel/minhas-comissoes');
-    await expect(page.getByRole('heading', { name: `Comissão E2E ${s}` })).toBeVisible();
+    await expect(page).toHaveURL(/\/profissional\/ganhos$/);
+    await expect(page.getByText(`Comissão E2E ${s}`).first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Lançar vale' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Ajuste' })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Repassar' })).toHaveCount(0);

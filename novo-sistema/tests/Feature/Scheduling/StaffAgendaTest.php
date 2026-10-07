@@ -59,10 +59,15 @@ class StaffAgendaTest extends TestCase
         $meu = $this->book($this->terca, '14:00');
         $daMaria = $this->book($this->terca, '15:00', $this->maria);
 
+        // Fase 12.5: a agenda do painel leva o profissional para a agenda dele; o filtro
+        // de outro profissional na URL continua sem efeito.
         $this->actingAs($this->barbeiroJoao, 'web')->get(route('panel.agenda', ['data' => $this->terca, 'profissional' => $this->maria->id]))
+            ->assertRedirect(route('pro.agenda', ['data' => $this->terca]));
+        $this->actingAs($this->barbeiroJoao, 'web')->get(route('pro.agenda', ['data' => $this->terca, 'profissional' => $this->maria->id]))
             ->assertOk()->assertSee($meu->customer_name)->assertDontSee($daMaria->customer_name)->assertDontSee('Novo agendamento de Maria');
 
-        $this->actingAs($this->barbeiroJoao, 'web')->get(route('panel.appointments.show', $meu))->assertOk();
+        $this->actingAs($this->barbeiroJoao, 'web')->get(route('panel.appointments.show', $meu))->assertRedirect(route('pro.appointments.show', $meu));
+        $this->actingAs($this->barbeiroJoao, 'web')->get(route('pro.appointments.show', $meu))->assertOk();
         $this->actingAs($this->barbeiroJoao, 'web')->get(route('panel.appointments.show', $daMaria))->assertNotFound();
         $this->actingAs($this->barbeiroJoao, 'web')->post(route('panel.appointments.cancel', $daMaria))->assertForbidden();
         $this->actingAs($this->barbeiroJoao, 'web')->get(route('panel.appointments.reschedule', $daMaria))->assertForbidden();

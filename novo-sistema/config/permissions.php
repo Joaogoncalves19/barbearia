@@ -31,6 +31,11 @@ return [
         'panel.access' => 'Acessar o painel da equipe (e a própria conta)',
         'system.health.view' => 'Ver a saúde do sistema',
 
+        // Area do profissional (Fase 12.5): Hoje, agenda, atendimentos, ganhos
+        // e perfil PROPRIOS, sem o menu administrativo. O que cada tela mostra
+        // ou grava continua nas habilidades _own e nas Policies.
+        'professional_area.access' => 'Usar a área do profissional (Hoje, agenda, atendimentos, ganhos e perfil próprios)',
+
         // Identidade e auditoria (Fase 3)
         'users.manage' => 'Criar, editar, desativar e redefinir a senha de usuários da equipe',
         'audit.view' => 'Ver a trilha de auditoria',
@@ -38,6 +43,7 @@ return [
         // Clientes (Fase 4+)
         'customers.view' => 'Ver qualquer cliente',
         'customers.view_own' => 'Ver só os clientes que atendeu ou vai atender',
+        'customers.notes_own' => 'Ler e registrar anotações sobre os próprios clientes (preferências, cuidados)',
         'customers.create' => 'Cadastrar clientes',
         'customers.update' => 'Editar clientes',
         'customers.view_cpf' => 'Ver o CPF completo do cliente',
@@ -258,8 +264,8 @@ return [
         // Conclui o proprio atendimento registrando o pagamento, sem ver nem
         // operar o caixa e sem estoque.
         'professional' => [
-            'panel.access', 'agenda.view',
-            'customers.view_own',
+            'panel.access', 'agenda.view', 'professional_area.access',
+            'customers.view_own', 'customers.notes_own',
             'appointments.view_own', 'appointments.manage_own',
             'attendances.view_own', 'attendances.manage_own', 'payments.receive',
             'commissions.view_own', 'promotions.apply',

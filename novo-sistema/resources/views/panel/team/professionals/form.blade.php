@@ -22,12 +22,50 @@
             <x-ui.card title="Profissional">
                 <div class="stack">
                     <x-ui.input name="display_name" label="Nome de exibição" :value="$professional->display_name" hint="Como aparece na agenda, no site e para o cliente." autofocus />
-                    <x-ui.select name="user_id" label="Conta de acesso ao sistema" :options="$accounts" :value="$professional->user_id"
-                        hint="Opcional. Só para quem precisa entrar no painel. A conta é criada antes, em Usuários." />
+                    @unless ($canManageAccess ?? false)
+                        <x-ui.select name="user_id" label="Conta de acesso ao sistema" :options="$accounts" :value="$professional->user_id"
+                            hint="Opcional. Só para quem precisa entrar no painel. Usuário e senha são criados pelo proprietário." />
+                    @endunless
                     <input type="hidden" name="is_bookable" value="0">
                     <x-ui.checkbox name="is_bookable" label="Recebe agendamentos" hint="Desmarque para quem está na equipe mas ainda não atende (ex.: em treinamento)." :checked="(bool) $professional->is_bookable" />
                 </div>
             </x-ui.card>
+
+            {{-- Fase 12.5: usuario e senha do profissional no proprio cadastro, como no
+                 sistema antigo. So o proprietario (users.manage), com a senha reconfirmada. --}}
+            @if ($canManageAccess ?? false)
+                <x-ui.card title="Acesso ao painel">
+                    <div class="stack">
+                        @if ($professional->user !== null)
+                            <dl class="summary-list">
+                                <div><dt>Usuário</dt><dd>{{ $professional->user->loginLabel() }}</dd></div>
+                                <div><dt>Situação</dt><dd>{{ $professional->user->is_active ? 'Ativo' : 'Desativado' }}</dd></div>
+                            </dl>
+                            <input type="hidden" name="user_id" value="{{ $professional->user_id }}">
+                            @if ($canResetPassword ?? false)
+                                <x-ui.input name="access_reset_password" label="Nova senha provisória" type="password" autocomplete="new-password"
+                                    hint="Só se ele esqueceu a senha. Passe pessoalmente: ela é trocada no primeiro acesso." optional />
+                            @endif
+                            <p class="text-sm text-muted">Desativar o acesso ou trocar o e-mail: em <a href="{{ route('panel.users.edit', $professional->user) }}">Usuários</a>.</p>
+                        @else
+                            <p class="text-sm text-muted">Para o profissional entrar na área dele (agenda, atendimentos e ganhos). Deixe em branco se ele não vai usar o sistema.</p>
+                            <x-ui.input name="access_username" label="Usuário (para entrar)" autocomplete="off" autocapitalize="none" spellcheck="false"
+                                hint="Letras minúsculas, números, ponto, hífen ou sublinhado. Ex.: carlos" optional />
+                            <x-ui.input name="access_password" label="Senha provisória" type="password" autocomplete="new-password"
+                                hint="Passe pessoalmente. Ele cria a própria senha no primeiro acesso." optional />
+                            <x-ui.input name="access_email" label="E-mail" type="email" autocomplete="off" hint="Também serve para entrar e recuperar a senha." optional />
+                            @if (count($accounts) > 1)
+                                <details class="hint">
+                                    <summary>Ele já tem uma conta? Ligar conta existente</summary>
+                                    <div class="hint__body">
+                                        <x-ui.select name="user_id" label="Conta de acesso existente" :options="$accounts" :value="$professional->user_id" optional />
+                                    </div>
+                                </details>
+                            @endif
+                        @endif
+                    </div>
+                </x-ui.card>
+            @endif
 
             @if ($podeExibicao)
                 <x-ui.card title="Apresentação no site">

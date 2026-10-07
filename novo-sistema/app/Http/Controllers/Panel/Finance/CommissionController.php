@@ -5,17 +5,13 @@ namespace App\Http\Controllers\Panel\Finance;
 use App\Http\Controllers\Controller;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Finance\Exceptions\CommissionRuleViolation;
-use App\Modules\Finance\Models\Advance;
-use App\Modules\Finance\Models\CommissionEntry;
 use App\Modules\Finance\Models\CommissionPayout;
-use App\Modules\Finance\Models\TipEntry;
 use App\Modules\Finance\Services\Payouts;
 use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Shared\Support\Money;
 use App\Modules\Team\Models\Professional;
-use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -67,8 +63,7 @@ class CommissionController extends Controller
             $mes = substr(BusinessTime::today(), 0, 7);
         }
         $inicio = BusinessTime::at($mes.'-01', '00:00');
-        $fim = BusinessTime::at(CarbonImmutable::createFromFormat('Y-m-d', $mes.'-01')->addMonth()->toDateString(), '00:00');
-        $doMes = fn ($q) => $q->where('professional_id', $professional->id)->where('occurred_at', '>=', $inicio)->where('occurred_at', '<', $fim);
+        $extrato = $this->ledger->month($professional, $mes);
 
         return view('panel.finance.commissions.show', [
             'professional' => $professional,
@@ -76,12 +71,9 @@ class CommissionController extends Controller
             'previousMonth' => $inicio->setTimezone(BusinessTime::zone())->subMonth()->format('Y-m'),
             'nextMonth' => $inicio->setTimezone(BusinessTime::zone())->addMonth()->format('Y-m'),
             'open' => $this->ledger->open($professional),
-            'commissions' => CommissionEntry::query()->tap($doMes)->with(['attendance', 'createdBy'])->orderBy('occurred_at')->orderBy('id')->get(),
-            'tips' => TipEntry::query()->tap($doMes)->with(['attendance', 'payment', 'createdBy'])->orderBy('occurred_at')->orderBy('id')->get(),
-            'advances' => Advance::query()->where('professional_id', $professional->id)
-                ->where(fn ($q) => $q->where(fn ($a) => $a->where('occurred_at', '>=', $inicio)->where('occurred_at', '<', $fim))
-                    ->orWhere(fn ($b) => $b->whereNull('occurred_at')->where('reference_month', $mes)))
-                ->with(['createdBy', 'reversal'])->orderBy('id')->get(),
+            'commissions' => $extrato['commissions'],
+            'tips' => $extrato['tips'],
+            'advances' => $extrato['advances'],
             'payouts' => CommissionPayout::query()->where('professional_id', $professional->id)->latest('id')->limit(12)->get(),
             'methods' => Payouts::METHODS,
         ]);

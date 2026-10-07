@@ -60,6 +60,13 @@ use App\Http\Controllers\Panel\Subscriptions\PlanController;
 use App\Http\Controllers\Panel\Subscriptions\SubscriptionController as PanelSubscriptionController;
 use App\Http\Controllers\Panel\Team\ProfessionalController;
 use App\Http\Controllers\Panel\UserController;
+use App\Http\Controllers\Professional\AgendaController as ProAgendaController;
+use App\Http\Controllers\Professional\AppointmentController as ProAppointmentController;
+use App\Http\Controllers\Professional\AttendanceController as ProAttendanceController;
+use App\Http\Controllers\Professional\CustomerNoteController as ProCustomerNoteController;
+use App\Http\Controllers\Professional\EarningsController as ProEarningsController;
+use App\Http\Controllers\Professional\ProfileController as ProProfileController;
+use App\Http\Controllers\Professional\TodayController as ProTodayController;
 use App\Http\Controllers\Prototypes\PrototypeController;
 use App\Http\Controllers\Site\BookingController as SiteBookingController;
 use App\Http\Controllers\Site\HomeController;
@@ -250,7 +257,7 @@ Route::post('/painel/sair', [StaffLoginController::class, 'destroy'])
 // --- Painel da equipe (autenticado + ativo + senha em dia + permissao) ------
 Route::prefix('painel')
     ->name('panel.')
-    ->middleware(['auth:web', 'staff.active', 'auth.session', 'no-store', 'staff.password', 'can:panel.access'])
+    ->middleware(['auth:web', 'staff.active', 'auth.session', 'no-store', 'staff.password', 'can:panel.access', 'professional.area'])
     ->group(function () {
         Route::get('/', DashboardController::class)->name('home');
 
@@ -497,6 +504,32 @@ Route::prefix('painel')
 
         Route::get('/auditoria', [AuditLogController::class, 'index'])
             ->middleware('can:audit.view')->name('audit.index');
+    });
+
+// --- Area do profissional (Fase 12.5) ----------------------------------------
+// Hoje, agenda, atendimentos, ganhos e perfil PROPRIOS (painel-profissional.md).
+// Exige a habilidade e a ficha ligada ao usuario; o profissional vem sempre do
+// usuario logado (nenhuma rota recebe id de profissional). Registro alheio =
+// 404 pela Policy. As gravacoes usam as rotas do painel (mesmas regras); aqui
+// so as anotacoes do cliente, que nao tinham tela.
+// O profissional entra pelo mesmo login da equipe; o endereco "intuitivo" leva para la.
+Route::redirect('/profissional/entrar', '/painel/entrar')->name('pro.login');
+
+Route::prefix('profissional')
+    ->name('pro.')
+    ->middleware(['auth:web', 'staff.active', 'auth.session', 'no-store', 'staff.password', 'can:professional_area.access', 'professional.profile'])
+    ->group(function () {
+        Route::get('/', ProTodayController::class)->name('today');
+        Route::get('/agenda', [ProAgendaController::class, 'index'])->name('agenda');
+        Route::get('/agendamentos/{appointment:code}', [ProAppointmentController::class, 'show'])->middleware('can:view,appointment')->name('appointments.show');
+        Route::get('/atendimentos', [ProAttendanceController::class, 'index'])->name('attendances');
+        Route::get('/atendimentos/{attendance}', [ProAttendanceController::class, 'show'])->middleware('can:view,attendance')->name('attendances.show');
+        Route::get('/ganhos', ProEarningsController::class)->middleware('can:commissions.view_own')->name('earnings');
+        Route::get('/perfil', ProProfileController::class)->name('profile');
+        Route::post('/clientes/{customer:public_id}/anotacoes', [ProCustomerNoteController::class, 'store'])
+            ->middleware(['can:notes,customer', 'throttle:account-actions'])->name('customers.notes.store');
+        Route::delete('/clientes/{customer:public_id}/anotacoes/{note}', [ProCustomerNoteController::class, 'destroy'])
+            ->middleware(['can:notes,customer', 'throttle:account-actions'])->name('customers.notes.destroy');
     });
 
 // --- Referencias visuais (somente com BARBEARIA_PROTOTYPES=true) ------------

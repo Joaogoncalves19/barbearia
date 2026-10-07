@@ -9,7 +9,9 @@ use App\Modules\Catalog\Services\StockLedger;
 use App\Modules\Checkout\Enums\AttendanceStatus;
 use App\Modules\Checkout\Models\Attendance;
 use App\Modules\Customers\Enums\MarketingConsent;
+use App\Modules\Customers\Enums\NoteVisibility;
 use App\Modules\Customers\Models\Customer;
+use App\Modules\Customers\Models\CustomerNote;
 use App\Modules\Customers\Models\EmailSuppression;
 use App\Modules\Finance\Enums\PaymentMethod;
 use App\Modules\Finance\Models\CommissionRule;
@@ -164,6 +166,72 @@ class E2eAccounts extends Command
         // Redesign: dono proprio para a varredura visual de todas as telas
         // (limite de tentativas de login separado dos outros testes).
         $this->membro("e2e-visual-{$s}", 'Dono Visual E2E', StaffRole::Owner, $senha);
+
+        // Area do profissional (Fase 12.5): dois profissionais com conta (para
+        // o isolamento), um dono proprio so para abrir o caixa, um cliente de
+        // cada um marcado HOJE e uma anotacao do cliente do A. O horario do B
+        // tem codigo fixo: o A tenta abri-lo pela URL.
+        $this->membro("e2e-pro-dono-{$s}", 'Dono Profissional E2E', StaffRole::Owner, $senha);
+        $proA = $this->barbeiro("e2e-pro-a-{$s}", "Profissional A {$s}", $senha);
+        $proB = $this->barbeiro("e2e-pro-b-{$s}", "Profissional B {$s}", $senha);
+        $proA->services()->syncWithoutDetaching([$corte->id]);
+        $proB->services()->syncWithoutDetaching([$corte->id]);
+        $clienteA = $this->cliente("e2e-pro-cliente-a-{$s}@exemplo.test", "Cliente do A {$s}", $senha);
+        $clienteB = $this->cliente("e2e-pro-cliente-b-{$s}@exemplo.test", "Cliente do B {$s}", $senha);
+        $this->horarioDeHoje($s, 'PA', $clienteA, $proA, $corte, '13:00');
+        $this->horarioDeHoje($s, 'PB', $clienteB, $proB, $corte, '13:00', "AG-E2E-PROB-{$s}");
+        $codigoB = 'AT-E2E-PB-'.strtoupper(mb_substr($s, 0, 3));
+        if (! Attendance::query()->where('code', $codigoB)->exists()) {
+            $this->atendimentoConcluidoOntem($s, $clienteB, $proB, $corte, $codigoB);
+        }
+        if (! CustomerNote::query()->where('customer_id', $clienteA->id)->where('visibility', NoteVisibility::Professionals->value)->exists()) {
+            CustomerNote::query()->create(['customer_id' => $clienteA->id, 'author_label' => 'Barbeiros (teste E2E)', 'visibility' => NoteVisibility::Professionals, 'body' => 'Prefere máquina 2 nas laterais']);
+        }
+    }
+
+    /**
+     * Horario confirmado de HOJE as $hora com o servico de teste. As sobras
+     * abertas do mesmo cliente com este profissional (e os atendimentos ainda
+     * abertos delas) sao canceladas antes, pela transicao permitida. Com
+     * $codigo fixo, o mesmo registro e reaproveitado (so volta ao estado
+     * inicial): serve para o teste que tenta abri-lo pela URL.
+     */
+    private function horarioDeHoje(string $s, string $tag, Customer $cliente, Professional $pro, Service $servico, string $hora, ?string $codigo = null): void
+    {
+        $inicio = BusinessTime::at(BusinessTime::today(), $hora);
+        $sobras = Appointment::query()->where('customer_id', $cliente->id)->where('professional_id', $pro->id)
+            ->whereIn('status', [AppointmentStatus::Confirmed->value, AppointmentStatus::Pending->value])->get();
+        foreach ($sobras as $velho) {
+            foreach (Attendance::query()->where('appointment_id', $velho->id)->whereIn('status', ['open', 'in_progress'])->get() as $at) {
+                $at->forceFill(['status' => AttendanceStatus::Cancelled, 'active_appointment_id' => null, 'cancelled_at' => now(), 'cancellation_reason' => 'Sobra de teste E2E'])->save();
+            }
+            if ($velho->code !== $codigo) {
+                $velho->forceFill(['status' => AppointmentStatus::Cancelled, 'cancelled_at' => now(), 'cancellation_reason' => 'Sobra de teste E2E'])->save();
+            }
+        }
+
+        $dados = [
+            'customer_id' => $cliente->id,
+            'customer_name' => $cliente->name,
+            'professional_id' => $pro->id,
+            'professional_name' => $pro->display_name,
+            'starts_at' => $inicio,
+            'ends_at' => $inicio->addMinutes(30),
+            'status' => AppointmentStatus::Confirmed,
+            'source' => AppointmentSource::Staff,
+            'cancelled_at' => null,
+            'cancellation_reason' => null,
+        ];
+        $ag = $codigo !== null
+            ? Appointment::query()->updateOrCreate(['code' => $codigo], $dados)
+            : Appointment::query()->create(['code' => 'AG-E2E-'.$tag.'-'.mb_substr($s, 0, 3).'-'.now()->format('ymdHis')] + $dados);
+        if ($ag->items()->doesntExist()) {
+            $ag->items()->create([
+                'item_type' => ItemType::Service, 'service_id' => $servico->id, 'name' => $servico->name, 'quantity' => 1,
+                'unit_price_cents' => $servico->price_cents, 'duration_minutes' => $servico->duration_minutes, 'price_source' => PriceSource::CatalogAtBooking,
+            ]);
+        }
+        app(AppointmentPricing::class)->refresh($ag);
     }
 
     /**
@@ -200,10 +268,10 @@ class E2eAccounts extends Command
      * Atendimento ficticio concluido ontem (historico de teste, sem caixa):
      * base valida para avaliar. Um novo a cada execucao.
      */
-    private function atendimentoConcluidoOntem(string $s, Customer $cliente, Professional $pro, Service $servico): void
+    private function atendimentoConcluidoOntem(string $s, Customer $cliente, Professional $pro, Service $servico, ?string $codigo = null): void
     {
         $ontem = now()->subDay();
-        $at = Attendance::query()->create([
+        $at = Attendance::query()->create(($codigo !== null ? ['code' => $codigo] : []) + [
             'source' => 'walk_in', 'customer_id' => $cliente->id, 'customer_name' => $cliente->name,
             'professional_id' => $pro->id, 'professional_name' => $pro->display_name,
             'status' => AttendanceStatus::InProgress, 'opened_at' => $ontem, 'started_at' => $ontem,

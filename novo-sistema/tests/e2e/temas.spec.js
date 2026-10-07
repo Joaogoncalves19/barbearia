@@ -3,7 +3,8 @@
 // sozinho e DEPOIS dos outros, e volta ao Oficio no fim.
 //
 // Para cada um dos 8 temas, escolhido pela tela Aparencia como o dono faria:
-// - o tema aparece no site, no acesso, no painel e na conta do cliente;
+// - o tema aparece no site, no acesso, no painel, na area do profissional
+//   (Fase 12.5) e na conta do cliente;
 // - nenhuma tela fica com a cor do tema anterior (o fundo pintado e o do tema);
 // - contraste minimo MEDIDO no navegador (texto 4,5:1; borda de campo e foco 3:1),
 //   nas duas superficies do tema;
@@ -104,6 +105,14 @@ async function entrarEquipe(page) {
     await expect(page).toHaveURL(/\/painel$/);
 }
 
+async function entrarProfissional(page) {
+    await page.goto('/painel/entrar');
+    await page.getByLabel('Usuário ou e-mail').fill('e2e-pro-a-temas');
+    await page.getByLabel('Senha', { exact: true }).fill(SENHA);
+    await page.getByRole('button', { name: 'Entrar' }).click();
+    await expect(page).toHaveURL(/\/profissional$/);
+}
+
 async function entrarCliente(page) {
     await page.goto('/entrar');
     await page.getByLabel('E-mail').fill('e2e-area-temas@exemplo.test');
@@ -128,6 +137,8 @@ test.describe('temas visuais', () => {
     let celularEquipe;
     let cliente;
     let celularCliente;
+    let profissional;
+    let celularProfissional;
     let anterior = null;
 
     test.beforeAll(async ({ browser }) => {
@@ -139,17 +150,21 @@ test.describe('temas visuais', () => {
         await entrarEquipe(celularEquipe);
         await entrarCliente(cliente);
         await entrarCliente(celularCliente);
+        profissional = await (await browser.newContext({ ...devices['Desktop Chrome'], viewport: { width: 1366, height: 900 } })).newPage();
+        celularProfissional = await (await browser.newContext({ ...devices['Pixel 7'] })).newPage();
+        await entrarProfissional(profissional);
+        await entrarProfissional(celularProfissional);
     });
 
     test.afterAll(async () => {
         // O tema e global: deixa a barbearia de teste no padrao.
         await escolherTema(equipe, 'oficio');
-        for (const p of [equipe, celularEquipe, cliente, celularCliente]) await p.context().close();
+        for (const p of [equipe, celularEquipe, cliente, celularCliente, profissional, celularProfissional]) await p.context().close();
     });
 
     for (const tema of TEMAS) {
         test(`tema ${tema}: site, acesso, painel e conta, no desktop e no celular`, async () => {
-            test.setTimeout(240_000);
+            test.setTimeout(330_000);
             await escolherTema(equipe, tema);
 
             expect(await contrastes(equipe, tema), `contraste dos tokens do tema ${tema}`).toEqual([]);
@@ -168,6 +183,15 @@ test.describe('temas visuais', () => {
                 // Barra lateral na superficie do tema (nada de grafite do Oficio sobrando).
                 const lateral = await pagina.locator('#menu-painel').getAttribute('data-superficie');
                 expect(['clara', 'escura']).toContain(lateral);
+            }
+
+            // Area do profissional (Fase 12.5): mesmo tema, nenhuma regra propria.
+            for (const [pagina, onde] of [[profissional, 'desktop'], [celularProfissional, 'celular']]) {
+                for (const url of ['/profissional', '/profissional/agenda', '/profissional/atendimentos', '/profissional/ganhos', '/profissional/perfil']) {
+                    await pagina.goto(url);
+                    await verificar(pagina, `${tema} ${onde} ${url}`, tema);
+                }
+                expect(['clara', 'escura']).toContain(await pagina.locator('.pro-nav').getAttribute('data-superficie'));
             }
 
             for (const [pagina, onde] of [[cliente, 'desktop'], [celularCliente, 'celular']]) {
@@ -191,8 +215,8 @@ test.describe('temas visuais', () => {
 
             if (anterior) {
                 // Nenhum vestigio do tema anterior no HTML das paginas reais.
-                for (const p of [equipe, cliente]) {
-                    await p.goto(p === equipe ? '/painel' : '/minha-conta');
+                for (const p of [equipe, cliente, profissional]) {
+                    await p.goto(p === equipe ? '/painel' : p === cliente ? '/minha-conta' : '/profissional');
                     expect(await p.locator(`[data-tema="${anterior}"]`).count(), `${tema}: nada marcado com o tema ${anterior}`).toBe(0);
                 }
             }

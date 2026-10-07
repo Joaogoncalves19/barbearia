@@ -9,6 +9,7 @@
  */
 import Alpine from '@alpinejs/csp';
 import booking from './components/booking';
+import elapsed from './components/elapsed';
 import { dropdown, disclosure, tabs } from './components/ui';
 import { initDialogs } from './components/dialog';
 import { initPrint } from './components/print';
@@ -18,6 +19,7 @@ Alpine.data('dropdown', dropdown);
 Alpine.data('disclosure', disclosure);
 Alpine.data('tabs', tabs);
 Alpine.data('booking', booking);
+Alpine.data('elapsed', elapsed);
 
 window.Alpine = Alpine;
 Alpine.start();

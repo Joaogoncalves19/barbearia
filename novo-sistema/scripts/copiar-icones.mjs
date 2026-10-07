@@ -23,6 +23,8 @@ const icones = [
     'hand-coins', 'percent',
     // Refinamento visual (tela Aparencia)
     'eye', 'palette', 'arrow-left',
+    // Fase 12.5 (area do profissional)
+    'timer', 'printer', 'notebook-pen',
 ];
 
 const origem = new URL('../node_modules/lucide-static/icons/', import.meta.url);
