@@ -118,6 +118,7 @@ Resumo, com detalhes em [redesign-visual.md](redesign-visual.md):
 | Teste novo | `tests/e2e/redesign.spec.js` (celular e desktop): início com capítulos e sem barber pole, serviços, equipe, agendamento, erro 404 na marca; painel (acesso, "Hoje" sem o texto da Fase 1, agenda em quadro, 13 telas, menu por tarefa, sem a busca de enfeite); conta (acesso, início, agendamentos, comprovantes, benefícios, dados). Em cada tela: axe sem violação grave, sem rolagem lateral, sem erro de console/CSP |
 | Testes ajustados (tela mudou, regra não) | `identidade.spec`: o link "Minha ficha" agora é procurado pelo seletor do menu, porque no celular o menu fechado deixou de ser acessível (era o defeito acima); `agenda.spec` e `caixa.spec` passaram sem mudança depois de a agenda voltar a ter o título "Agenda", o nome de cada profissional como título e a ordem de leitura natural nos horários |
 | Desempenho | **PASSOU** — início sem fotos: ~185 KB comprimidos (antes ~157 KB; +~23 KB da Archivo com o eixo de largura e +~4 KB de CSS); meta < 1 MB. Duas famílias de fonte (igual a antes), sem JavaScript novo além de 15 linhas (faixa da conta), sem biblioteca nova |
+| CI (GitHub Actions) | **PASSOU** — run 48 (commit 423be7d) verde: testes PHP, PHPStan, Pint, build e navegador. O run 47 falhou pelo teste de lembretes dependente da hora (§6), corrigido no teste |
 | Lighthouse | **NÃO EXECUTADO** (ferramenta indisponível; pendência de homologação) |
 
 ## 5. Antes e depois
