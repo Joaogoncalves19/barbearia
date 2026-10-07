@@ -31,6 +31,17 @@ Schedule::command('app:communication campaigns')->everyMinute()->withoutOverlapp
 // Retencao dos eventos do Stripe (P9-10: 12 meses).
 Schedule::command('app:communication retention')->dailyAt('03:30')->withoutOverlapping(30);
 
+// Fase 13: copia de seguranca diaria (banco + arquivos), conferida ao gravar;
+// guarda as BACKUP_KEEP mais recentes (operacao.md).
+Schedule::command('app:backup')
+    ->dailyAt((string) config('barbearia.backup.daily_at', '02:40'))
+    ->timezone((string) config('barbearia.display_timezone'))
+    ->withoutOverlapping(60);
+
+// Monitoramento basico: confere o ambiente a cada hora e avisa por e-mail
+// (MONITOR_EMAIL) quando algo critico falha.
+Schedule::command('app:diagnose --alert')->hourly()->withoutOverlapping(10);
+
 // Manutencao da fila.
 Schedule::command('queue:prune-failed --hours=720')->daily();
 Schedule::command('queue:prune-batches --hours=168')->daily();

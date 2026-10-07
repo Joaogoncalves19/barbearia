@@ -25,9 +25,12 @@ use App\Modules\Team\Models\Professional;
 use App\Modules\Team\Policies\ProfessionalPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Queue\Events\JobFailed;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
@@ -50,6 +53,10 @@ class AppServiceProvider extends ServiceProvider
         $this->configureAuthorization();
         $this->configureRateLimiting();
         $this->configureQueueFailureLogging();
+
+        // /up (monitoramento externo, Fase 13): responde 500 se o banco nao
+        // responde, em vez de "no ar" com o sistema quebrado.
+        Event::listen(DiagnosingHealth::class, fn () => DB::select('select 1'));
 
         // bcrypt so considera os primeiros 72 bytes: acima disso a senha
         // seria truncada em silencio, entao e recusada com mensagem clara.

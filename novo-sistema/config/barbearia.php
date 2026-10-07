@@ -79,4 +79,33 @@ return [
         'email_change_minutes' => (int) env('AUTH_EMAIL_CHANGE_MINUTES', 60),
     ],
 
+    // Fase 13: copia de seguranca da instalacao (banco + arquivos enviados),
+    // feita pelo agendador todo dia (app:backup) e conferida (app:backup-verify).
+    // O .env (APP_KEY e chaves) NUNCA entra na copia: guarde-o a parte.
+    'backup' => [
+        // Pasta das copias. Fora da pasta publica. Em producao, aponte para um
+        // disco/pasta que a hospedagem tambem copie para outro lugar.
+        'path' => env('BACKUP_PATH') ?: storage_path('app/backups'),
+
+        // Quantas copias manter (as mais antigas sao apagadas depois de uma
+        // copia nova conferida).
+        'keep' => (int) env('BACKUP_KEEP', 14),
+
+        // Senha para cifrar o arquivo (AES-256). Vazio = sem cifra. Obrigatoria
+        // quando a copia sai do servidor (nuvem, pendrive).
+        'password' => env('BACKUP_PASSWORD'),
+
+        // Horario da copia diaria (fuso da barbearia).
+        'daily_at' => env('BACKUP_DAILY_AT', '02:40'),
+
+        // Depois de quantas horas sem copia nova o diagnostico avisa.
+        'max_age_hours' => (int) env('BACKUP_MAX_AGE_HOURS', 26),
+    ],
+
+    // Fase 13: monitoramento basico. app:diagnose --alert (a cada hora) manda
+    // um e-mail curto para este endereco quando algo precisa de atencao.
+    'monitor' => [
+        'email' => env('MONITOR_EMAIL', ''),
+    ],
+
 ];
