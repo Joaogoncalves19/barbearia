@@ -45,6 +45,7 @@ final class ProfessionalsStep extends Step
     {
         $this->professionals();
         $this->workingHours();
+        $this->businessHours();
         $this->breaks();
         $this->timeOff();
         $this->blockedSlots();
@@ -176,6 +177,32 @@ final class ProfessionalsStep extends Step
 
             $id = $this->ctx->insert('working_hours', ['professional_id' => $prof, 'weekday' => $dia, 'starts_at' => $inicio, 'ends_at' => $fim, ...$this->stamps()]);
             $this->ctx->remember('horarios_trabalho', $sid, 'working_hour', $id, $row);
+        }
+    }
+
+    /**
+     * Ensaio da Fase 13: o sistema antigo nao tinha horario de funcionamento
+     * da barbearia; o horario oferecido vinha so do expediente de cada
+     * barbeiro. O sistema novo so oferece horario dentro do funcionamento:
+     * sem ele, ninguem agendaria depois da migracao. Deduz o funcionamento de
+     * cada dia (do primeiro inicio ao ultimo fim de expediente), so se ainda
+     * nao houver nenhum, e deixa pendencia para o dono conferir na tela
+     * Funcionamento. Pausas de cada profissional continuam valendo.
+     */
+    private function businessHours(): void
+    {
+        if (DB::table('business_hours')->exists()) {
+            return;
+        }
+        $dias = DB::table('working_hours')->selectRaw('weekday, MIN(starts_at) AS inicio, MAX(ends_at) AS fim')->groupBy('weekday')->orderBy('weekday')->get();
+        foreach ($dias as $d) {
+            $this->ctx->insert('business_hours', ['weekday' => (int) $d->weekday, 'starts_at' => $d->inicio, 'ends_at' => $d->fim, ...$this->stamps()]);
+        }
+        if ($dias->isNotEmpty()) {
+            $this->ctx->count('horarios_trabalho', 'business_hours_derived');
+            $this->ctx->issue('horarios_trabalho', null, C::PotentiallyValid, S::Info, 'business_hours_derived',
+                'Funcionamento da barbearia deduzido do expediente dos barbeiros (o sistema antigo nao tinha esse cadastro): conferir em Configuracoes > Funcionamento.',
+                ['dias' => $dias->map(fn ($d) => $d->weekday.' '.substr((string) $d->inicio, 0, 5).'-'.substr((string) $d->fim, 0, 5))->all()], true);
         }
     }
 

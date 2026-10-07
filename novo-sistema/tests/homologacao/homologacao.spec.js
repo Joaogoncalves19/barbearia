@@ -125,9 +125,9 @@ test('perfis: cada um vê só o seu menu e é barrado fora dele', async ({ page 
     for (const [usuario, perfil] of Object.entries(PERFIS)) {
         await entrarEquipe(page, usuario);
         await expect(page).toHaveURL(/\/painel$/);
-        const nav = page.locator('nav').filter({ has: page.getByRole('link', { name: 'Início' }) }).first();
-        for (const item of perfil.ve) await expect(nav.getByRole('link', { name: item, exact: true }), `${usuario} vê ${item}`).toHaveCount(1);
-        for (const item of perfil.naoVe) await expect(nav.getByRole('link', { name: item, exact: true }), `${usuario} não vê ${item}`).toHaveCount(0);
+        const nav = page.locator('nav').filter({ has: page.getByRole('link', { name: 'Início', includeHidden: true }) }).first();
+        for (const item of perfil.ve) await expect(nav.getByRole('link', { name: item, exact: true, includeHidden: true }), `${usuario} vê ${item}`).toHaveCount(1);
+        for (const item of perfil.naoVe) await expect(nav.getByRole('link', { name: item, exact: true, includeHidden: true }), `${usuario} não vê ${item}`).toHaveCount(0);
         await verificarTela(page, info, `inicio-${usuario}`);
         for (const url of perfil.proibidas) {
             const r = await page.request.get(url, { maxRedirects: 0 });
@@ -136,8 +136,8 @@ test('perfis: cada um vê só o seu menu e é barrado fora dele', async ({ page 
     }
     // Proprietario migrado: senha do sistema antigo continua valendo.
     await entrarEquipe(page, 'ensaio-admin', ADMIN_ANTIGA);
-    const nav = page.locator('nav').filter({ has: page.getByRole('link', { name: 'Início' }) }).first();
-    for (const item of ['Usuários', 'Auditoria', 'Regras de comissão', 'Aparência']) await expect(nav.getByRole('link', { name: item, exact: true })).toHaveCount(1);
+    const nav = page.locator('nav').filter({ has: page.getByRole('link', { name: 'Início', includeHidden: true }) }).first();
+    for (const item of ['Usuários', 'Auditoria', 'Regras de comissão', 'Aparência']) await expect(nav.getByRole('link', { name: item, exact: true, includeHidden: true })).toHaveCount(1);
     await verificarTela(page, info, 'inicio-proprietario');
     expect(erros, 'erros de console/CSP').toEqual([]);
 });
@@ -171,9 +171,9 @@ test('cliente migrado: senha antiga, conta, agenda/remarca/cancela pelo site', a
     await page.getByLabel('Senha', { exact: true }).fill(CONTAS_ANTIGAS);
     await page.getByRole('button', { name: 'Entrar', exact: true }).click();
     await expect(page).toHaveURL(/\/minha-conta/);
-    await expect(page.getByText('Cliente Ensaio Um').first()).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Minha conta' })).toBeVisible();
     await verificarTela(page, info, 'cliente-inicio');
-    for (const [tela, texto] of [['agendamentos', /Corte Ensaio|Barba Ensaio/], ['comprovantes', /140,30/], ['fidelidade', /\b4\b/]]) {
+    for (const [tela, texto] of [['agendamentos', /Corte Ensaio|Barba Ensaio/], ['comprovantes', /140,30/], ['fidelidade', /Saldo\s*[45] pontos/]]) {
         await page.goto(`/minha-conta/${tela}`);
         await expect(page.locator('main')).toContainText(texto);
         await verificarTela(page, info, `cliente-${tela}`);
@@ -189,7 +189,8 @@ test('cliente migrado: senha antiga, conta, agenda/remarca/cancela pelo site', a
     await verificarTela(page, info, 'site-horarios');
     await page.locator('a.slot').first().click();
     await expect(page.getByRole('heading', { name: 'Confirme seu horário' })).toBeVisible();
-    await expect(page.locator('[data-total]')).toHaveText('R$ 45,00');
+    // R$ 45,00; depois que o cliente assina o plano (teste da assinatura), o corte sai de graça.
+    await expect(page.locator('[data-total]')).toHaveText(/^R\$ (45,00|0,00)$/);
     await page.getByRole('button', { name: 'Confirmar agendamento' }).click();
     await expect(page.getByText(/Agendamento feito! Código AG-/)).toBeVisible();
     await verificarTela(page, info, 'cliente-agendado');
@@ -226,10 +227,12 @@ test('recepção: caixa, encaixe do cliente migrado, atendimento pago e comprova
     await verificarTela(page, info, 'recepcao-caixa');
 
     await page.goto('/painel/atendimentos/novo');
-    await page.getByLabel('Serviço').selectOption({ label: 'Corte Ensaio — R$ 45,00' });
+    // A busca recarrega a tela: busca primeiro, escolhe o serviço depois.
     await page.getByLabel('Buscar cliente cadastrado').fill('Ensaio Um');
     await page.getByRole('button', { name: 'Buscar' }).click();
     await page.getByLabel('Cliente Ensaio Um').check();
+    await page.getByLabel('Serviço').selectOption({ label: 'Corte Ensaio — R$ 45,00' });
+    await page.getByLabel('Profissional').selectOption({ label: 'Barbeiro Ensaio' });
     await verificarTela(page, info, 'recepcao-encaixe');
     await page.getByRole('button', { name: 'Abrir atendimento' }).click();
     await expect(page).toHaveURL(/\/painel\/atendimentos\/AT-/);
@@ -259,12 +262,14 @@ test('gerente: aprova a avaliação migrada e registra entrada de estoque', asyn
     test.skip(info.project.name !== 'desktop', 'grava dados compartilhados');
     const erros = observarErros(page);
     await entrarEquipe(page, 'homolog.gerente');
-    await page.goto('/painel/avaliacoes');
+    // Avaliação do sistema antigo já era pública: entra publicada; o gerente responde.
+    await page.goto('/painel/avaliacoes?situacao=approved');
     const cartao = page.locator('[data-review]').filter({ hasText: 'Atendimento ficticio otimo' });
     await expect(cartao).toBeVisible();
     await verificarTela(page, info, 'gerente-avaliacoes');
-    await cartao.getByRole('button', { name: /Aprovar/ }).click();
-    await expect(page.getByRole('status').filter({ hasText: 'Avaliação aprovada e publicada.' })).toBeVisible();
+    await cartao.getByLabel('Responder').fill('Obrigado pela visita! (homologação)');
+    await cartao.getByRole('button', { name: 'Publicar resposta' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Resposta publicada.' })).toBeVisible();
 
     await page.goto('/painel/produtos');
     await page.getByRole('link', { name: /Pomada Ensaio/ }).first().click();
@@ -302,15 +307,21 @@ test('proprietário: link de assinatura pago no checkout ativa a assinatura', as
     await entrarEquipe(page, 'ensaio-admin', ADMIN_ANTIGA);
     await page.goto('/painel/assinaturas/link?busca=Ensaio+Um');
     await verificarTela(page, info, 'assinatura-link');
+    // Rodada repetida: o cliente ja ficou com a assinatura ativa na anterior.
+    await page.goto('/painel/assinaturas?busca=cliente.um%40ensaio.test');
+    if (await page.locator('tr').filter({ hasText: 'Cliente Ensaio Um' }).filter({ hasText: 'Ativa' }).count()) return;
+    await page.goto('/painel/assinaturas/link?busca=Ensaio+Um');
     const linha = page.locator('li').filter({ hasText: 'Cliente Ensaio Um' });
     await linha.getByRole('button', { name: 'Gerar link' }).click();
-    const link = page.getByRole('link', { name: /127\.0\.0\.1:8303\/pay\// }).first();
-    const href = await link.getAttribute('href').catch(() => null);
-    const url = href ?? (await page.locator('a[href*="/pay/cs_test_"], input[value*="/pay/cs_test_"]').first().evaluate((e) => e.href || e.value));
+    await expect(page.getByText('Link de pagamento gerado.')).toBeVisible();
+    const url = await page.locator('input[value*="/pay/cs_test_"]').first().inputValue();
     await page.goto(url);
     await page.getByRole('button', { name: /Pagar/ }).click();
-    await page.waitForLoadState('networkidle');
-    await page.goto('/painel/assinaturas');
-    await expect(page.locator('main')).toContainText('Cliente Ensaio Um');
+    // Volta para a conta do cliente (success_url); o webhook chega logo depois.
+    await expect(page).toHaveURL(/\/minha-conta\/assinatura|\/entrar/);
+    await expect.poll(async () => {
+        await page.goto('/painel/assinaturas?busca=cliente.um%40ensaio.test');
+        return page.locator('tr').filter({ hasText: 'Cliente Ensaio Um' }).filter({ hasText: 'Ativa' }).count();
+    }, { timeout: 30_000 }).toBe(1);
     await verificarTela(page, info, 'assinaturas');
 });

@@ -59,7 +59,7 @@ final class CustomersStep extends Step
             }
 
             $campos = [
-                'email' => [Email::normalize($row['email'] ?? null), $row['email'] ?? null],
+                'email' => [Email::normalize(V::contactEmail($row['email'] ?? null)), V::contactEmail($row['email'] ?? null)],
                 'phone' => [Phone::normalize($row['telefone'] ?? null), $row['telefone'] ?? null],
                 'cpf' => [Cpf::normalize($row['cpf'] ?? null), $row['cpf'] ?? null],
             ];
@@ -102,6 +102,10 @@ final class CustomersStep extends Step
                 'password' => $this->password('clientes', $sid, $row['password_hash'] ?? null),
                 'birth_date' => $nascimento,
                 'photo_path' => V::photoPath($row['foto_perfil'] ?? null),
+                // No sistema antigo so entrava quem estava "ativo": o e-mail ja
+                // valia como acesso. Sem isto todo cliente migrado ficava preso
+                // na confirmacao de e-mail no primeiro login (ensaio da Fase 13).
+                'email_verified_at' => $status === 'active' && $campos['email'][0] !== null ? $this->ctx->now : null,
                 'status' => $status,
                 'referral_code' => $codigo,
                 'marketing_email_consent' => 'unknown',

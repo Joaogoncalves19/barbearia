@@ -40,12 +40,43 @@ function salvar(array $e): void
     file_put_contents($ESTADO, json_encode($e, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
+/** Eventos que o Stripe mandaria DEPOIS de responder (como o real: assincrono). */
+$DEPOIS = [];
+
 function json(mixed $dados, int $status = 200): never
 {
+    responder((string) json_encode($dados, JSON_UNESCAPED_SLASHES), $status, 'application/json');
+}
+
+/** Responde, fecha a conexao e so entao entrega os webhooks pendentes. */
+function responder(string $corpo, int $status = 200, string $tipo = 'text/html; charset=utf-8', ?string $local = null): never
+{
+    global $DEPOIS;
+    ignore_user_abort(true);
     http_response_code($status);
-    header('Content-Type: application/json');
-    echo json_encode($dados, JSON_UNESCAPED_SLASHES);
+    header('Content-Type: '.$tipo);
+    if ($local !== null) {
+        header('Location: '.$local);
+    }
+    header('Connection: close');
+    header('Content-Length: '.strlen($corpo));
+    echo $corpo;
+    flush();
+    if ($DEPOIS !== []) {
+        usleep(300000);
+        $e = estado();
+        foreach ($DEPOIS as [$tipoEvento, $objeto]) {
+            entregar($e, $tipoEvento, $objeto);
+        }
+        salvar($e);
+    }
     exit;
+}
+
+function depois(string $tipo, array $objeto): void
+{
+    global $DEPOIS;
+    $DEPOIS[] = [$tipo, $objeto];
 }
 
 function id(string $prefixo): string
@@ -148,18 +179,18 @@ if ($metodo === 'POST' && $caminho === '/v1/checkout/sessions') {
     }
     $e['sessoes'][$m[1]]['status'] = 'expired';
     $resposta = ['id' => $m[1], 'object' => 'checkout.session', 'status' => 'expired'];
-    entregar($e, 'checkout.session.expired', ['id' => $m[1], 'object' => 'checkout.session', 'status' => 'expired', 'mode' => 'subscription', 'client_reference_id' => $s['local'], 'metadata' => ['local_subscription' => $s['local']]]);
+    depois('checkout.session.expired', ['id' => $m[1], 'object' => 'checkout.session', 'status' => 'expired', 'mode' => 'subscription', 'client_reference_id' => $s['local'], 'metadata' => ['local_subscription' => $s['local']]]);
 } elseif ($metodo === 'POST' && preg_match('#^/v1/subscriptions/([^/]+)$#', $caminho, $m) && isset($e['assinaturas'][$m[1]])) {
     $e['assinaturas'][$m[1]]['cancel_at_period_end'] = ($_POST['cancel_at_period_end'] ?? '') === 'true';
     $resposta = assinaturaObjeto($e['assinaturas'][$m[1]]);
-    entregar($e, 'customer.subscription.updated', $resposta);
+    depois('customer.subscription.updated', $resposta);
 } elseif ($metodo === 'DELETE' && preg_match('#^/v1/subscriptions/([^/]+)$#', $caminho, $m) && isset($e['assinaturas'][$m[1]])) {
     $e['assinaturas'][$m[1]] = ['status' => 'canceled', 'canceled_at' => time(), 'ended_at' => time()] + $e['assinaturas'][$m[1]];
     $resposta = assinaturaObjeto($e['assinaturas'][$m[1]]);
-    entregar($e, 'customer.subscription.deleted', $resposta);
+    depois('customer.subscription.deleted', $resposta);
 } elseif ($metodo === 'POST' && $caminho === '/v1/refunds') {
     $resposta = ['id' => id('re_sim_'), 'object' => 'refund', 'status' => 'succeeded', 'amount' => (int) ($_POST['amount'] ?? 0), 'payment_intent' => $_POST['payment_intent'] ?? null, 'metadata' => $_POST['metadata'] ?? []];
-    entregar($e, 'refund.created', $resposta);
+    depois('refund.created', $resposta);
 } elseif ($metodo === 'GET' && preg_match('#^/pay/([^/]+)$#', $caminho, $m) && isset($e['sessoes'][$m[1]])) {
     $s = $e['sessoes'][$m[1]];
     header('Content-Type: text/html; charset=utf-8');
@@ -188,15 +219,12 @@ if ($metodo === 'POST' && $caminho === '/v1/checkout/sessions') {
         'cancel_at_period_end' => false, 'current_period_start' => $agora, 'current_period_end' => $agora + 30 * 86400];
     $e['assinaturas'][$sub['id']] = $sub;
     $e['sessoes'][$m[1]]['status'] = 'complete';
-    $entregas = [
-        entregar($e, 'checkout.session.completed', ['id' => $m[1], 'object' => 'checkout.session', 'mode' => 'subscription', 'payment_status' => 'paid', 'status' => 'complete',
-            'client_reference_id' => $s['local'], 'customer' => $sub['customer'], 'subscription' => $sub['id'], 'metadata' => ['local_subscription' => $s['local']]]),
-        entregar($e, 'customer.subscription.created', assinaturaObjeto($sub)),
-        entregar($e, 'invoice.paid', fatura($sub, $agora, $sub['current_period_end'], 'subscription_create')),
-    ];
+    depois('checkout.session.completed', ['id' => $m[1], 'object' => 'checkout.session', 'mode' => 'subscription', 'payment_status' => 'paid', 'status' => 'complete',
+        'client_reference_id' => $s['local'], 'customer' => $sub['customer'], 'subscription' => $sub['id'], 'metadata' => ['local_subscription' => $s['local']]]);
+    depois('customer.subscription.created', assinaturaObjeto($sub));
+    depois('invoice.paid', fatura($sub, $agora, $sub['current_period_end'], 'subscription_create'));
     salvar($e);
-    header('Location: '.str_replace('{CHECKOUT_SESSION_ID}', $m[1], $s['success_url']), true, 303);
-    exit;
+    responder('', 303, 'text/plain', str_replace('{CHECKOUT_SESSION_ID}', $m[1], $s['success_url']));
 } elseif ($metodo === 'POST' && preg_match('#^/sim/(renovar|falhar|recuperar|encerrar|fora-de-ordem)/([^/]+)$#', $caminho, $m) && isset($e['assinaturas'][$m[2]])) {
     $s = &$e['assinaturas'][$m[2]];
     $entregas = [];

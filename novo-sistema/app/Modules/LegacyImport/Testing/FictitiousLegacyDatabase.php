@@ -394,6 +394,8 @@ final class FictitiousLegacyDatabase
             'AG-LEMBRETE' => ['status' => 'aprovado', 'data' => $futuro, 'hora' => '06:00', 'lembrete_data' => $futuro, 'lembrete_hora_em' => $agora->format('Y-m-d H:i:s'), 'presenca_confirmada' => $agora->format('Y-m-d H:i:s'), 'plano_provisorio' => 'plano-1'],
             'AG-SEMNOME' => ['nome' => '', 'cliente_id' => '', 'data' => $passado, 'hora' => '05:30'],
             'AG-SERVSEMPRECO' => ['servicos_ids' => 'sv-4', 'data' => $passado, 'hora' => '05:00'],
+            // Ensaio da Fase 13: agendamento manual sem e-mail, como o antigo gravava.
+            'AG-MANUAL' => ['nome' => 'Avulso do Balcao', 'email' => 'manual@admin.com', 'telefone' => '11933334444', 'cliente_id' => '', 'data' => $passado, 'hora' => '04:30'],
         ];
         foreach ($casos as $id => $campos) {
             $this->ins('agendamentos', ['id' => $id, ...$base, ...$campos]);

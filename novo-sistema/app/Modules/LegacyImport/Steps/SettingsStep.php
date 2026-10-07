@@ -5,6 +5,7 @@ namespace App\Modules\LegacyImport\Steps;
 use App\Modules\LegacyImport\Enums\IssueClassification as C;
 use App\Modules\LegacyImport\Enums\IssueSeverity as S;
 use App\Modules\Loyalty\Support\PromotionPolicy;
+use App\Modules\Scheduling\Support\BookingPolicy;
 use App\Modules\System\Models\Setting;
 use Illuminate\Support\Facades\DB;
 
@@ -69,6 +70,42 @@ final class SettingsStep extends Step
         }
 
         $this->promotionPolicy();
+        $this->agendaPolicy();
+    }
+
+    /**
+     * Ensaio da Fase 13: antecedencia minima e limite de dias do sistema
+     * antigo (config_agendamento) viram as regras da agenda do sistema novo,
+     * so na primeira importacao. O resto das regras fica no padrao (o antigo
+     * nao tinha). "aprovar" (config) nao e usado: o antigo sempre gravava o
+     * agendamento ja aprovado.
+     */
+    private function agendaPolicy(): void
+    {
+        if (DB::table('settings')->where('key', BookingPolicy::KEY)->exists()) {
+            return;
+        }
+        $v = DB::table('settings')->where('key', 'legacy.config_agendamento')->value('value');
+        $cfg = is_string($v) ? json_decode($v, true) : null;
+        if (! is_array($cfg)) {
+            return;
+        }
+        $valores = array_filter([
+            'min_notice_minutes' => is_numeric($cfg['antecedencia_minima_minutos'] ?? null) ? (int) $cfg['antecedencia_minima_minutos'] : null,
+            'max_advance_days' => is_numeric($cfg['antecedencia_maxima'] ?? null) ? (int) $cfg['antecedencia_maxima'] : null,
+        ], fn ($x) => $x !== null);
+        $normal = [];
+        foreach (BookingPolicy::FIELDS as $campo => $def) {
+            $x = $valores[$campo] ?? $def['default'];
+            if (! is_bool($def['default']) && ($x < $def['min'] || $x > $def['max'])) {
+                $this->ctx->issue('configuracoes', 'config_agendamento', C::Inconsistent, S::Warning, 'agenda_value_out_of_range',
+                    "Valor de {$campo} fora do limite no sistema antigo: usado o padrao.", ['valor' => $x], true);
+                $x = $def['default'];
+            }
+            $normal[$campo] = $x;
+        }
+        $this->ctx->insert('settings', ['key' => BookingPolicy::KEY, 'value' => json_encode($normal), ...$this->stamps()]);
+        $this->ctx->count('configuracoes', 'agenda_policy_converted');
     }
 
     /**

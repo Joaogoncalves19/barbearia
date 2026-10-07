@@ -5,8 +5,10 @@ namespace Tests\Feature\LegacyImport;
 use App\Modules\Customers\Models\Customer;
 use App\Modules\Finance\Services\ProfessionalLedger;
 use App\Modules\Identity\Models\User;
+use App\Modules\LegacyImport\Support\LegacyValue;
 use App\Modules\LegacyImport\Testing\FictitiousLegacyDatabase;
 use App\Modules\Loyalty\Services\LoyaltyLedger;
+use App\Modules\Scheduling\Support\BookingPolicy;
 use App\Modules\Scheduling\Support\BusinessTime;
 use App\Modules\Subscriptions\Gateway\StripeSignature;
 use App\Modules\Subscriptions\Models\Subscription;
@@ -178,6 +180,41 @@ class ImportScenariosTest extends ImporterTestCase
         $this->assertNull(User::where('name', 'antigo')->value('password'));
     }
 
+    public function test_funcionamento_e_regras_da_agenda_vem_do_sistema_antigo(): void
+    {
+        // Ensaio da Fase 13: sem funcionamento, ninguem agendaria depois da migracao.
+        $segunda = DB::table('business_hours')->where('weekday', 1)->first();
+        $this->assertSame(['09:00', '19:00'], [substr((string) $segunda->starts_at, 0, 5), substr((string) $segunda->ends_at, 0, 5)], 'primeiro inicio e ultimo fim do expediente');
+        $this->assertCount(1, $this->issues($this->r, 'business_hours_derived'));
+
+        $regras = BookingPolicy::current()->toArray();
+        $this->assertSame([60, 30, false], [$regras['min_notice_minutes'], $regras['max_advance_days'], $regras['requires_confirmation']]);
+    }
+
+    public function test_email_marcador_do_agendamento_manual_nao_e_importado(): void
+    {
+        // Ensaio da Fase 13: "manual@admin.com" e o marcador que o antigo
+        // gravava; lembretes iriam para um dominio de terceiros.
+        $manual = $this->appointment('AG-MANUAL');
+        $this->assertNull($manual->customer_email);
+        $this->assertSame('Avulso do Balcao', $manual->customer_name);
+        $this->assertNull(LegacyValue::contactEmail('Manual@Admin.com'));
+    }
+
+    public function test_cliente_migrado_entra_pela_tela_com_a_senha_antiga(): void
+    {
+        // Ensaio da Fase 13: o login pela TELA exige e-mail confirmado; o
+        // cliente ativo no sistema antigo ja tinha acesso.
+        $this->assertNotNull($this->customer('CL-N00001')->email_verified_at);
+        $this->post(route('customer.login.attempt'), ['email' => 'cliente1@exemplo.test', 'password' => FictitiousLegacyDatabase::LOGIN_PHRASE])
+            ->assertRedirect();
+        $this->assertTrue(Auth::guard('customer')->check(), 'entrou sem cair na confirmação de e-mail');
+
+        $inativo = Customer::query()->where('status', 'inactive')->whereNotNull('email')->first();
+        $this->assertNotNull($inativo);
+        $this->assertNull($inativo->email_verified_at, 'inativo no antigo não ganha e-mail confirmado');
+    }
+
     public function test_usuarios_repetidos_e_perfis_desconhecidos_ficam_sem_acesso(): void
     {
         $this->assertSame('dono', User::where('role', 'owner')->value('username'));
@@ -335,7 +372,7 @@ class ImportScenariosTest extends ImporterTestCase
     {
         $tudo = json_encode(DB::table('settings')->get());
         $this->assertStringNotContainsString(FictitiousLegacyDatabase::FAKE_CREDENTIAL, $tudo);
-        $this->assertSame(['legacy.config_agendamento', 'legacy.config_geral', 'legacy.fidelidade_config', 'legacy.landing_page', 'promotions.policy'], DB::table('settings')->orderBy('key')->pluck('key')->all());
+        $this->assertSame(['agenda.policy', 'legacy.config_agendamento', 'legacy.config_geral', 'legacy.fidelidade_config', 'legacy.landing_page', 'promotions.policy'], DB::table('settings')->orderBy('key')->pluck('key')->all());
         // Fase 8: a fidelidade do sistema antigo (10 pontos por visita) vira a regra nova.
         $politica = json_decode((string) DB::table('settings')->where('key', 'promotions.policy')->value('value'), true);
         $this->assertSame(['visit', 10, true], [$politica['loyalty_earn_mode'], $politica['loyalty_points_per_visit'], $politica['loyalty_enabled']]);

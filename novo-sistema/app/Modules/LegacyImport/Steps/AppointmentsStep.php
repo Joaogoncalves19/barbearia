@@ -253,7 +253,7 @@ final class AppointmentsStep extends Step
             'professional_id' => $profId,
             'professional_name' => $profNome,
             'customer_name' => $nome ?? '(sem nome)',
-            'customer_email' => V::text($row['email'] ?? null),
+            'customer_email' => V::contactEmail($row['email'] ?? null),
             'customer_phone' => V::text($row['telefone'] ?? null),
             'starts_at' => $inicio,
             'ends_at' => $fim,

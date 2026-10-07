@@ -199,4 +199,20 @@ final class LegacyValue
 
         return $s;
     }
+
+    /** E-mails que o sistema antigo gravava quando nao havia e-mail de verdade. */
+    public const PLACEHOLDER_EMAILS = ['manual@admin.com'];
+
+    /**
+     * E-mail de contato do sistema antigo, ou null se vazio ou se for o
+     * marcador que ele gravava no agendamento manual sem e-mail
+     * ("manual@admin.com"). Ensaio da Fase 13: sem isto, lembretes e
+     * confirmacoes de todo encaixe migrado iriam para um dominio de terceiros.
+     */
+    public static function contactEmail(mixed $v): ?string
+    {
+        $s = self::text($v);
+
+        return $s === null || in_array(mb_strtolower($s), self::PLACEHOLDER_EMAILS, true) ? null : $s;
+    }
 }
