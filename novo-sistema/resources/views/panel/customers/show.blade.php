@@ -70,8 +70,29 @@
                 <div><dt>Lembretes por e-mail</dt><dd>{{ $customer->email_reminders_enabled ? 'Sim' : 'Não' }}</dd></div>
                 <div><dt>Novidades e promoções</dt><dd>{{ $customer->marketing_email_consent->label() }}</dd></div>
             </dl>
+            @can('update', $customer)
+                <x-slot:actions>
+                    @if ($customer->status === \App\Modules\Customers\Enums\CustomerStatus::Active)
+                        <x-ui.button variant="secondary" size="sm" icon="circle-x" data-dialog-open="desativar-cliente">Desativar</x-ui.button>
+                    @else
+                        <form method="POST" action="{{ route('panel.customers.status', $customer->public_id) }}">
+                            @csrf
+                            <input type="hidden" name="active" value="1">
+                            <x-ui.button type="submit" variant="secondary" size="sm" icon="circle-check">Reativar</x-ui.button>
+                        </form>
+                    @endif
+                </x-slot:actions>
+            @endcan
         </x-ui.card>
     </div>
+
+    @can('update', $customer)
+        @if ($customer->status === \App\Modules\Customers\Enums\CustomerStatus::Active)
+            <x-ui.confirm id="desativar-cliente" title="Desativar o cadastro?" :action="route('panel.customers.status', $customer->public_id)" :fields="['active' => 0]" confirm-label="Desativar cadastro">
+                <p>O cliente deixa de entrar no site e sai da busca do balcão. Histórico, pontos e horários já marcados continuam. Dá para reativar depois.</p>
+            </x-ui.confirm>
+        @endif
+    @endcan
 
     @unless ($removido)
         <div class="dashboard-grid">

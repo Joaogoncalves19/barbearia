@@ -278,12 +278,19 @@ Route::prefix('painel')
         // anonimizar (LGPD): so o proprietario, com senha reconfirmada.
         Route::middleware('can:customers.view')->group(function () {
             Route::get('/clientes', [PanelCustomerController::class, 'index'])->name('customers.index');
+            // Cadastro pelo balcao (antes de /clientes/{customer}: "novo" nao e um cliente).
+            Route::get('/clientes/novo', [PanelCustomerController::class, 'create'])
+                ->middleware('can:customers.create')->name('customers.create');
+            Route::post('/clientes', [PanelCustomerController::class, 'store'])
+                ->middleware(['can:customers.create', 'throttle:account-actions'])->name('customers.store');
             Route::get('/clientes/{customer:public_id}', [PanelCustomerController::class, 'show'])
                 ->middleware('can:view,customer')->name('customers.show');
             Route::get('/clientes/{customer:public_id}/editar', [PanelCustomerController::class, 'edit'])
                 ->middleware('can:update,customer')->name('customers.edit');
             Route::put('/clientes/{customer:public_id}', [PanelCustomerController::class, 'update'])
                 ->middleware(['can:update,customer', 'throttle:account-actions'])->name('customers.update');
+            Route::post('/clientes/{customer:public_id}/situacao', [PanelCustomerController::class, 'setStatus'])
+                ->middleware(['can:update,customer', 'throttle:account-actions'])->name('customers.status');
             Route::get('/clientes/{customer:public_id}/anonimizar', [PanelCustomerController::class, 'confirmAnonymize'])
                 ->middleware(['can:anonymize,customer', 'password.confirm:panel.password.confirm'])->name('customers.anonymize.confirm');
             Route::post('/clientes/{customer:public_id}/anonimizar', [PanelCustomerController::class, 'anonymize'])

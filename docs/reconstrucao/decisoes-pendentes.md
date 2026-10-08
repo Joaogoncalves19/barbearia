@@ -127,6 +127,13 @@
 > - **P13-04:** hospedagem escolhida na primeira instalação real;
 > - **P13-05** e **P13-06:** manter as regras implementadas;
 > - **P13-07** e **P13-08:** procedimentos para uso futuro; nada apagado nem alterado.
+>
+> **Também decididas em 2026-10-08** (encerramento da Fase 13, [clientes.md](clientes.md)):
+> - **P13-09, cadastro de cliente pelo painel: SIM.** Implementado. CPF obrigatório e único; sem senha nem
+>   e-mail confirmado pela equipe; o e-mail informado segue o link de confirmação do site.
+> - **P13-10, equipe alterar ou adicionar e-mail do cliente: NÃO.** Fica o fluxo atual: o próprio cliente
+>   troca o e-mail e confirma o endereço novo.
+> - **P13-11, equipe ativar/desativar cliente: SIM, agora.** Implementado (`customers.update`, auditado).
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

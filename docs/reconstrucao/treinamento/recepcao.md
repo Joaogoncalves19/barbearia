@@ -20,7 +20,14 @@ manual e estorno também não: chame o gerente/proprietário (desconto) ou o fin
 - **Clientes** — *Clientes e vendas → Clientes*: busque pelo nome, e-mail ou celular e abra a ficha
   (contato, próximos horários, anotações dos barbeiros, assinatura, pontos e histórico). *Editar* corrige
   nome, celular e nascimento. ✔ O CPF aparece mascarado; e-mail e senha são do cliente (ele troca pela
-  conta). Cadastro novo: o cliente cria a conta pelo site.
+  conta).
+- **Cadastrar cliente no balcão** — *Clientes → Novo cliente*: nome e **CPF (obrigatório)**; celular,
+  nascimento e e-mail se o cliente quiser. ✔ Você **não** cria senha nem confirma o e-mail: se informar o
+  e-mail, o cliente recebe um link para confirmar e cria a própria senha pelo site. Sem e-mail, ele é
+  atendido só no balcão. Se aparecer "já está em outro cadastro", busque o cliente na lista em vez de criar
+  outro.
+- **Desativar / reativar** — na ficha, *Situação da conta → Desativar* (o cliente não entra mais no site e
+  some da busca; o histórico fica). *Reativar* desfaz. ✔
 - **Remarcar / cancelar**: abra o agendamento na agenda e use *Remarcar* ou *Cancelar* (informe o motivo).
   O cliente recebe o e-mail sozinho. ✔
 - **Faltou?** No agendamento, *Não compareceu*. ✔

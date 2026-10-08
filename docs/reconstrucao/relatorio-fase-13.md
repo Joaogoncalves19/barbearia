@@ -1,10 +1,21 @@
 # Relatório — Fase 13: homologação final, migração e virada
 
-> **Situação: entregue no escopo corrigido pelo dono (§0), aguardando aprovação.** O produto ainda não foi
-> instalado em nenhuma barbearia. A preparação e os ensaios foram feitos de ponta a ponta, só com dados
-> fictícios e serviços simulados localmente. A tela de Clientes (P13-01), que bloqueava a virada, foi
-> implementada. O que depende de uma instalação real (hospedagem, Stripe e e-mail do comprador, aceite da
-> equipe, virada e 30 dias) virou **procedimento da instalação de cada comprador** e não bloqueia o roadmap.
+> **Situação: encerrada do ponto de vista de desenvolvimento (2026-10-08).**
+>
+> **O sistema ainda não está em produção e nunca foi utilizado por uma barbearia real.** A preparação e os
+> ensaios foram feitos de ponta a ponta, só com dados fictícios e serviços simulados localmente.
+>
+> Entregue no escopo corrigido pelo dono (§0):
+> - a tela de Clientes (P13-01);
+> - o cadastro de cliente pelo painel;
+> - ativar e desativar cadastro.
+>
+> Ficam como **procedimentos preparados para a primeira instalação real de um comprador** (§16):
+> - migração;
+> - configuração de Stripe e e-mail;
+> - hospedagem;
+> - virada;
+> - o período de 30 dias.
 >
 > A Fase 14 **não** foi iniciada.
 
@@ -223,6 +234,16 @@ antigo, e isso já funciona sem código), SPF/DKIM/DMARC e a aprovação visual 
 | P13-06 | Cliente migrado ativo entra com e-mail confirmado | Manter a regra implementada |
 | P13-07 | Janela da virada | Não há virada agora. O procedimento ([plano-virada.md](plano-virada.md)) fica para uso futuro |
 | P13-08 | Guarda do sistema antigo | Manter a política documentada como procedimento futuro de instalação e migração. Nada é apagado nem alterado agora |
+| **P13-09** | Cadastro de cliente pelo painel | **SIM. Implementado** (§18) |
+| P13-10 | Equipe alterar ou adicionar e-mail do cliente | **NÃO.** Fica o fluxo atual: o próprio cliente troca o e-mail e confirma o endereço novo |
+| **P13-11** | Equipe ativar/desativar cliente | **SIM, agora. Implementado** (§18) |
+
+**Para a fase posterior de refinamento do produto (registrados, NÃO implementados):**
+- relatórios e despesas (P13-02);
+- CRM, lista de espera, WhatsApp, IA e chatbot;
+- Pix, várias unidades e SaaS multiempresa;
+- novos temas, novos redesigns e melhorias de UX;
+- as sugestões da §12.
 
 Continuam abertas as decisões de fases anteriores que você ainda não fechou: P12-01 a P12-08, T-01 a T-06,
 P12.5-01 a P12.5-07 e o conteúdo pendente (D-07, D-08, P11-01).
@@ -305,11 +326,11 @@ Fora do sistema, também foram ajustados:
 
 | Verificação | Resultado |
 |---|---|
-| PHPUnit (suíte inteira) | **847 passaram** (818 + 29 novos: backup 10, exportação de retorno 3, fotos 2, importador 4, tela de Clientes 10) |
+| PHPUnit (suíte inteira) | **857 passaram** (818 + 39 novos: backup 10, exportação de retorno 3, fotos 2, importador 4, tela de Clientes 10, cadastro pelo painel e situação 10) |
 | PHPStan | 0 erros |
 | Pint | OK |
 | Build (Vite) | OK (dentro de cada pacote) |
-| E2E (suíte do projeto, banco temporário) | Antes da tela de Clientes: **148 passaram**, 4 pulados (os mesmos das fases anteriores), 0 falhas (19,4 min). Com a tela de Clientes: **154 passaram** (+6), 4 pulados, 0 falhas (19,4 min), incluindo os 8 temas com lista, ficha e edição de cliente |
+| E2E (suíte do projeto, banco temporário) | Antes da tela de Clientes: **148 passaram**, 4 pulados (os mesmos das fases anteriores), 0 falhas (19,4 min). Com a tela de Clientes: **154 passaram** (+6), 4 pulados, 0 falhas (19,4 min), incluindo os 8 temas com lista, ficha e edição de cliente. No encerramento (cadastro e situação): **156 passaram**, 4 pulados, 0 falhas (20,7 min) |
 | Roteiros de homologação (pacote `032fc78`, dados migrados) | Desktop: 14 roteiros OK (10 do roteiro principal, incluindo promoções migradas, 1 da assinatura pelo painel e 3 de e-mail). Celular: perfis, profissional e cliente OK. Os que gravam dados compartilhados rodam só no desktop |
 | Amostra da migração | 34/34 |
 | Volume | 3.016 / 20.019 em 38 s, conciliação e integridade OK, reexecução idempotente |
@@ -339,13 +360,14 @@ O modelo de dados **não mudou** (nenhuma migration nova).
 | Ensaio geral da migração (dados fictícios) | ✅ (§3) |
 | Homologação de todos os perfis e áreas, desktop e celular | ✅ (§4) |
 | Tela de Clientes no painel (P13-01) com permissões, LGPD, auditoria, 8 temas e celular | ✅ (§18) |
+| Cadastro de cliente pelo painel (P13-09) e ativar/desativar (P13-11) | ✅ (§18) |
 | Treinamento por perfil (material) | ✅ |
 | Plano de virada e plano de retorno escritos e ensaiados | ✅ |
 | Backup automático, restauração validada, monitoramento, logs, fila, agendador | ✅ |
 | Segredos fora do Git; procedimento de troca de segredos | ✅ |
 | Stripe: ciclo completo | ✅ no simulador. A conta do comprador é configurada na instalação dele ([instalacao.md](instalacao.md) §4) |
 | E-mail: todos os modelos e descadastro | ✅ por SMTP local. Entrega real, SPF/DKIM/DMARC: na instalação de cada comprador |
-| Decisões P13-01 a P13-08 | ✅ decididas (§9) |
+| Decisões P13-01 a P13-11 | ✅ decididas (§9) |
 | CI verde | ✅ run 59 (commit `8894ad8`, com a tela de Clientes): Pint, Larastan, auditoria, PHPUnit, importador e E2E com os 8 temas. Antes: run 57 |
 | 30 dias de operação estável | Critério da **primeira operação real** ([roadmap.md](roadmap.md)); não se aplica enquanto não houver produção |
 
@@ -398,7 +420,9 @@ Documentação: [clientes.md](clientes.md).
 **O que a equipe não altera, de propósito:**
 - e-mail e senha: são o acesso do cliente; a troca de e-mail é dele, com confirmação;
 - consentimentos: a prova é do cliente;
-- situação e mesclagem.
+- mesclagem.
+
+A situação passou a ser alterável depois, por decisão do dono (P13-11, §18.1).
 
 **Nada paralelo.** A tela usa o que já existia:
 - a matriz `customers.*` e a `CustomerPolicy`;
@@ -415,13 +439,13 @@ Nenhuma migration nova.
 
 **Permissões** (sem mudança na matriz):
 
-| Papel | Lista e ficha | Editar | CPF completo e correção | Anonimizar |
-|---|:-:|:-:|:-:|:-:|
-| Proprietário | ✅ | ✅ | ✅ | ✅ (senha reconfirmada) |
-| Gerente | ✅ | ✅ | ✅ | — |
-| Recepção | ✅ | ✅ | — (mascarado) | — |
-| Financeiro | — (403) | — | — | — |
-| Profissional | — (403; vê os próprios clientes pela área dele) | — | — | — |
+| Papel | Lista e ficha | Cadastrar | Editar e ativar/desativar | CPF completo e correção | Anonimizar |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Proprietário | ✅ | ✅ | ✅ | ✅ | ✅ (senha reconfirmada) |
+| Gerente | ✅ | ✅ | ✅ | ✅ | — |
+| Recepção | ✅ | ✅ | ✅ | — (mascarado) | — |
+| Financeiro | — (403) | — (403) | — | — | — |
+| Profissional | — (403; vê os próprios clientes pela área dele) | — (403) | — | — | — |
 
 **Testes**
 - PHP (`PanelCustomersTest`, 10 testes):
@@ -454,3 +478,75 @@ grafite do menu. Repetido isolado, passou 3 de 3 vezes. Na segunda rodada comple
 Não tem relação com a tela de Clientes e fica registrado como intermitente.
 
 **Capturas:** `storage/e2e/telas/{celular,desktop}-clientes-*.png`, geradas pelos testes e fora do Git.
+
+### 18.1 Cadastro pelo painel (P13-09) e ativar/desativar (P13-11)
+
+Decisões do dono em 2026-10-08, implementadas no encerramento da fase. Detalhes em
+[clientes.md](clientes.md).
+
+**Cadastro pelo balcão** (*Clientes → Novo cliente*): `customers.create`, que já existia na matriz para
+proprietário, gerente e recepção. Financeiro e profissional recebem 403.
+- **Reutiliza o cadastro do site** (`CustomerRegistration::registerAtCounter`):
+  - mesmas validações de nome, CPF, celular, nascimento e e-mail;
+  - mesma normalização, com o CPF guardado só com os dígitos;
+  - mesma unicidade, inclusive contra cadastro excluído;
+  - mesmo link de confirmação de e-mail.
+- **CPF obrigatório.** O erro de duplicidade diz só qual dado conflita, nunca de quem é. Na recusa, nada é
+  criado nem mesclado.
+- **A equipe não define senha nem confirma e-mail.** A conta nasce sem senha e com o e-mail não
+  confirmado. O cliente cria a senha pelo link de acesso ou por "esqueci a senha". Esses dois caminhos já
+  existiam, e cada um confirma o e-mail ao provar que o endereço é dele.
+- **O consentimento de novidades** fica "desconhecido": só o cliente aceita.
+- **Campos ignorados:** senha, confirmação de e-mail, consentimento ou situação enviados no formulário.
+- **Auditoria:** `customer.registered` ("Cadastro pelo painel (balcão)") e `created` do model, com o CPF
+  mascarado, os dois com o autor da equipe.
+- O cliente aparece na hora na lista e na busca do balcão.
+
+**Ativar e desativar** (ficha → *Situação da conta*): `customers.update`, pela `CustomerPolicy@update`.
+Serviço: `CustomerActivation`.
+- Desativar pede confirmação e não apaga nada.
+- O efeito é o que o sistema já tinha para cliente inativo:
+  - não entra na conta, e as sessões abertas caem;
+  - sai da busca do balcão.
+- Reativar devolve o acesso e a busca.
+- Cadastro anonimizado ou mesclado não muda de situação.
+- Auditado pelo model.
+
+**E-mail pela equipe (P13-10): NÃO.** Nada foi implementado. Só o cliente troca o e-mail, com
+confirmação. Consequência a saber: cliente cadastrado no balcão **sem** e-mail fica só no atendimento de
+balcão. Para ele ter acesso ao site, o e-mail precisa ser informado já no cadastro.
+
+**Testes**
+- PHP (`PanelCustomerRegistrationTest`, 10 testes):
+  - cadastro por recepção, gerente e proprietário; 403 para financeiro e profissional;
+  - CPF obrigatório, inválido, repetido (111…) e duplicado (inclusive de cadastro excluído), sem revelar o
+    dono;
+  - celular e e-mail validados e únicos;
+  - sem senha, e-mail não confirmado e sem consentimento, mesmo com esses campos forjados no pedido;
+  - link de confirmação enviado, e nenhum aviso sem e-mail;
+  - auditoria com CPF mascarado;
+  - aparece na lista e na busca;
+  - o cliente cria a senha pelo fluxo existente e entra na conta;
+  - desativar e reativar: sem login, fora da busca, auditado, 403 para financeiro e profissional;
+  - anonimizado não muda de situação.
+- Navegador (`clientes.spec.js`, celular e desktop):
+  - a recepção cadastra, vendo as mensagens de CPF obrigatório e inválido;
+  - o cliente aparece na busca com o CPF mascarado;
+  - a recepção desativa (com confirmação) e reativa;
+  - o financeiro recebe 403 na lista e no cadastro.
+- Temas: *Novo cliente* entrou na varredura dos 8 temas (desktop e celular). Ela confere tema, contraste,
+  ausência de rolagem lateral e axe.
+
+**Resultados (encerramento)**
+- PHPUnit: **857 passaram** (847 + 10).
+- PHPStan: 0 erros. Pint: OK.
+- E2E completo: **156 passaram** (154 + 2), 4 pulados (os mesmos de sempre), 0 falhas (20,7 min). Os 8
+  temas passaram com *Clientes*, *Novo cliente*, ficha e edição.
+
+Durante o trabalho, duas rodadas completas não chegaram ao fim limpo:
+- **Erro no próprio teste novo de temas.** Depois do loop, a página aberta era *Novo cliente*, que não
+  tem lista. A busca do link da ficha esperava até o tempo acabar. Foi corrigido no teste: ele abre a
+  lista antes.
+- **Teste antigo da área do cliente** (`area-cliente.spec.js`, desktop): estourou o tempo uma vez no
+  diálogo de cancelar, sob carga. Repetido isolado, passou 10 de 10, e passou na rodada completa final. É
+  intermitente e não tem relação com Clientes.

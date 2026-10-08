@@ -322,13 +322,24 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
 
 ## Fase 13 — tela Clientes do painel (P13-01)
 
-- Nenhuma habilidade nova nem papel alterado: a tela usa `customers.view` (rotas), `customers.update`,
-  `customers.view_cpf` e `customers.anonymize` pela `CustomerPolicy`. Proprietário, gerente e recepção veem
-  e editam; financeiro e profissional recebem 403 (o profissional vê os próprios clientes na área dele).
+- Nenhuma habilidade nova nem papel alterado. A tela usa:
+  - `customers.view` nas rotas;
+  - `customers.create` no cadastro pelo balcão, que existia desde a Fase 4 e ainda não tinha tela;
+  - `customers.update`, `customers.view_cpf` e `customers.anonymize` pela `CustomerPolicy`.
+- Proprietário, gerente e recepção veem, cadastram, editam e ativam/desativam. Financeiro e profissional
+  recebem 403 também no cadastro; o profissional vê os próprios clientes na área dele.
+- Cadastro pelo balcão:
+  - a equipe não define senha nem confirma e-mail;
+  - o e-mail informado segue o mesmo link de confirmação do cadastro pelo site;
+  - o consentimento continua sendo só do cliente;
+  - a criação é auditada.
+- Ativar/desativar: `customers.update`, pela `CustomerPolicy@update`, que nega cadastro anonimizado ou
+  mesclado.
 - CPF completo e correção de CPF: só com `customers.view_cpf` (proprietário e gerente). Pedido com `cpf` de
   quem não tem = 403, sem gravar nada (permissão por campo, como no catálogo). A busca por CPF também só
   funciona para quem vê o CPF.
 - Anonimizar: só o proprietário, com senha reconfirmada e a palavra ANONIMIZAR. A `CustomerPolicy` passou a
   negar edição e anonimização de cadastro já anonimizado ou mesclado.
-- A equipe não altera e-mail, senha, consentimentos, situação nem mesclagem do cliente.
-- Detalhes: [clientes.md](clientes.md). Testes: `PanelCustomersTest`, `tests/e2e/clientes.spec.js`.
+- A equipe não altera e-mail, senha, consentimentos nem mesclagem do cliente (decisão do dono).
+- Detalhes: [clientes.md](clientes.md).
+- Testes: `PanelCustomersTest`, `PanelCustomerRegistrationTest` e `tests/e2e/clientes.spec.js`.

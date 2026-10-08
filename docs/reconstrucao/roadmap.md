@@ -426,6 +426,26 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 > Stripe e e-mail reais, aceite da equipe e treinamento presencial acontecem na instalação do comprador.
 > O critério dos 30 dias abaixo vale para a **primeira operação real**: nenhuma contagem foi iniciada nem
 > simulada.
+>
+> **Encerramento do desenvolvimento (2026-10-08):** com a tela de Clientes vieram também, por decisão do
+> dono, o **cadastro de cliente pelo painel** (balcão) e **ativar/desativar** cadastro. A equipe
+> **não** altera nem adiciona e-mail do cliente: só ele troca, com confirmação. Com isso, a Fase 13 está
+> **encerrada do ponto de vista de desenvolvimento**.
+>
+> O sistema **ainda não está em produção** e nunca foi usado por uma barbearia real. Ficam como
+> procedimentos preparados para a primeira instalação real de um comprador:
+> - migração;
+> - Stripe e e-mail reais;
+> - hospedagem;
+> - virada;
+> - os 30 dias.
+>
+> Ficam para a fase posterior de refinamento do produto, **sem implementação agora**:
+> - relatórios e despesas;
+> - CRM, lista de espera, WhatsApp, IA e chatbot;
+> - Pix, várias unidades e multiempresa;
+> - novos temas, redesign e melhorias de UX;
+> - as sugestões do relatório (§12).
 
 - **Objetivo:** trocar o sistema com segurança.
 - **Escopo:** ensaio geral da migração com dados reais recentes; testes de aceite completos pelo

@@ -29,8 +29,9 @@ LGPD (proprietário/financeiro).
 
 ## Clientes e comunicação
 
-- **Clientes** — buscar (também pelo CPF), ver a ficha e o histórico, corrigir nome, celular, nascimento e
-  CPF. ✔ Anonimizar a pedido do cliente é só com o proprietário.
+- **Clientes** — buscar (também pelo CPF), cadastrar no balcão (*Novo cliente*), ver a ficha e o
+  histórico, corrigir nome, celular, nascimento e CPF, desativar e reativar. ✔ Anonimizar a pedido do
+  cliente é só com o proprietário.
 - **Cupons** — criar, pausar, reativar. **Campanhas** — rascunho, teste para o seu e-mail, disparar; só
   recebe quem aceitou marketing, no máximo 4 por cliente em 30 dias.
 - **E-mails enviados** — o que saiu, o que falhou e por quê; *Reenviar* o que falhou.

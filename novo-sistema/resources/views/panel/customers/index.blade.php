@@ -7,6 +7,9 @@
             <h1 class="page-head__title">Clientes</h1>
             <p class="text-muted">Cadastro, contato, histórico e benefícios de quem frequenta a barbearia.</p>
         </div>
+        @can('customers.create')
+            <x-ui.button :href="route('panel.customers.create')" icon="plus">Novo cliente</x-ui.button>
+        @endcan
     </header>
 
     <form method="GET" action="{{ route('panel.customers.index') }}" class="cluster" role="search">

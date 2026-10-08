@@ -74,11 +74,69 @@ test('recepção busca, abre a ficha e edita o celular', async ({ page }, info) 
     expect(erros, 'sem erro de console ou CSP').toEqual([]);
 });
 
-test('financeiro não vê clientes', async ({ page }, info) => {
+test('financeiro não vê clientes nem o cadastro', async ({ page }, info) => {
     await entrarNoPainel(page, `e2e-clientes-fin-${info.project.name}`);
     await expect(page.locator('a[href$="/painel/clientes"]')).toHaveCount(0);
-    const r = await page.goto('/painel/clientes');
-    expect(r.status()).toBe(403);
+    for (const url of ['/painel/clientes', '/painel/clientes/novo']) {
+        const r = await page.goto(url);
+        expect(r.status(), url).toBe(403);
+    }
+});
+
+/** CPF valido e novo a cada execucao (digitos verificadores calculados). */
+function cpfNovo() {
+    const d = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10));
+    for (const t of [9, 10]) {
+        const soma = d.reduce((s, v, i) => s + v * (t + 1 - i), 0);
+        d.push(((10 * soma) % 11) % 10);
+    }
+    return d.join('');
+}
+
+test('recepção cadastra cliente no balcão, desativa e reativa', async ({ page }, info) => {
+    const s = info.project.name;
+    const erros = observarErros(page);
+    const nome = `Cliente Balcão ${s} ${Date.now()}`;
+    await entrarNoPainel(page, `e2e-clientes-rec-${s}`);
+
+    await page.goto('/painel/clientes');
+    await page.getByRole('link', { name: 'Novo cliente' }).click();
+    await expect(page.getByRole('heading', { name: 'Novo cliente' })).toBeVisible();
+    await expect(page.getByLabel('Senha')).toHaveCount(0);
+    await verificarTela(page, info, 'novo');
+
+    // CPF obrigatorio: a tela recusa e mantem o que foi digitado.
+    await page.getByLabel('Nome').fill(nome);
+    await page.getByRole('button', { name: 'Cadastrar cliente' }).click();
+    await expect(page.getByText(/CPF.*obrigat/i)).toBeVisible();
+    await expect(page.getByLabel('Nome')).toHaveValue(nome);
+    await page.getByLabel('CPF').fill('123.456.789-00');
+    await page.getByRole('button', { name: 'Cadastrar cliente' }).click();
+    await expect(page.getByText('Informe um CPF válido.')).toBeVisible();
+    await verificarTela(page, info, 'novo-com-erro');
+
+    await page.getByLabel('CPF').fill(cpfNovo());
+    await page.getByRole('button', { name: 'Cadastrar cliente' }).click();
+    await expect(page.getByText(/Cliente cadastrado, sem e-mail/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: nome })).toBeVisible();
+    await expect(page.locator('[data-cpf]')).toHaveText(/\d{3}\.\*\*\*\.\*\*\*-\d{2}/);
+
+    await page.goto(`/painel/clientes?busca=${encodeURIComponent(nome)}`);
+    await expect(page.locator('[data-customer-row]')).toHaveCount(1);
+    await page.getByRole('link', { name: nome }).click();
+
+    await page.getByRole('button', { name: 'Desativar', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await verificarTela(page, info, 'desativar');
+    await page.getByRole('button', { name: 'Desativar cadastro' }).click();
+    await expect(page.getByText(/Cadastro desativado/)).toBeVisible();
+    await expect(page.locator('[data-customer-status]')).toHaveText('Inativo');
+
+    await page.getByRole('button', { name: 'Reativar' }).click();
+    await expect(page.getByText(/Cadastro reativado/)).toBeVisible();
+    await expect(page.locator('[data-customer-status]')).toHaveText('Ativo');
+
+    expect(erros, 'sem erro de console ou CSP').toEqual([]);
 });
 
 test('dono anonimiza com senha reconfirmada', async ({ page }, info) => {
