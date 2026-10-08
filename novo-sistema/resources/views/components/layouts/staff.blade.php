@@ -133,6 +133,10 @@
     // que cada tela foi construida. So aparece o que a pessoa pode usar.
     $clientes = array_merge($assinaturas, $promocoes, $comunicacao);
     $clientes = array_values(array_filter($clientes, fn ($i) => ! in_array($i['label'], ['Planos', 'Fidelidade e aniversário', 'Lembretes e avisos', 'E-mails enviados'], true)));
+    // Cadastro de clientes (Fase 13, P13-01): primeiro item do grupo.
+    if ($user->can('customers.view')) {
+        array_unshift($clientes, $item('Clientes', 'user', 'panel.customers.index', 'panel.customers.*'));
+    }
     $configuracoes = array_merge(
         $configAgenda,
         array_values(array_filter(array_merge($assinaturas, $promocoes, $comunicacao), fn ($i) => in_array($i['label'], ['Planos', 'Fidelidade e aniversário', 'Lembretes e avisos', 'E-mails enviados'], true))),

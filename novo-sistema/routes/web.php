@@ -43,6 +43,7 @@ use App\Http\Controllers\Panel\Communication\CampaignController;
 use App\Http\Controllers\Panel\Communication\EmailLogController;
 use App\Http\Controllers\Panel\Communication\ReviewController as PanelReviewController;
 use App\Http\Controllers\Panel\Communication\SettingsController as CommunicationSettingsController;
+use App\Http\Controllers\Panel\Customers\CustomerController as PanelCustomerController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\Finance\AdvanceController;
 use App\Http\Controllers\Panel\Finance\CommissionController;
@@ -272,6 +273,22 @@ Route::prefix('painel')
         Route::get('/confirmar-senha', [ConfirmPasswordController::class, 'show'])->name('password.confirm');
         Route::post('/confirmar-senha', [ConfirmPasswordController::class, 'store'])
             ->middleware('throttle:password-check')->name('password.confirm.store');
+
+        // Clientes (Fase 13, P13-01). Ver/editar: customers.view + CustomerPolicy;
+        // anonimizar (LGPD): so o proprietario, com senha reconfirmada.
+        Route::middleware('can:customers.view')->group(function () {
+            Route::get('/clientes', [PanelCustomerController::class, 'index'])->name('customers.index');
+            Route::get('/clientes/{customer:public_id}', [PanelCustomerController::class, 'show'])
+                ->middleware('can:view,customer')->name('customers.show');
+            Route::get('/clientes/{customer:public_id}/editar', [PanelCustomerController::class, 'edit'])
+                ->middleware('can:update,customer')->name('customers.edit');
+            Route::put('/clientes/{customer:public_id}', [PanelCustomerController::class, 'update'])
+                ->middleware(['can:update,customer', 'throttle:account-actions'])->name('customers.update');
+            Route::get('/clientes/{customer:public_id}/anonimizar', [PanelCustomerController::class, 'confirmAnonymize'])
+                ->middleware(['can:anonymize,customer', 'password.confirm:panel.password.confirm'])->name('customers.anonymize.confirm');
+            Route::post('/clientes/{customer:public_id}/anonimizar', [PanelCustomerController::class, 'anonymize'])
+                ->middleware(['can:anonymize,customer', 'throttle:account-actions'])->name('customers.anonymize');
+        });
 
         // Usuarios da equipe (proprietario), com senha reconfirmada.
         Route::middleware(['can:users.manage', 'password.confirm:panel.password.confirm'])->group(function () {

@@ -3,8 +3,9 @@
 Reconstrução do sistema da barbearia em **Laravel 13 / PHP 8.4+**, com páginas
 renderizadas no servidor (Blade), Alpine.js (build CSP) e SQLite.
 
-> **Estado:** Fases 1 a 12.5 concluídas; Fase 13 (homologação, migração e virada) com os ensaios feitos
-> e pendente do dono. O sistema em produção continua sendo o da raiz do repositório.
+> **Estado:** Fases 1 a 12.5 concluídas; Fase 13 (homologação, migração e virada) entregue no escopo
+> corrigido em 2026-10-08, com a tela de Clientes, e aguardando aprovação. O produto ainda não foi instalado
+> em nenhuma barbearia; virada e migração reais são procedimento da instalação de cada comprador.
 > Instalação de uma barbearia: [`instalacao.md`](../docs/reconstrucao/instalacao.md); operação:
 > [`operacao.md`](../docs/reconstrucao/operacao.md). Documentação completa:
 > [`../docs/reconstrucao/`](../docs/reconstrucao/README.md).

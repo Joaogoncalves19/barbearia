@@ -6,6 +6,13 @@ Instalação de homologação feita **a partir do pacote** (como numa barbearia)
 `032fc78`; o resultado abaixo é dessa rodada limpa. O que depende do dono ou de credenciais reais está
 marcado **PENDENTE** e não conta como aprovado.
 
+> **Correção de escopo (2026-10-08):** o produto ainda não foi instalado em nenhuma barbearia, e o
+> sistema antigo nunca teve dados reais. Os itens **PENDENTE** abaixo (cópia real, Stripe e e-mail reais,
+> aceite da equipe) são feitos **na instalação de cada comprador**, pelo roteiro de
+> [instalacao.md](instalacao.md) §5.1 e §7 deste documento. Eles não bloqueiam o roadmap. A tela de
+> Clientes (P13-01), criada depois da rodada limpa, tem testes próprios no navegador
+> ([clientes.md](clientes.md)).
+
 ## 1. Ambiente
 
 | Peça | Homologação local | Produção (a definir, D-01) |
@@ -110,9 +117,9 @@ Roteiro para o dono e a equipe executarem na homologação, cada um com o seu us
 
 | Perfil | Tarefas |
 |---|---|
-| Dono | Conferir a amostra (20 clientes, 20 agendamentos, 5 profissionais, comissões do mês, assinaturas) contra o antigo; criar e desativar um usuário; mudar uma regra de comissão; ver auditoria |
+| Dono | Conferir a amostra (20 clientes, 20 agendamentos, 5 profissionais, comissões do mês, assinaturas) contra o antigo; criar e desativar um usuário; mudar uma regra de comissão; ver auditoria; anonimizar um cliente de teste em *Clientes* |
 | Gerente | Desconto com motivo; serviço novo; expediente e folga; entrada de estoque; campanha de teste |
-| Recepção | Abrir caixa; agendar, remarcar e cancelar; encaixe; concluir com pagamento dividido; vender vale-presente; fechar caixa |
+| Recepção | Abrir caixa; achar um cliente em *Clientes*, conferir a ficha e corrigir o celular; agendar, remarcar e cancelar; encaixe; concluir com pagamento dividido; vender vale-presente; fechar caixa |
 | Financeiro | Conferir o caixa do dia; extrato de um barbeiro; repasse; estorno de um atendimento de teste |
 | Barbeiro (no celular dele) | Ver o dia; abrir, iniciar e finalizar um atendimento; anotar sobre um cliente; ver ganhos |
 | 5 clientes (teste com usuários, Fase 11) | Agendar pelo site sem ajuda; remarcar; cancelar; achar o comprovante. Anotar onde travou |

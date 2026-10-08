@@ -294,7 +294,8 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
   `CustomerPolicy`): alheio = 404. Ações sensíveis (exportar dados, excluir a conta, trocar e-mail) pedem a
   senha de novo (`customer.reauth`). Detalhes: [area-do-cliente.md](area-do-cliente.md).
 - `customers.anonymize` (só o proprietário): o serviço de anonimização (`CustomerErasure`) aceita um usuário
-  da equipe com essa habilidade como autor; não há tela de clientes no painel (P12-03).
+  da equipe com essa habilidade como autor. Na Fase 12 ainda não havia tela de clientes no painel (P12-03);
+  ela chegou na Fase 13 (abaixo).
 - Pelo canal do cliente, a remarcação só oferece profissional publicado (P11-03); a equipe remarca com
   qualquer profissional ativo (`appointments.manage`).
 
@@ -318,3 +319,16 @@ Registro alheio → **404**; papel sem a capacidade → **403**. Teste da matriz
   Usuários. Pedido montado à mão por quem não tem `users.manage` = 403, sem gravar nada. O gerente continua
   cadastrando a ficha (`professionals.create`) sem login. Nova senha provisória só para conta de outro
   (`UserPolicy@setTemporaryPassword`). Testes: `ProfessionalAccessTest`.
+
+## Fase 13 — tela Clientes do painel (P13-01)
+
+- Nenhuma habilidade nova nem papel alterado: a tela usa `customers.view` (rotas), `customers.update`,
+  `customers.view_cpf` e `customers.anonymize` pela `CustomerPolicy`. Proprietário, gerente e recepção veem
+  e editam; financeiro e profissional recebem 403 (o profissional vê os próprios clientes na área dele).
+- CPF completo e correção de CPF: só com `customers.view_cpf` (proprietário e gerente). Pedido com `cpf` de
+  quem não tem = 403, sem gravar nada (permissão por campo, como no catálogo). A busca por CPF também só
+  funciona para quem vê o CPF.
+- Anonimizar: só o proprietário, com senha reconfirmada e a palavra ANONIMIZAR. A `CustomerPolicy` passou a
+  negar edição e anonimização de cadastro já anonimizado ou mesclado.
+- A equipe não altera e-mail, senha, consentimentos, situação nem mesclagem do cliente.
+- Detalhes: [clientes.md](clientes.md). Testes: `PanelCustomersTest`, `tests/e2e/clientes.spec.js`.

@@ -408,7 +408,7 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 
 ## Fase 13 — Homologação final, migração e virada
 
-> **Status (2026-10-07): preparação e ensaios concluídos com dados fictícios; fase NÃO concluída**
+> **Status (2026-10-07, escopo corrigido em 2026-10-08, abaixo): preparação e ensaios concluídos com dados fictícios**
 > ([relatorio-fase-13.md](relatorio-fase-13.md)). Feito: ensaio geral da migração com dados gravados pelo
 > próprio sistema antigo (6 achados corrigidos) e em volume; homologação instalada a partir do pacote, com
 > roteiros por perfil no navegador (celular e desktop); ciclo do Stripe e todos os e-mails num simulador e
@@ -416,10 +416,16 @@ F1 Fundação ─► F2 Dados ─► F3 Identidade ─► F4 Catálogo/Equipe �
 > básico; treinamento por perfil; plano de virada e plano de retorno **executados em ensaio**
 > ([instalacao.md](instalacao.md), [operacao.md](operacao.md), [homologacao.md](homologacao.md),
 > [plano-virada.md](plano-virada.md), [plano-retorno.md](plano-retorno.md), [treinamento/](treinamento/README.md)).
-> **Pendente (depende do dono):** hospedagem (D-01), ensaio com a cópia real (autorização), ciclo do Stripe na
-> conta de teste do dono, entrega real de e-mail, testes de aceite e com usuários, decisões P13-01 a P13-06,
-> autorização da virada e os **30 dias de operação estável**. Instalação **independente por barbearia** (sem
-> multiempresa).
+> Instalação **independente por barbearia** (sem multiempresa).
+>
+> **Correção de escopo (2026-10-08, decisão do dono):** o sistema nunca foi para produção e o antigo nunca
+> foi usado por uma barbearia real (banco vazio). Não há migração nem virada real agora: instalação,
+> migração, virada, retorno e operação ficam como **procedimento da instalação de cada comprador**. A
+> **tela de Clientes (P13-01)** virou requisito do produto e foi implementada ([clientes.md](clientes.md)).
+> P13-02 (relatórios/despesas) é funcionalidade futura; P13-03 a P13-08 decididos (relatório §9).
+> Stripe e e-mail reais, aceite da equipe e treinamento presencial acontecem na instalação do comprador.
+> O critério dos 30 dias abaixo vale para a **primeira operação real**: nenhuma contagem foi iniciada nem
+> simulada.
 
 - **Objetivo:** trocar o sistema com segurança.
 - **Escopo:** ensaio geral da migração com dados reais recentes; testes de aceite completos pelo

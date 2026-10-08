@@ -65,6 +65,12 @@ Bloqueia enquanto houver horário marcado, atendimento aberto ou assinatura vige
 pagamento). Prova do pedido em `customer_erasures` (quem pediu: cliente ou equipe; quantidades) e na
 auditoria (`customer.anonymized`), sem dado pessoal. Idempotente.
 
+**Pedido feito na barbearia (Fase 13, P13-01):**
+- quem anonimiza é o proprietário, pela ficha do cliente no painel (*Clientes → Anonimizar cadastro*);
+- o fluxo pede a senha reconfirmada e a palavra ANONIMIZAR, e usa o mesmo serviço e as mesmas regras;
+- os bloqueios aparecem com texto para a equipe;
+- no painel, quem não tem `customers.view_cpf` vê o CPF mascarado ([clientes.md](clientes.md)).
+
 ## 6. Exportar meus dados
 
 Fase 12, `CustomerDataExport`: JSON gerado na hora e entregue para download (nada fica no servidor),

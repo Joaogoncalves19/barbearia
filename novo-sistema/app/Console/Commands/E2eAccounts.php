@@ -187,6 +187,23 @@ class E2eAccounts extends Command
         if (! CustomerNote::query()->where('customer_id', $clienteA->id)->where('visibility', NoteVisibility::Professionals->value)->exists()) {
             CustomerNote::query()->create(['customer_id' => $clienteA->id, 'author_label' => 'Barbeiros (teste E2E)', 'visibility' => NoteVisibility::Professionals, 'body' => 'Prefere máquina 2 nas laterais']);
         }
+
+        // Tela Clientes (Fase 13, P13-01): dono (anonimiza), recepcao (CPF
+        // mascarado), financeiro (sem acesso), um cliente com historico e um
+        // para anonimizar (recriado a cada execucao: o anonimizado perde o e-mail).
+        $this->membro("e2e-clientes-dono-{$s}", 'Dono Clientes E2E', StaffRole::Owner, $senha);
+        $this->membro("e2e-clientes-rec-{$s}", 'Recepção Clientes E2E', StaffRole::Reception, $senha);
+        $this->membro("e2e-clientes-fin-{$s}", 'Financeiro Clientes E2E', StaffRole::Finance, $senha);
+        $ficha = $this->cliente("e2e-ficha-{$s}@exemplo.test", "Cliente Ficha {$s}", $senha);
+        $ficha->forceFill(['phone' => '+55119'.str_pad((string) (crc32($s) % 100000000), 8, '0', STR_PAD_LEFT)])->save();
+        $codigoFicha = 'AT-E2E-FI-'.strtoupper(mb_substr($s, 0, 3));
+        if (! Attendance::query()->where('code', $codigoFicha)->exists()) {
+            $this->atendimentoConcluidoOntem($s, $ficha, $proA, $corte, $codigoFicha);
+        }
+        if (! CustomerNote::query()->where('customer_id', $ficha->id)->exists()) {
+            CustomerNote::query()->create(['customer_id' => $ficha->id, 'author_label' => 'Barbeiros (teste E2E)', 'visibility' => NoteVisibility::Professionals, 'body' => 'Pele sensível: usar navalha nova']);
+        }
+        $this->cliente("e2e-anonimizar-{$s}@exemplo.test", "Cliente Anonimizar {$s}", $senha);
     }
 
     /**

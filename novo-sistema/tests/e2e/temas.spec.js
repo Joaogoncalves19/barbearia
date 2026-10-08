@@ -176,7 +176,13 @@ test.describe('temas visuais', () => {
             await verificar(equipe, `previa ${outro}`, outro);
 
             for (const [pagina, onde] of [[equipe, 'desktop'], [celularEquipe, 'celular']]) {
-                for (const url of ['/painel', '/painel/agenda', '/painel/caixa', '/painel/servicos', '/painel/aparencia']) {
+                for (const url of ['/painel', '/painel/agenda', '/painel/caixa', '/painel/servicos', '/painel/aparencia', '/painel/clientes']) {
+                    await pagina.goto(url);
+                    await verificar(pagina, `${tema} ${onde} ${url}`, tema);
+                }
+                // Tela Clientes (Fase 13, P13-01): ficha e edicao de um cliente da lista.
+                const ficha = await pagina.locator('[data-customer-row] a').first().getAttribute('href');
+                for (const url of [ficha, `${ficha}/editar`]) {
                     await pagina.goto(url);
                     await verificar(pagina, `${tema} ${onde} ${url}`, tema);
                 }

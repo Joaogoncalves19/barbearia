@@ -1,6 +1,6 @@
 # Treinamento — Recepção
 
-**Você usa:** Hoje, Agenda, Atendimentos, Caixa, Pontos de clientes, Vales-presente, cupons e serviços (só
+**Você usa:** Hoje, Agenda, Atendimentos, Caixa, Clientes, Pontos de clientes, Vales-presente, cupons e serviços (só
 consulta) e o link de pagamento de assinatura.
 **Você não vê:** configurações, regras de comissão, repasses, relatórios financeiros, usuários. Desconto
 manual e estorno também não: chame o gerente/proprietário (desconto) ou o financeiro (estorno).
@@ -17,8 +17,10 @@ manual e estorno também não: chame o gerente/proprietário (desconto) ou o fin
 
 - *Agenda → Novo agendamento*: serviço → profissional → horário livre → cliente (busque o cadastrado pelo
   nome, e-mail ou telefone; quem não tem conta vai só com nome e telefone). ✔
-- O painel **ainda não tem tela de Clientes** (cadastrar/editar pelo balcão): o cliente cria a conta pelo
-  site. Ver P13-01 no relatório da Fase 13.
+- **Clientes** — *Clientes e vendas → Clientes*: busque pelo nome, e-mail ou celular e abra a ficha
+  (contato, próximos horários, anotações dos barbeiros, assinatura, pontos e histórico). *Editar* corrige
+  nome, celular e nascimento. ✔ O CPF aparece mascarado; e-mail e senha são do cliente (ele troca pela
+  conta). Cadastro novo: o cliente cria a conta pelo site.
 - **Remarcar / cancelar**: abra o agendamento na agenda e use *Remarcar* ou *Cancelar* (informe o motivo).
   O cliente recebe o e-mail sozinho. ✔
 - **Faltou?** No agendamento, *Não compareceu*. ✔

@@ -105,6 +105,39 @@ Dois caminhos, sem mudar código (D-05, emails.md §7):
 
 Em qualquer caso: SPF, DKIM e DMARC do domínio configurados no DNS antes da virada.
 
+## 5.1 Stripe e e-mail reais: o que o instalador configura
+
+Na Fase 13, a lógica foi provada com um simulador do Stripe e um receptor SMTP locais. As contas reais são
+do **comprador** e só existem na instalação dele. Nada disso vem no pacote, e nenhuma credencial é
+inventada nem guardada no código.
+
+**Stripe**, na conta do comprador, primeiro em **modo teste**:
+1. Chave secreta de teste (`sk_test_...`) em `STRIPE_SECRET`.
+2. Endpoint de webhook `https://dominio/webhooks/stripe`, com os eventos de [webhooks.md](webhooks.md)
+   §1.
+3. Segredo do endpoint (`whsec_...`) em `STRIPE_WEBHOOK_SECRET`. Rodar `php artisan config:cache` de novo.
+4. Ciclo completo com cartões de teste do Stripe:
+   - link ou adesão no agendamento e checkout pago, até a assinatura ficar ativa;
+   - renovação (relógio de teste do Stripe);
+   - falha de cobrança e recuperação;
+   - reenvio do evento pelo painel do Stripe: tem de dar `duplicate`;
+   - cancelamento no fim do período, reativação, reembolso e cancelamento imediato.
+
+   Conferir *Assinaturas → Eventos do Stripe* sem erro pendente.
+5. Depois do aceite: as chaves **reais** e um endpoint real novo, com o segredo novo.
+
+**E-mail** (§5): escolher Resend ou SMTP do servidor (P13-03, por ambiente) e:
+1. Configurar SPF, DKIM e DMARC do domínio no DNS.
+2. Enviar para uma lista-semente (Gmail, Outlook, e-mail do próprio domínio) cada modelo, a partir de
+   ações de teste:
+   - confirmação, remarcação, cancelamento e lembrete;
+   - comprovante;
+   - e-mails da assinatura;
+   - confirmação e troca de e-mail, nova senha e link mágico;
+   - campanha de teste.
+3. Conferir que nada caiu em spam e que o descadastro de 1 clique funciona.
+4. O dono da barbearia aprova o visual no cliente de e-mail dele.
+
 ## 6. Conferência depois de instalar
 
 - [ ] `php artisan app:diagnose` sem FALHA (o agendador e a cópia só ficam OK depois do primeiro minuto/dia).

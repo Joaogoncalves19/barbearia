@@ -2,7 +2,7 @@
     <header class="page-head">
         <div class="stack stack-sm">
             <h1 class="page-head__title">Confirme sua senha</h1>
-            <p class="text-muted">Esta área altera acessos da equipe. Por segurança, confirme sua senha para continuar (vale por 15 minutos).</p>
+            <p class="text-muted">Esta área altera acessos da equipe ou dados pessoais de clientes. Por segurança, confirme sua senha para continuar (vale por 15 minutos).</p>
         </div>
     </header>
 

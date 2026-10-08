@@ -23,7 +23,9 @@ seu e as rotinas de segurança da instalação.
 ## LGPD
 
 - **Excluir os dados de um cliente** (pedido dele): o próprio cliente faz pela conta (*Privacidade →
-  Encerrar conta*). Pedido feito na barbearia ainda não tem tela no painel (P12-03 / P13-01).
+  Encerrar conta*). Pedido feito na barbearia: *Clientes →* ficha do cliente *→ Anonimizar cadastro*,
+  confirme a senha e digite ANONIMIZAR. Antes, cancele o horário marcado, conclua a comanda aberta e
+  encerre a assinatura vigente (a tela diz o que falta). Não dá para desfazer. ✔
 
 ## Segurança da instalação (o que o dono precisa saber)
 

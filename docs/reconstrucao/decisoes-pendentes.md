@@ -118,7 +118,15 @@
 > Fase 7), **P13-03** provedor de e-mail em produção (SMTP do servidor × Resend; D-05), **P13-04** hospedagem
 > e domínio (D-01), **P13-05** funcionamento deduzido do expediente na importação, **P13-06** cliente ativo
 > migrado com e-mail já confirmado, **P13-07** janela e responsável da virada, **P13-08** guarda do sistema
-> antigo arquivado. Ver [relatorio-fase-13.md](relatorio-fase-13.md#9-decisões-pendentes).
+> antigo arquivado. Ver [relatorio-fase-13.md](relatorio-fase-13.md#9-decisões-p13-decididas-pelo-dono-em-2026-10-08).
+>
+> **Decididas pelo dono em 2026-10-08** (o produto nunca foi para produção; nada de virada real agora):
+> - **P13-01:** requisito do produto, **implementada** ([clientes.md](clientes.md));
+> - **P13-02:** funcionalidade futura, não implementar agora;
+> - **P13-03:** manter a arquitetura de provedor; Resend ou SMTP por ambiente;
+> - **P13-04:** hospedagem escolhida na primeira instalação real;
+> - **P13-05** e **P13-06:** manter as regras implementadas;
+> - **P13-07** e **P13-08:** procedimentos para uso futuro; nada apagado nem alterado.
 
 Decisões que **não** cabem ao desenvolvimento. Cada uma traz a recomendação técnica e a fase
 que ela bloqueia. As marcadas 🔴 bloqueiam o início da Fase 1.

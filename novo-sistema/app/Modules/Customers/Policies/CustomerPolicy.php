@@ -37,7 +37,15 @@ class CustomerPolicy
             return $this->self($actor, $customer);
         }
 
-        return $actor->hasPermission('customers.update') ? Response::allow() : Response::deny();
+        if (! $actor->hasPermission('customers.update')) {
+            return Response::deny();
+        }
+
+        // Tela Clientes (P13-01): cadastro anonimizado ou mesclado em outro nao
+        // volta a ter dados pela equipe.
+        return $customer->anonymized_at === null && $customer->merged_into_customer_id === null
+            ? Response::allow()
+            : Response::deny('Este cadastro foi anonimizado ou mesclado e não pode ser editado.');
     }
 
     /**
@@ -63,7 +71,8 @@ class CustomerPolicy
 
     public function anonymize(User|Customer $actor, Customer $customer): bool
     {
-        return $actor instanceof User && $actor->hasPermission('customers.anonymize');
+        return $actor instanceof User && $actor->hasPermission('customers.anonymize')
+            && $customer->anonymized_at === null && $customer->merged_into_customer_id === null;
     }
 
     private function self(Customer $actor, Customer $customer): Response

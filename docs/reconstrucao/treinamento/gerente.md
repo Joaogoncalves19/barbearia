@@ -29,6 +29,8 @@ LGPD (proprietário/financeiro).
 
 ## Clientes e comunicação
 
+- **Clientes** — buscar (também pelo CPF), ver a ficha e o histórico, corrigir nome, celular, nascimento e
+  CPF. ✔ Anonimizar a pedido do cliente é só com o proprietário.
 - **Cupons** — criar, pausar, reativar. **Campanhas** — rascunho, teste para o seu e-mail, disparar; só
   recebe quem aceitou marketing, no máximo 4 por cliente em 30 dias.
 - **E-mails enviados** — o que saiu, o que falhou e por quê; *Reenviar* o que falhou.
@@ -36,6 +38,5 @@ LGPD (proprietário/financeiro).
 
 ## Ainda não existe no sistema novo
 
-- Tela de **Clientes** e **Relatórios gerais** (faturamento, ocupação...) do sistema antigo: decisão
-  pendente antes da virada (P13-01 e P13-02 no relatório da Fase 13). Hoje: *Comissões* e *Caixa* mostram
-  os números do dia a dia.
+- **Relatórios gerais** (faturamento, ocupação...) do sistema antigo: funcionalidade futura (P13-02 no
+  relatório da Fase 13). Hoje: *Comissões* e *Caixa* mostram os números do dia a dia.

@@ -61,29 +61,38 @@ final class CustomerErasure
     ];
 
     /**
-     * O que impede a exclusao agora (mensagens para o cliente). Vazio = pode.
+     * O que impede a exclusao agora. Vazio = pode. Mensagens para o cliente
+     * ou, com $forTeam, para a equipe (tela Clientes do painel, P13-01): as
+     * mesmas regras, so o texto muda.
      *
      * @return list<string>
      */
-    public function blockers(Customer $customer): array
+    public function blockers(Customer $customer, bool $forTeam = false): array
     {
         $motivos = [];
 
         if (DB::table('appointments')->where('customer_id', $customer->id)->whereIn('status', ['pending', 'confirmed'])
             ->where('ends_at', '>', BusinessTime::now())->exists()) {
-            $motivos[] = 'Você tem horário marcado. Cancele o horário (ou aguarde o atendimento) antes de excluir a conta.';
+            $motivos[] = $forTeam
+                ? 'O cliente tem horário marcado. Cancele o horário (ou aguarde o atendimento) antes de anonimizar.'
+                : 'Você tem horário marcado. Cancele o horário (ou aguarde o atendimento) antes de excluir a conta.';
         }
         if (DB::table('attendances')->where('customer_id', $customer->id)
             ->whereIn('status', [AttendanceStatus::Open->value, AttendanceStatus::InProgress->value])->exists()) {
-            $motivos[] = 'Há um atendimento seu em andamento na barbearia.';
+            $motivos[] = $forTeam
+                ? 'O cliente tem um atendimento em andamento. Conclua ou cancele a comanda antes de anonimizar.'
+                : 'Há um atendimento seu em andamento na barbearia.';
         }
         $assinatura = DB::table('subscriptions')->where('customer_id', $customer->id)
             ->whereIn('status', array_map(fn (SubscriptionStatus $s) => $s->value, array_filter(SubscriptionStatus::cases(), fn (SubscriptionStatus $s) => $s->isCurrent())))
             ->value('status');
         if ($assinatura !== null) {
-            $motivos[] = $assinatura === SubscriptionStatus::Pending->value
-                ? 'Há uma assinatura aguardando pagamento. Fale com a barbearia para encerrá-la antes de excluir a conta.'
-                : 'Sua assinatura ainda está vigente. Cancele a renovação e aguarde o fim do período pago (ou fale com a barbearia) antes de excluir a conta.';
+            $motivos[] = match (true) {
+                $forTeam && $assinatura === SubscriptionStatus::Pending->value => 'Há uma assinatura aguardando pagamento. Encerre-a em Assinaturas antes de anonimizar.',
+                $forTeam => 'A assinatura do cliente ainda está vigente. Cancele a renovação e aguarde o fim do período pago (ou cancele agora em Assinaturas) antes de anonimizar.',
+                $assinatura === SubscriptionStatus::Pending->value => 'Há uma assinatura aguardando pagamento. Fale com a barbearia para encerrá-la antes de excluir a conta.',
+                default => 'Sua assinatura ainda está vigente. Cancele a renovação e aguarde o fim do período pago (ou fale com a barbearia) antes de excluir a conta.',
+            };
         }
 
         return $motivos;

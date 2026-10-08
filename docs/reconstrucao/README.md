@@ -163,6 +163,7 @@ plano para reconstruí-lo do zero, por etapas.
 | Documento | Conteúdo |
 |-----------|----------|
 | [area-do-cliente.md](area-do-cliente.md) | Telas da conta, dados pessoais, agendamentos, comprovantes, assinatura, benefícios, avaliações, avisos, ações sensíveis, segurança, testes |
+| [clientes.md](clientes.md) | Tela Clientes do painel (Fase 13, P13-01): lista, ficha, edição, anonimização, permissões por papel, regras e testes |
 | [retencao-lgpd.md](retencao-lgpd.md) | §5 exclusão de conta (anonimização) e §6 exportar meus dados |
 | [relatorio-fase-12.md](relatorio-fase-12.md) | Relatório final da Fase 12 |
 
