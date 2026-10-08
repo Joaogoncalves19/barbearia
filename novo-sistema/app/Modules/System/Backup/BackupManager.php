@@ -161,7 +161,24 @@ class BackupManager
             }
         }
 
-        $zip = $this->openZip($path, $password ?? $this->password());
+        // Copia corrompida pode fazer o zip ou o SQLite lancarem excecao (varia
+        // com a versao da libzip): vira reprovacao, nunca erro do comando.
+        try {
+            return $this->inspect($path, $password ?? $this->password(), $erros);
+        } catch (Throwable $e) {
+            $erros[] = 'Cópia ilegível ou corrompida: '.$e->getMessage();
+
+            return ['ok' => false, 'errors' => $erros, 'manifest' => null];
+        }
+    }
+
+    /**
+     * @param  list<string>  $erros
+     * @return array{ok: bool, errors: list<string>, manifest: array<string, mixed>|null}
+     */
+    private function inspect(string $path, ?string $password, array $erros): array
+    {
+        $zip = $this->openZip($path, $password);
         $bruto = $zip->getFromName('manifest.json');
         $manifesto = is_string($bruto) ? json_decode($bruto, true) : null;
         if (! is_array($manifesto)) {

@@ -118,6 +118,22 @@ class BackupTest extends TestCase
         $this->artisan('app:backup-verify', ['file' => $r['path']])->expectsOutputToContain('REPROVADA')->assertFailed();
     }
 
+    public function test_conferencia_reprova_copia_com_banco_ilegivel_sem_quebrar(): void
+    {
+        // A CI (libzip do Linux) mostrou que copia corrompida pode lancar
+        // excecao no meio da leitura: tem de sair REPROVADA, nao erro.
+        File::ensureDirectoryExists($this->dir.'/copias');
+        $falsa = $this->dir.'/copias/backup-20261001-050000.zip';
+        $zip = new ZipArchive;
+        $zip->open($falsa, ZipArchive::CREATE);
+        $zip->addFromString('manifest.json', (string) json_encode(['database' => ['sha256' => hash('sha256', 'lixo'), 'tables' => ['customers' => 3]], 'files' => []]));
+        $zip->addFromString('database.sqlite', 'lixo');
+        $zip->close();
+
+        $this->artisan('app:backup-verify', ['file' => $falsa])->expectsOutputToContain('REPROVADA')->assertFailed();
+        $this->assertFalse($this->backups()->verify($falsa)['ok']);
+    }
+
     public function test_rotacao_mantem_so_as_mais_recentes(): void
     {
         config(['barbearia.backup.keep' => 2]);
