@@ -266,6 +266,15 @@ profissional, só com o que cada perfil usa.
 | H4 | Sem funcionamento depois da migração: ninguém agendava | Homologação: "Sem dias disponíveis" | Funcionamento deduzido + `agenda.policy` do antigo | `ImportScenariosTest` |
 | H5 | `manual@admin.com` virava e-mail do cliente (lembrete para terceiros) | Homologação: receptor SMTP | `LegacyValue::contactEmail` | `ImportScenariosTest` (caso `AG-MANUAL`) |
 | H6 | Exportação de retorno trazia o que veio da importação (duplicaria no antigo) | Ensaio do retorno | Corte no fim da última importação | `RollbackExportTest` |
+| H7 | Cópia de segurança corrompida fazia `app:backup-verify` sair com "Conferência falhou" (exceção da libzip/SQLite) em vez de **REPROVADA** | CI (Linux; no Windows a libzip devolvia erro sem exceção) | Exceção na leitura vira reprovação com o motivo | `BackupTest` (caso novo com banco ilegível; falha sem a correção) |
+
+Na CI também foram ajustados:
+- as extensões `sqlite3` e `zip` declaradas no passo do PHP (já exigidas em [instalacao.md](instalacao.md) §1);
+- o passo do importador, que passou a usar um banco próprio: ele gravava no mesmo banco dos testes de
+  navegador, e o funcionamento e as regras da agenda trazidos do sistema antigo (H4) mudavam a agenda desses
+  testes;
+- as falhas de teste (PHPUnit e Playwright), que passaram a aparecer como anotações da execução, porque o
+  log do job exige login.
 
 Fora do sistema, também foram ajustados:
 - o simulador do Stripe, que passou a entregar webhooks depois de responder;
@@ -277,7 +286,7 @@ Fora do sistema, também foram ajustados:
 
 | Verificação | Resultado |
 |---|---|
-| PHPUnit (suíte inteira) | **836 passaram** (818 + 18 novos: backup 9, exportação de retorno 3, fotos 2, importador 4) |
+| PHPUnit (suíte inteira) | **837 passaram** (818 + 19 novos: backup 10, exportação de retorno 3, fotos 2, importador 4) |
 | PHPStan | 0 erros |
 | Pint | OK |
 | Build (Vite) | OK (dentro de cada pacote) |
@@ -317,7 +326,7 @@ O modelo de dados **não mudou** (nenhuma migration nova).
 | Monitoramento | ✅ (instalação); monitor externo de `/up` em produção ❌ |
 | Stripe: ciclo em modo teste | Simulador ✅; conta do dono ❌ |
 | E-mail real e aprovação visual | SMTP local ✅; entrega real ❌ |
-| CI verde | _ver entrega_ |
+| CI verde | ✅ run 57 (commit `4319546`): Pint, Larastan, auditoria, PHPUnit, importador e E2E. Os runs 53–56 falharam e levaram às correções da §13 (estilo, H7 e banco próprio do importador) |
 | 30 dias de operação estável; antigo arquivado | ❌ (só depois da virada) |
 
 ## 16. Pendências
