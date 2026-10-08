@@ -346,7 +346,7 @@ O modelo de dados **não mudou** (nenhuma migration nova).
 | Stripe: ciclo completo | ✅ no simulador. A conta do comprador é configurada na instalação dele ([instalacao.md](instalacao.md) §4) |
 | E-mail: todos os modelos e descadastro | ✅ por SMTP local. Entrega real, SPF/DKIM/DMARC: na instalação de cada comprador |
 | Decisões P13-01 a P13-08 | ✅ decididas (§9) |
-| CI verde | Ver a entrega desta correção (o run 57 já estava verde antes dela) |
+| CI verde | ✅ run 59 (commit `8894ad8`, com a tela de Clientes): Pint, Larastan, auditoria, PHPUnit, importador e E2E com os 8 temas. Antes: run 57 |
 | 30 dias de operação estável | Critério da **primeira operação real** ([roadmap.md](roadmap.md)); não se aplica enquanto não houver produção |
 
 ## 16. O que fica para a instalação de cada comprador
