@@ -21,7 +21,8 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: pdo_sqlite, mbstring, intl, fileinfo, gd
+          # sqlite3 e zip: copia de seguranca (Fase 13, instalacao.md §1).
+          extensions: pdo_sqlite, sqlite3, zip, mbstring, intl, fileinfo, gd
           coverage: none
 
       - uses: actions/setup-node@v4
@@ -59,7 +60,12 @@ jobs:
         run: npm run build
 
       - name: Testes PHP (unitários e de integração)
-        run: php artisan test
+        run: php artisan test --log-junit storage/logs/junit.xml
+
+      # Falhas viram anotacoes no resumo da execucao (o log do job exige login).
+      - name: Anotar falhas dos testes PHP
+        if: failure()
+        run: php scripts/ci-anotar-falhas.php storage/logs/junit.xml
 
       - name: Importador com banco antigo fictício (simulação, importação, reexecução)
         run: |
