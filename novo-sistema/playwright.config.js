@@ -27,7 +27,8 @@ export default defineConfig({
     // O servidor embutido do PHP atende uma requisicao por vez (no Windows sempre):
     // com os testes em paralelo as paginas demoram mais que o padrao de 5 s.
     expect: { timeout: 15_000 },
-    reporter: [['list']],
+    // No CI as falhas tambem viram anotacoes da execucao (o log do job exige login).
+    reporter: process.env.CI ? [['list'], ['github']] : [['list']],
     use: {
         baseURL,
         trace: 'retain-on-failure',

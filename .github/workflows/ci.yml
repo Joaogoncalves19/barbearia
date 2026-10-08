@@ -68,7 +68,12 @@ jobs:
         run: php scripts/ci-anotar-falhas.php storage/logs/junit.xml
 
       - name: Importador com banco antigo fictício (simulação, importação, reexecução)
+        # Banco proprio: a importacao traz funcionamento e regras da agenda do
+        # sistema antigo (Fase 13) e nao pode mudar o banco dos testes de navegador.
         run: |
+          export DB_DATABASE="$PWD/storage/importador-ci.sqlite"
+          touch "$DB_DATABASE"
+          php artisan migrate --force
           php artisan legacy:fixture storage/legado-ficticio.sqlite --customers=500 --appointments=3000
           php artisan legacy:import storage/legado-ficticio.sqlite --dry-run
           php artisan legacy:import storage/legado-ficticio.sqlite
